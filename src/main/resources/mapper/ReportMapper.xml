@@ -1,0 +1,523 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.victor.iatms.mappers.ReportMapper">
+
+    <!-- 报告列表查询结果映射 -->
+    <resultMap id="ReportListResultMap" type="com.victor.iatms.entity.dto.ReportListResponseDTO">
+        <id column="report_id" property="reportId"/>
+        <result column="report_name" property="reportName"/>
+        <result column="report_type" property="reportType"/>
+        <result column="project_id" property="projectId"/>
+        <result column="project_name" property="projectName"/>
+        <result column="environment" property="environment"/>
+        <result column="start_time" property="startTime"/>
+        <result column="end_time" property="endTime"/>
+        <result column="duration" property="duration"/>
+        <result column="total_cases" property="totalCases"/>
+        <result column="executed_cases" property="executedCases"/>
+        <result column="passed_cases" property="passedCases"/>
+        <result column="failed_cases" property="failedCases"/>
+        <result column="broken_cases" property="brokenCases"/>
+        <result column="skipped_cases" property="skippedCases"/>
+        <result column="success_rate" property="successRate"/>
+        <result column="report_status" property="reportStatus"/>
+        <result column="file_format" property="fileFormat"/>
+        <result column="file_size" property="fileSize"/>
+        <result column="download_url" property="downloadUrl"/>
+        <result column="generated_by" property="generatedBy"/>
+        <result column="generator_name" property="generatorName"/>
+        <result column="tags_json" property="tags" typeHandler="com.victor.iatms.utils.JsonTypeHandler"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="is_deleted" property="isDeleted"/>
+    </resultMap>
+
+    <!-- 报告统计摘要结果映射 -->
+    <resultMap id="ReportSummaryResultMap" type="com.victor.iatms.entity.dto.ReportSummaryDTO">
+        <result column="total_reports" property="totalReports"/>
+        <result column="by_type" property="byType" typeHandler="com.victor.iatms.utils.JsonTypeHandler"/>
+        <result column="by_status" property="byStatus" typeHandler="com.victor.iatms.utils.JsonTypeHandler"/>
+        <result column="by_environment" property="byEnvironment" typeHandler="com.victor.iatms.utils.JsonTypeHandler"/>
+        <result column="avg_success_rate" property="avgSuccessRate"/>
+    </resultMap>
+
+    <!-- 报告实体结果映射 -->
+    <resultMap id="TestReportSummaryResultMap" type="com.victor.iatms.entity.po.TestReportSummary">
+        <id column="report_id" property="reportId"/>
+        <result column="report_name" property="reportName"/>
+        <result column="report_type" property="reportType"/>
+        <result column="execution_id" property="executionId"/>
+        <result column="project_id" property="projectId"/>
+        <result column="environment" property="environment"/>
+        <result column="start_time" property="startTime"/>
+        <result column="end_time" property="endTime"/>
+        <result column="duration" property="duration"/>
+        <result column="total_cases" property="totalCases"/>
+        <result column="executed_cases" property="executedCases"/>
+        <result column="passed_cases" property="passedCases"/>
+        <result column="failed_cases" property="failedCases"/>
+        <result column="broken_cases" property="brokenCases"/>
+        <result column="skipped_cases" property="skippedCases"/>
+        <result column="success_rate" property="successRate"/>
+        <result column="total_duration" property="totalDuration"/>
+        <result column="avg_duration" property="avgDuration"/>
+        <result column="max_duration" property="maxDuration"/>
+        <result column="min_duration" property="minDuration"/>
+        <result column="report_status" property="reportStatus"/>
+        <result column="file_format" property="fileFormat"/>
+        <result column="file_path" property="filePath"/>
+        <result column="file_size" property="fileSize"/>
+        <result column="download_url" property="downloadUrl"/>
+        <result column="generated_by" property="generatedBy"/>
+        <result column="tags_json" property="tagsJson"/>
+        <result column="summary_json" property="summaryJson"/>
+        <result column="trend_data_json" property="trendDataJson"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+        <result column="is_deleted" property="isDeleted"/>
+        <result column="deleted_at" property="deletedAt"/>
+        <result column="deleted_by" property="deletedBy"/>
+    </resultMap>
+
+    <!-- 报告导出摘要结果映射 -->
+    <resultMap id="ReportExportSummaryResultMap" type="com.victor.iatms.entity.dto.ReportExportResponseDTO$ReportSummaryInfoDTO">
+        <result column="report_id" property="reportId"/>
+        <result column="report_name" property="reportName"/>
+        <result column="report_type" property="reportType"/>
+        <result column="project_id" property="projectId"/>
+        <result column="project_name" property="projectName"/>
+        <result column="environment" property="environment"/>
+        <result column="start_time" property="startTime"/>
+        <result column="end_time" property="endTime"/>
+        <result column="duration" property="duration"/>
+        <result column="total_cases" property="totalCases"/>
+        <result column="executed_cases" property="executedCases"/>
+        <result column="passed_cases" property="passedCases"/>
+        <result column="failed_cases" property="failedCases"/>
+        <result column="broken_cases" property="brokenCases"/>
+        <result column="skipped_cases" property="skippedCases"/>
+        <result column="success_rate" property="successRate"/>
+    </resultMap>
+
+    <!-- 分页查询报告列表 -->
+    <select id="selectReportList" parameterType="com.victor.iatms.entity.dto.ReportListQueryDTO" resultMap="ReportListResultMap">
+        SELECT 
+            trs.report_id,
+            trs.report_name,
+            trs.report_type,
+            trs.project_id,
+            p.name AS project_name,
+            trs.environment,
+            trs.start_time,
+            trs.end_time,
+            trs.duration,
+            trs.total_cases,
+            trs.executed_cases,
+            trs.passed_cases,
+            trs.failed_cases,
+            trs.broken_cases,
+            trs.skipped_cases,
+            trs.success_rate,
+            trs.report_status,
+            trs.file_format,
+            trs.file_size,
+            trs.download_url,
+            trs.generated_by,
+            u.name AS generator_name,
+            trs.tags_json,
+            trs.created_at,
+            trs.is_deleted
+        FROM TestReportSummaries trs
+        LEFT JOIN Projects p ON trs.project_id = p.project_id
+        LEFT JOIN Users u ON trs.generated_by = u.user_id
+        <where>
+            <if test="includeDeleted == null or includeDeleted == false">
+                AND trs.is_deleted = 0
+            </if>
+            <if test="projectId != null">
+                AND trs.project_id = #{projectId}
+            </if>
+            <if test="reportType != null and reportType != ''">
+                AND trs.report_type = #{reportType}
+            </if>
+            <if test="environment != null and environment != ''">
+                AND trs.environment = #{environment}
+            </if>
+            <if test="reportStatus != null and reportStatus != ''">
+                AND trs.report_status = #{reportStatus}
+            </if>
+            <if test="fileFormat != null and fileFormat != ''">
+                AND trs.file_format = #{fileFormat}
+            </if>
+            <if test="startTimeBegin != null">
+                AND trs.start_time >= #{startTimeBegin}
+            </if>
+            <if test="startTimeEnd != null">
+                AND trs.start_time &lt;= #{startTimeEnd}
+            </if>
+            <if test="successRateMin != null">
+                AND trs.success_rate >= #{successRateMin}
+            </if>
+            <if test="successRateMax != null">
+                AND trs.success_rate &lt;= #{successRateMax}
+            </if>
+            <if test="tags != null and tags != ''">
+                AND JSON_CONTAINS(trs.tags_json, #{tags})
+            </if>
+            <if test="searchKeyword != null and searchKeyword != ''">
+                AND (trs.report_name LIKE CONCAT('%', #{searchKeyword}, '%') 
+                     OR JSON_SEARCH(trs.tags_json, 'one', CONCAT('%', #{searchKeyword}, '%')) IS NOT NULL)
+            </if>
+        </where>
+        <choose>
+            <when test="sortBy == 'start_time'">
+                ORDER BY trs.start_time
+                <if test="sortOrder == 'desc'">DESC</if>
+                <if test="sortOrder == 'asc'">ASC</if>
+            </when>
+            <when test="sortBy == 'success_rate'">
+                ORDER BY trs.success_rate
+                <if test="sortOrder == 'desc'">DESC</if>
+                <if test="sortOrder == 'asc'">ASC</if>
+            </when>
+            <when test="sortBy == 'duration'">
+                ORDER BY trs.duration
+                <if test="sortOrder == 'desc'">DESC</if>
+                <if test="sortOrder == 'asc'">ASC</if>
+            </when>
+            <otherwise>
+                ORDER BY trs.created_at
+                <if test="sortOrder == 'desc'">DESC</if>
+                <if test="sortOrder == 'asc'">ASC</if>
+            </otherwise>
+        </choose>
+        <if test="offset != null and pageSize != null">
+            LIMIT #{offset}, #{pageSize}
+        </if>
+    </select>
+
+    <!-- 统计报告总数 -->
+    <select id="countReports" parameterType="com.victor.iatms.entity.dto.ReportListQueryDTO" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM TestReportSummaries trs
+        <where>
+            <if test="includeDeleted == null or includeDeleted == false">
+                AND trs.is_deleted = 0
+            </if>
+            <if test="projectId != null">
+                AND trs.project_id = #{projectId}
+            </if>
+            <if test="reportType != null and reportType != ''">
+                AND trs.report_type = #{reportType}
+            </if>
+            <if test="environment != null and environment != ''">
+                AND trs.environment = #{environment}
+            </if>
+            <if test="reportStatus != null and reportStatus != ''">
+                AND trs.report_status = #{reportStatus}
+            </if>
+            <if test="fileFormat != null and fileFormat != ''">
+                AND trs.file_format = #{fileFormat}
+            </if>
+            <if test="startTimeBegin != null">
+                AND trs.start_time >= #{startTimeBegin}
+            </if>
+            <if test="startTimeEnd != null">
+                AND trs.start_time &lt;= #{startTimeEnd}
+            </if>
+            <if test="successRateMin != null">
+                AND trs.success_rate >= #{successRateMin}
+            </if>
+            <if test="successRateMax != null">
+                AND trs.success_rate &lt;= #{successRateMax}
+            </if>
+            <if test="tags != null and tags != ''">
+                AND JSON_CONTAINS(trs.tags_json, #{tags})
+            </if>
+            <if test="searchKeyword != null and searchKeyword != ''">
+                AND (trs.report_name LIKE CONCAT('%', #{searchKeyword}, '%') 
+                     OR JSON_SEARCH(trs.tags_json, 'one', CONCAT('%', #{searchKeyword}, '%')) IS NOT NULL)
+            </if>
+        </where>
+    </select>
+
+    <!-- 查询报告统计摘要 -->
+    <select id="selectReportSummary" parameterType="com.victor.iatms.entity.dto.ReportListQueryDTO" resultMap="ReportSummaryResultMap">
+        SELECT 
+            COUNT(*) AS total_reports,
+            JSON_OBJECT(
+                'execution', SUM(CASE WHEN report_type = 'execution' THEN 1 ELSE 0 END),
+                'coverage', SUM(CASE WHEN report_type = 'coverage' THEN 1 ELSE 0 END),
+                'trend', SUM(CASE WHEN report_type = 'trend' THEN 1 ELSE 0 END),
+                'comparison', SUM(CASE WHEN report_type = 'comparison' THEN 1 ELSE 0 END),
+                'custom', SUM(CASE WHEN report_type = 'custom' THEN 1 ELSE 0 END)
+            ) AS by_type,
+            JSON_OBJECT(
+                'completed', SUM(CASE WHEN report_status = 'completed' THEN 1 ELSE 0 END),
+                'generating', SUM(CASE WHEN report_status = 'generating' THEN 1 ELSE 0 END),
+                'failed', SUM(CASE WHEN report_status = 'failed' THEN 1 ELSE 0 END)
+            ) AS by_status,
+            JSON_OBJECT(
+                'test', SUM(CASE WHEN environment = 'test' THEN 1 ELSE 0 END),
+                'staging', SUM(CASE WHEN environment = 'staging' THEN 1 ELSE 0 END),
+                'production', SUM(CASE WHEN environment = 'production' THEN 1 ELSE 0 END)
+            ) AS by_environment,
+            AVG(success_rate) AS avg_success_rate
+        FROM TestReportSummaries trs
+        <where>
+            <if test="includeDeleted == null or includeDeleted == false">
+                AND trs.is_deleted = 0
+            </if>
+            <if test="projectId != null">
+                AND trs.project_id = #{projectId}
+            </if>
+            <if test="reportType != null and reportType != ''">
+                AND trs.report_type = #{reportType}
+            </if>
+            <if test="environment != null and environment != ''">
+                AND trs.environment = #{environment}
+            </if>
+            <if test="reportStatus != null and reportStatus != ''">
+                AND trs.report_status = #{reportStatus}
+            </if>
+            <if test="fileFormat != null and fileFormat != ''">
+                AND trs.file_format = #{fileFormat}
+            </if>
+            <if test="startTimeBegin != null">
+                AND trs.start_time >= #{startTimeBegin}
+            </if>
+            <if test="startTimeEnd != null">
+                AND trs.start_time &lt;= #{startTimeEnd}
+            </if>
+            <if test="successRateMin != null">
+                AND trs.success_rate >= #{successRateMin}
+            </if>
+            <if test="successRateMax != null">
+                AND trs.success_rate &lt;= #{successRateMax}
+            </if>
+            <if test="tags != null and tags != ''">
+                AND JSON_CONTAINS(trs.tags_json, #{tags})
+            </if>
+            <if test="searchKeyword != null and searchKeyword != ''">
+                AND (trs.report_name LIKE CONCAT('%', #{searchKeyword}, '%') 
+                     OR JSON_SEARCH(trs.tags_json, 'one', CONCAT('%', #{searchKeyword}, '%')) IS NOT NULL)
+            </if>
+        </where>
+    </select>
+
+    <!-- 根据ID查询报告详情 -->
+    <select id="selectById" parameterType="java.lang.Long" resultMap="TestReportSummaryResultMap">
+        SELECT * FROM TestReportSummaries WHERE report_id = #{reportId}
+    </select>
+
+    <!-- 根据项目ID查询报告列表 -->
+    <select id="selectByProjectId" parameterType="java.lang.Integer" resultMap="TestReportSummaryResultMap">
+        SELECT * FROM TestReportSummaries 
+        WHERE project_id = #{projectId} AND is_deleted = 0
+        ORDER BY created_at DESC
+    </select>
+
+    <!-- 根据执行ID查询报告 -->
+    <select id="selectByExecutionId" parameterType="java.lang.Long" resultMap="TestReportSummaryResultMap">
+        SELECT * FROM TestReportSummaries 
+        WHERE execution_id = #{executionId} AND is_deleted = 0
+        LIMIT 1
+    </select>
+
+    <!-- 插入报告 -->
+    <insert id="insert" parameterType="com.victor.iatms.entity.po.TestReportSummary" useGeneratedKeys="true" keyProperty="reportId">
+        INSERT INTO TestReportSummaries (
+            report_name, report_type, execution_id, project_id, environment,
+            start_time, end_time, duration, total_cases, executed_cases,
+            passed_cases, failed_cases, broken_cases, skipped_cases, success_rate,
+            total_duration, avg_duration, max_duration, min_duration,
+            report_status, file_format, file_path, file_size, download_url,
+            generated_by, tags_json, summary_json, trend_data_json,
+            created_at, updated_at, is_deleted
+        ) VALUES (
+            #{reportName}, #{reportType}, #{executionId}, #{projectId}, #{environment},
+            #{startTime}, #{endTime}, #{duration}, #{totalCases}, #{executedCases},
+            #{passedCases}, #{failedCases}, #{brokenCases}, #{skippedCases}, #{successRate},
+            #{totalDuration}, #{avgDuration}, #{maxDuration}, #{minDuration},
+            #{reportStatus}, #{fileFormat}, #{filePath}, #{fileSize}, #{downloadUrl},
+            #{generatedBy}, #{tagsJson}, #{summaryJson}, #{trendDataJson},
+            #{createdAt}, #{updatedAt}, #{isDeleted}
+        )
+    </insert>
+
+    <!-- 更新报告 -->
+    <update id="update" parameterType="com.victor.iatms.entity.po.TestReportSummary">
+        UPDATE TestReportSummaries SET
+            report_name = #{reportName},
+            report_type = #{reportType},
+            execution_id = #{executionId},
+            project_id = #{projectId},
+            environment = #{environment},
+            start_time = #{startTime},
+            end_time = #{endTime},
+            duration = #{duration},
+            total_cases = #{totalCases},
+            executed_cases = #{executedCases},
+            passed_cases = #{passedCases},
+            failed_cases = #{failedCases},
+            broken_cases = #{brokenCases},
+            skipped_cases = #{skippedCases},
+            success_rate = #{successRate},
+            total_duration = #{totalDuration},
+            avg_duration = #{avgDuration},
+            max_duration = #{maxDuration},
+            min_duration = #{minDuration},
+            report_status = #{reportStatus},
+            file_format = #{fileFormat},
+            file_path = #{filePath},
+            file_size = #{fileSize},
+            download_url = #{downloadUrl},
+            generated_by = #{generatedBy},
+            tags_json = #{tagsJson},
+            summary_json = #{summaryJson},
+            trend_data_json = #{trendDataJson},
+            updated_at = #{updatedAt}
+        WHERE report_id = #{reportId}
+    </update>
+
+    <!-- 逻辑删除报告 -->
+    <update id="deleteById">
+        UPDATE TestReportSummaries SET
+            is_deleted = 1,
+            deleted_at = NOW(),
+            deleted_by = #{deletedBy}
+        WHERE report_id = #{reportId}
+    </update>
+
+    <!-- 物理删除报告 -->
+    <delete id="physicalDeleteById" parameterType="java.lang.Long">
+        DELETE FROM TestReportSummaries WHERE report_id = #{reportId}
+    </delete>
+
+    <!-- 批量逻辑删除报告 -->
+    <update id="batchDeleteByIds">
+        UPDATE TestReportSummaries SET
+            is_deleted = 1,
+            deleted_at = NOW(),
+            deleted_by = #{deletedBy}
+        WHERE report_id IN
+        <foreach collection="reportIds" item="reportId" open="(" separator="," close=")">
+            #{reportId}
+        </foreach>
+    </update>
+
+    <!-- 根据项目ID删除报告 -->
+    <update id="deleteByProjectId">
+        UPDATE TestReportSummaries SET
+            is_deleted = 1,
+            deleted_at = NOW(),
+            deleted_by = #{deletedBy}
+        WHERE project_id = #{projectId}
+    </update>
+
+    <!-- 更新报告状态 -->
+    <update id="updateReportStatus">
+        UPDATE TestReportSummaries SET
+            report_status = #{reportStatus},
+            updated_at = NOW()
+        WHERE report_id = #{reportId}
+    </update>
+
+    <!-- 更新报告文件信息 -->
+    <update id="updateReportFileInfo">
+        UPDATE TestReportSummaries SET
+            file_path = #{filePath},
+            file_size = #{fileSize},
+            download_url = #{downloadUrl},
+            updated_at = NOW()
+        WHERE report_id = #{reportId}
+    </update>
+
+    <!-- ==================== 报告导出相关查询 ==================== -->
+    
+    <!-- 查询报告导出数据（包含报告摘要和统计信息） -->
+    <select id="selectReportExportData" parameterType="java.lang.Long" resultMap="ReportExportSummaryResultMap">
+        SELECT 
+            trs.report_id,
+            trs.report_name,
+            trs.report_type,
+            trs.project_id,
+            p.name AS project_name,
+            trs.environment,
+            trs.start_time,
+            trs.end_time,
+            trs.duration,
+            trs.total_cases,
+            trs.executed_cases,
+            trs.passed_cases,
+            trs.failed_cases,
+            trs.broken_cases,
+            trs.skipped_cases,
+            trs.success_rate
+        FROM TestReportSummaries trs
+        LEFT JOIN Projects p ON trs.project_id = p.project_id
+        WHERE trs.report_id = #{reportId} AND trs.is_deleted = 0
+    </select>
+    
+    <!-- 查询报告测试结果详情（用于导出） -->
+    <select id="selectReportTestResults" resultType="com.victor.iatms.entity.dto.ReportExportResponseDTO$TestCaseResultDTO">
+        SELECT 
+            tcr.result_id,
+            tcr.ref_id AS case_id,
+            tc.case_code,
+            tc.name AS case_name,
+            tcr.status,
+            tcr.duration,
+            tcr.start_time,
+            tcr.end_time,
+            tc.priority,
+            tc.severity,
+            <if test="includeFailureDetails == true">
+                tcr.failure_message,
+                tcr.failure_trace,
+                tcr.failure_type,
+            </if>
+            tcr.environment,
+            tcr.browser,
+            tcr.os,
+            tcr.device,
+            tcr.retry_count,
+            tcr.flaky,
+            <if test="includeAttachments == true">
+                tcr.logs_link,
+                tcr.screenshot_link,
+                tcr.video_link,
+            </if>
+            tcr.tags_json AS tags
+        FROM TestCaseResults tcr
+        LEFT JOIN TestCases tc ON tcr.ref_id = tc.case_id
+        WHERE tcr.report_id = #{reportId} AND tcr.is_deleted = 0
+        ORDER BY tcr.start_time ASC
+    </select>
+    
+    <!-- 查询报告统计信息（按状态、优先级、严重程度） -->
+    <select id="selectReportStatistics" parameterType="java.lang.Long" resultType="com.victor.iatms.entity.dto.ReportExportResponseDTO$ReportStatisticsDTO">
+        SELECT 
+            JSON_OBJECT(
+                'passed', SUM(CASE WHEN tcr.status = 'passed' THEN 1 ELSE 0 END),
+                'failed', SUM(CASE WHEN tcr.status = 'failed' THEN 1 ELSE 0 END),
+                'broken', SUM(CASE WHEN tcr.status = 'broken' THEN 1 ELSE 0 END),
+                'skipped', SUM(CASE WHEN tcr.status = 'skipped' THEN 1 ELSE 0 END)
+            ) AS by_status,
+            JSON_OBJECT(
+                'P0', SUM(CASE WHEN tc.priority = 'P0' THEN 1 ELSE 0 END),
+                'P1', SUM(CASE WHEN tc.priority = 'P1' THEN 1 ELSE 0 END),
+                'P2', SUM(CASE WHEN tc.priority = 'P2' THEN 1 ELSE 0 END),
+                'P3', SUM(CASE WHEN tc.priority = 'P3' THEN 1 ELSE 0 END)
+            ) AS by_priority,
+            JSON_OBJECT(
+                'critical', SUM(CASE WHEN tc.severity = 'critical' THEN 1 ELSE 0 END),
+                'high', SUM(CASE WHEN tc.severity = 'high' THEN 1 ELSE 0 END),
+                'medium', SUM(CASE WHEN tc.severity = 'medium' THEN 1 ELSE 0 END),
+                'low', SUM(CASE WHEN tc.severity = 'low' THEN 1 ELSE 0 END)
+            ) AS by_severity
+        FROM TestCaseResults tcr
+        LEFT JOIN TestCases tc ON tcr.ref_id = tc.case_id
+        WHERE tcr.report_id = #{reportId} AND tcr.is_deleted = 0
+    </select>
+
+</mapper>

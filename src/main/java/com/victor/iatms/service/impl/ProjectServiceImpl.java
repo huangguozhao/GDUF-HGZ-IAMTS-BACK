@@ -15,6 +15,10 @@ import com.victor.iatms.entity.dto.ProjectMembersQueryDTO;
 import com.victor.iatms.entity.dto.ProjectMembersSummaryDTO;
 import com.victor.iatms.entity.dto.ProjectPageResultDTO;
 import com.victor.iatms.entity.dto.ProjectRelationCheckDTO;
+import com.victor.iatms.entity.dto.RecentProjectItemDTO;
+import com.victor.iatms.entity.dto.RecentProjectsQueryDTO;
+import com.victor.iatms.entity.dto.RecentProjectsResponseDTO;
+import com.victor.iatms.entity.dto.TimeRangeDTO;
 import com.victor.iatms.entity.dto.UpdateProjectDTO;
 import com.victor.iatms.entity.dto.UpdateProjectResponseDTO;
 import com.victor.iatms.entity.enums.ModuleStructureEnum;
@@ -801,5 +805,158 @@ public class ProjectServiceImpl implements ProjectService {
         if (project.getUpdatedAt() == null) {
             project.setUpdatedAt(LocalDateTime.now());
         }
+    }
+    
+    @Override
+    public RecentProjectsResponseDTO getRecentProjects(RecentProjectsQueryDTO queryDTO, Integer currentUserId) {
+        // 参数校验
+        validateRecentProjectsQuery(queryDTO);
+
+        // 设置默认值
+        setRecentProjectsDefaultValues(queryDTO);
+
+        // 权限检查
+        if (!hasRecentProjectsPermission(currentUserId)) {
+            throw new IllegalArgumentException("权限不足，无法查看最近编辑项目列表");
+        }
+
+        // 计算时间范围
+        TimeRangeDTO timeRange = calculateTimeRange(queryDTO.getTimeRange());
+
+        // 查询最近编辑的项目列表
+        List<RecentProjectItemDTO> items = projectMapper.selectRecentProjects(queryDTO, currentUserId, timeRange);
+        
+        // 查询总数
+        Long total = projectMapper.countRecentProjects(queryDTO, currentUserId, timeRange);
+
+        // 构建响应DTO
+        RecentProjectsResponseDTO responseDTO = new RecentProjectsResponseDTO();
+        responseDTO.setTotal(total);
+        responseDTO.setItems(items);
+        responseDTO.setPage(queryDTO.getPage());
+        responseDTO.setPageSize(queryDTO.getPageSize());
+        responseDTO.setTimeRange(timeRange);
+
+        return responseDTO;
+    }
+    
+    /**
+     * 验证分页获取最近编辑的项目查询参数
+     */
+    private void validateRecentProjectsQuery(RecentProjectsQueryDTO queryDTO) {
+        if (queryDTO == null) {
+            throw new IllegalArgumentException("查询参数不能为空");
+        }
+        
+        // 验证时间范围
+        if (StringUtils.hasText(queryDTO.getTimeRange())) {
+            if (!isValidTimeRange(queryDTO.getTimeRange())) {
+                throw new IllegalArgumentException("时间范围参数错误");
+            }
+        }
+        
+        // 验证分页大小
+        if (queryDTO.getPageSize() != null && queryDTO.getPageSize() > Constants.MAX_RECENT_PROJECTS_PAGE_SIZE) {
+            throw new IllegalArgumentException("分页大小不能超过" + Constants.MAX_RECENT_PROJECTS_PAGE_SIZE);
+        }
+        
+        // 验证排序字段
+        if (StringUtils.hasText(queryDTO.getSortBy())) {
+            if (!isValidRecentProjectsSortField(queryDTO.getSortBy())) {
+                throw new IllegalArgumentException("排序字段无效");
+            }
+        }
+        
+        // 验证排序顺序
+        if (StringUtils.hasText(queryDTO.getSortOrder())) {
+            if (!"asc".equalsIgnoreCase(queryDTO.getSortOrder()) && 
+                !"desc".equalsIgnoreCase(queryDTO.getSortOrder())) {
+                throw new IllegalArgumentException("排序顺序无效");
+            }
+        }
+    }
+    
+    /**
+     * 设置分页获取最近编辑的项目默认值
+     */
+    private void setRecentProjectsDefaultValues(RecentProjectsQueryDTO queryDTO) {
+        if (!StringUtils.hasText(queryDTO.getTimeRange())) {
+            queryDTO.setTimeRange(Constants.DEFAULT_RECENT_PROJECTS_TIME_RANGE);
+        }
+        if (queryDTO.getIncludeStats() == null) {
+            queryDTO.setIncludeStats(false);
+        }
+        if (!StringUtils.hasText(queryDTO.getSortBy())) {
+            queryDTO.setSortBy(Constants.DEFAULT_RECENT_PROJECTS_SORT_BY);
+        }
+        if (!StringUtils.hasText(queryDTO.getSortOrder())) {
+            queryDTO.setSortOrder(Constants.DEFAULT_SORT_ORDER);
+        }
+        if (queryDTO.getPage() == null || queryDTO.getPage() < 1) {
+            queryDTO.setPage(Constants.DEFAULT_PAGE);
+        }
+        if (queryDTO.getPageSize() == null || queryDTO.getPageSize() < 1) {
+            queryDTO.setPageSize(Constants.DEFAULT_RECENT_PROJECTS_PAGE_SIZE);
+        }
+    }
+    
+    /**
+     * 检查是否有分页获取最近编辑的项目权限
+     */
+    private boolean hasRecentProjectsPermission(Integer userId) {
+        // TODO: 这里应该检查用户的项目成员权限
+        // 暂时返回true，实际应该查询项目成员权限
+        return true;
+    }
+    
+    /**
+     * 验证时间范围是否有效
+     */
+    private boolean isValidTimeRange(String timeRange) {
+        return "1d".equals(timeRange) || "7d".equals(timeRange) || "30d".equals(timeRange);
+    }
+    
+    /**
+     * 验证排序字段是否有效
+     */
+    private boolean isValidRecentProjectsSortField(String sortField) {
+        return "last_accessed".equalsIgnoreCase(sortField) ||
+               "updated_at".equalsIgnoreCase(sortField) ||
+               "created_at".equalsIgnoreCase(sortField);
+    }
+    
+    /**
+     * 计算时间范围
+     */
+    private TimeRangeDTO calculateTimeRange(String timeRange) {
+        LocalDateTime endTime = LocalDateTime.now();
+        LocalDateTime startTime;
+        int days;
+        
+        switch (timeRange) {
+            case "1d":
+                startTime = endTime.minusDays(1);
+                days = 1;
+                break;
+            case "7d":
+                startTime = endTime.minusDays(7);
+                days = 7;
+                break;
+            case "30d":
+                startTime = endTime.minusDays(30);
+                days = 30;
+                break;
+            default:
+                startTime = endTime.minusDays(7);
+                days = 7;
+                break;
+        }
+        
+        TimeRangeDTO timeRangeDTO = new TimeRangeDTO();
+        timeRangeDTO.setStartTime(startTime);
+        timeRangeDTO.setEndTime(endTime);
+        timeRangeDTO.setDays(days);
+        
+        return timeRangeDTO;
     }
 }

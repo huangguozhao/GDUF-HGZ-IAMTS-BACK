@@ -1,18 +1,19 @@
-package com.victor.iatms.entity.po;
+package com.victor.iatms.entity.dto;
 
 import lombok.Data;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
- * 测试报告汇总表实体类
+ * 报告列表响应DTO
  */
 @Data
-public class TestReportSummary {
+public class ReportListResponseDTO {
     
     /**
-     * 报告ID，自增主键
+     * 报告ID
      */
     private Long reportId;
     
@@ -22,19 +23,19 @@ public class TestReportSummary {
     private String reportName;
     
     /**
-     * 报告类型：execution, coverage, trend, comparison, custom
+     * 报告类型
      */
     private String reportType;
     
     /**
-     * 执行记录ID，关联TaskExecutionHistory表
-     */
-    private Long executionId;
-    
-    /**
-     * 项目ID，关联Projects表
+     * 项目ID
      */
     private Integer projectId;
+    
+    /**
+     * 项目名称
+     */
+    private String projectName;
     
     /**
      * 测试环境
@@ -92,39 +93,14 @@ public class TestReportSummary {
     private BigDecimal successRate;
     
     /**
-     * 总执行耗时（毫秒）
-     */
-    private Long totalDuration;
-    
-    /**
-     * 平均用例耗时（毫秒）
-     */
-    private Long avgDuration;
-    
-    /**
-     * 最大用例耗时（毫秒）
-     */
-    private Long maxDuration;
-    
-    /**
-     * 最小用例耗时（毫秒）
-     */
-    private Long minDuration;
-    
-    /**
-     * 报告状态：generating, completed, failed
+     * 报告状态
      */
     private String reportStatus;
     
     /**
-     * 报告格式：html, pdf, excel, json, xml
+     * 文件格式
      */
     private String fileFormat;
-    
-    /**
-     * 报告文件存储路径
-     */
-    private String filePath;
     
     /**
      * 文件大小（字节）
@@ -137,24 +113,19 @@ public class TestReportSummary {
     private String downloadUrl;
     
     /**
-     * 生成人员ID，关联Users表
+     * 生成人员ID
      */
     private Integer generatedBy;
     
     /**
+     * 生成人员姓名
+     */
+    private String generatorName;
+    
+    /**
      * 报告标签
      */
-    private String tagsJson;
-    
-    /**
-     * 汇总统计信息
-     */
-    private String summaryJson;
-    
-    /**
-     * 趋势数据
-     */
-    private String trendDataJson;
+    private List<String> tags;
     
     /**
      * 创建时间
@@ -162,22 +133,7 @@ public class TestReportSummary {
     private LocalDateTime createdAt;
     
     /**
-     * 更新时间
-     */
-    private LocalDateTime updatedAt;
-    
-    /**
-     * 是否删除
+     * 是否已删除
      */
     private Boolean isDeleted;
-    
-    /**
-     * 删除时间
-     */
-    private LocalDateTime deletedAt;
-    
-    /**
-     * 删除人ID
-     */
-    private Integer deletedBy;
 }

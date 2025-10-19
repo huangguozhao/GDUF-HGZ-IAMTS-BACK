@@ -890,10 +890,6 @@ public class Constants {
      * 分页获取测试用例列表相关常量
      */
     public static final String DEFAULT_TEST_CASE_SORT_BY = "created_at";
-    public static final String DEFAULT_SORT_ORDER = "desc";
-    public static final Integer DEFAULT_PAGE = 1;
-    public static final Integer DEFAULT_PAGE_SIZE = 20;
-    public static final Integer MAX_PAGE_SIZE = 100;
     
     /**
      * 测试用例列表查询相关常量
@@ -901,5 +897,195 @@ public class Constants {
     public static final String TEST_CASE_LIST_ERROR_PERMISSION_DENIED = "PERMISSION_DENIED";
     public static final String TEST_CASE_LIST_ERROR_PARAM_INVALID = "PARAM_INVALID";
     public static final String TEST_CASE_LIST_ERROR_QUERY_FAILED = "QUERY_FAILED";
+
+    // ==================== 分页获取最近编辑的项目相关常量 ====================
+    
+    /**
+     * 默认时间范围
+     */
+    public static final String DEFAULT_RECENT_PROJECTS_TIME_RANGE = "7d";
+    
+    /**
+     * 默认排序字段
+     */
+    public static final String DEFAULT_RECENT_PROJECTS_SORT_BY = "last_accessed";
+    
+    /**
+     * 默认分页大小
+     */
+    public static final Integer DEFAULT_RECENT_PROJECTS_PAGE_SIZE = 10;
+    
+    /**
+     * 最大分页大小
+     */
+    public static final Integer MAX_RECENT_PROJECTS_PAGE_SIZE = 20;
+    
+    /**
+     * 分页获取最近编辑的项目错误码
+     */
+    public static final String RECENT_PROJECTS_ERROR_PERMISSION_DENIED = "PERMISSION_DENIED";
+    public static final String RECENT_PROJECTS_ERROR_PARAM_INVALID = "PARAM_INVALID";
+    public static final String RECENT_PROJECTS_ERROR_TIME_RANGE_INVALID = "TIME_RANGE_INVALID";
+    public static final String RECENT_PROJECTS_ERROR_QUERY_FAILED = "QUERY_FAILED";
+
+    // ==================== 报告管理相关常量 ====================
+    
+    /**
+     * 报告管理默认排序字段
+     */
+    public static final String DEFAULT_REPORT_SORT_BY = "created_at";
+    
+    /**
+     * 报告管理默认排序顺序
+     */
+    public static final String DEFAULT_REPORT_SORT_ORDER = "desc";
+    
+    /**
+     * 报告管理默认分页大小
+     */
+    public static final Integer DEFAULT_REPORT_PAGE_SIZE = 20;
+    
+    /**
+     * 报告管理最大分页大小
+     */
+    public static final Integer MAX_REPORT_PAGE_SIZE = 50;
+    
+    /**
+     * 报告管理默认是否包含已删除
+     */
+    public static final Boolean DEFAULT_REPORT_INCLUDE_DELETED = false;
+    
+    /**
+     * 报告管理错误码
+     */
+    public static final String REPORT_LIST_ERROR_PERMISSION_DENIED = "PERMISSION_DENIED";
+    public static final String REPORT_LIST_ERROR_PARAM_INVALID = "PARAM_INVALID";
+    public static final String REPORT_LIST_ERROR_TIME_RANGE_INVALID = "TIME_RANGE_INVALID";
+    public static final String REPORT_LIST_ERROR_QUERY_FAILED = "QUERY_FAILED";
+    
+    /**
+     * 报告类型常量
+     */
+    public static final String REPORT_TYPE_EXECUTION = "execution";
+    public static final String REPORT_TYPE_COVERAGE = "coverage";
+    public static final String REPORT_TYPE_TREND = "trend";
+    public static final String REPORT_TYPE_COMPARISON = "comparison";
+    public static final String REPORT_TYPE_CUSTOM = "custom";
+    
+    /**
+     * 报告状态常量
+     */
+    public static final String REPORT_STATUS_GENERATING = "generating";
+    public static final String REPORT_STATUS_COMPLETED = "completed";
+    public static final String REPORT_STATUS_FAILED = "failed";
+    
+    /**
+     * 报告格式常量
+     */
+    public static final String REPORT_FORMAT_HTML = "html";
+    public static final String REPORT_FORMAT_PDF = "pdf";
+    public static final String REPORT_FORMAT_EXCEL = "excel";
+    public static final String REPORT_FORMAT_JSON = "json";
+    public static final String REPORT_FORMAT_XML = "xml";
+    
+    /**
+     * 报告名称最大长度
+     */
+    public static final Integer REPORT_NAME_MAX_LENGTH = 200;
+    
+    /**
+     * 报告文件路径最大长度
+     */
+    public static final Integer REPORT_FILE_PATH_MAX_LENGTH = 500;
+    
+    /**
+     * 报告下载URL最大长度
+     */
+    public static final Integer REPORT_DOWNLOAD_URL_MAX_LENGTH = 500;
+    
+    /**
+     * 报告标签JSON最大长度
+     */
+    public static final Integer REPORT_TAGS_JSON_MAX_LENGTH = 1000;
+    
+    /**
+     * 报告汇总JSON最大长度
+     */
+    public static final Integer REPORT_SUMMARY_JSON_MAX_LENGTH = 2000;
+    
+    /**
+     * 报告趋势数据JSON最大长度
+     */
+    public static final Integer REPORT_TREND_DATA_JSON_MAX_LENGTH = 5000;
+
+    // ==================== 报告导出相关常量 ====================
+    
+    /**
+     * 支持的导出格式
+     */
+    public static final String[] SUPPORTED_EXPORT_FORMATS = {"excel", "csv", "json"};
+    
+    /**
+     * 默认导出格式
+     */
+    public static final String DEFAULT_EXPORT_FORMAT = "excel";
+    
+    /**
+     * 默认是否包含详细信息
+     */
+    public static final Boolean DEFAULT_INCLUDE_DETAILS = true;
+    
+    /**
+     * 默认是否包含附件信息
+     */
+    public static final Boolean DEFAULT_INCLUDE_ATTACHMENTS = false;
+    
+    /**
+     * 默认是否包含失败详情
+     */
+    public static final Boolean DEFAULT_INCLUDE_FAILURE_DETAILS = true;
+    
+    /**
+     * 默认时区
+     */
+    public static final String DEFAULT_TIMEZONE = "UTC";
+    
+    
+    /**
+     * JSON文件MIME类型
+     */
+    public static final String JSON_MIME_TYPE = "application/json";
+    
+    /**
+     * 导出文件命名格式
+     */
+    public static final String EXPORT_FILE_NAME_FORMAT = "test_report_%d_%s.%s";
+    
+    /**
+     * 导出文件存储路径
+     */
+    public static final String EXPORT_STORAGE_PATH = "/exports/";
+    
+    /**
+     * 导出文件最大大小（100MB）
+     */
+    public static final long MAX_EXPORT_FILE_SIZE = 100 * 1024 * 1024;
+    
+    /**
+     * 导出超时时间（秒）
+     */
+    public static final int EXPORT_TIMEOUT_SECONDS = 300;
+    
+    /**
+     * 导出错误码
+     */
+    public static final String EXPORT_ERROR_REPORT_NOT_FOUND = "REPORT_NOT_FOUND";
+    public static final String EXPORT_ERROR_REPORT_DELETED = "REPORT_DELETED";
+    public static final String EXPORT_ERROR_REPORT_GENERATING = "REPORT_GENERATING";
+    public static final String EXPORT_ERROR_UNSUPPORTED_FORMAT = "UNSUPPORTED_FORMAT";
+    public static final String EXPORT_ERROR_PERMISSION_DENIED = "PERMISSION_DENIED";
+    public static final String EXPORT_ERROR_EXPORT_FAILED = "EXPORT_FAILED";
+    public static final String EXPORT_ERROR_FILE_TOO_LARGE = "FILE_TOO_LARGE";
+    public static final String EXPORT_ERROR_TIMEOUT = "EXPORT_TIMEOUT";
 
 }

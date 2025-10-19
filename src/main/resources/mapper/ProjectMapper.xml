@@ -700,4 +700,135 @@
         AND is_deleted = FALSE
     </update>
 
+    <!-- 分页查询最近编辑的项目列表 -->
+    <select id="selectRecentProjects" resultMap="RecentProjectItemMap">
+        SELECT 
+            p.project_id,
+            p.name,
+            p.description,
+            p.created_at,
+            p.updated_at,
+            u.user_id AS creator_user_id,
+            u.name AS creator_name,
+            u.avatar_url AS creator_avatar_url,
+            COALESCE(pal.last_accessed, p.updated_at) AS last_accessed,
+            COALESCE(pal.access_count, 0) AS access_count,
+            COALESCE(stats.module_count, 0) AS module_count,
+            COALESCE(stats.api_count, 0) AS api_count,
+            COALESCE(stats.case_count, 0) AS case_count,
+            la.activity_type AS last_activity_type,
+            la.activity_description AS last_activity_description,
+            la.activity_timestamp AS last_activity_timestamp,
+            la.activity_user_id AS last_activity_user_id,
+            la.activity_user_name AS last_activity_user_name
+        FROM Projects p
+        LEFT JOIN Users u ON p.creator_id = u.user_id AND u.is_deleted = FALSE
+        LEFT JOIN (
+            SELECT 
+                project_id,
+                MAX(access_time) AS last_accessed,
+                COUNT(*) AS access_count
+            FROM ProjectAccessLogs
+            WHERE user_id = #{currentUserId}
+                AND access_time &gt;= #{startTime}
+                AND access_time &lt;= #{endTime}
+            GROUP BY project_id
+        ) pal ON p.project_id = pal.project_id
+        LEFT JOIN (
+            SELECT 
+                m.project_id,
+                COUNT(DISTINCT m.module_id) AS module_count,
+                COUNT(DISTINCT a.api_id) AS api_count,
+                COUNT(DISTINCT tc.case_id) AS case_count
+            FROM Modules m
+            LEFT JOIN Apis a ON m.module_id = a.module_id AND a.is_deleted = FALSE
+            LEFT JOIN TestCases tc ON a.api_id = tc.api_id AND tc.is_deleted = FALSE
+            WHERE m.is_deleted = FALSE
+            GROUP BY m.project_id
+        ) stats ON p.project_id = stats.project_id
+        LEFT JOIN (
+            SELECT 
+                project_id,
+                activity_type,
+                activity_description,
+                activity_timestamp,
+                activity_user_id,
+                activity_user_name,
+                ROW_NUMBER() OVER (PARTITION BY project_id ORDER BY activity_timestamp DESC) as rn
+            FROM ProjectActivityLogs
+            WHERE activity_timestamp &gt;= #{startTime}
+                AND activity_timestamp &lt;= #{endTime}
+        ) la ON p.project_id = la.project_id AND la.rn = 1
+        WHERE p.is_deleted = FALSE
+            AND (pal.project_id IS NOT NULL OR p.updated_at &gt;= #{startTime})
+        ORDER BY 
+        <choose>
+            <when test="queryDTO.sortBy == 'last_accessed'">
+                COALESCE(pal.last_accessed, p.updated_at)
+            </when>
+            <when test="queryDTO.sortBy == 'updated_at'">
+                p.updated_at
+            </when>
+            <when test="queryDTO.sortBy == 'created_at'">
+                p.created_at
+            </when>
+            <otherwise>
+                COALESCE(pal.last_accessed, p.updated_at)
+            </otherwise>
+        </choose>
+        <choose>
+            <when test="queryDTO.sortOrder == 'asc'">
+                ASC
+            </when>
+            <otherwise>
+                DESC
+            </otherwise>
+        </choose>
+        LIMIT #{queryDTO.pageSize} OFFSET #{queryDTO.pageSize} * (#{queryDTO.page} - 1)
+    </select>
+
+    <!-- 统计最近编辑的项目总数 -->
+    <select id="countRecentProjects" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM Projects p
+        LEFT JOIN (
+            SELECT 
+                project_id,
+                MAX(access_time) AS last_accessed
+            FROM ProjectAccessLogs
+            WHERE user_id = #{currentUserId}
+                AND access_time &gt;= #{startTime}
+                AND access_time &lt;= #{endTime}
+            GROUP BY project_id
+        ) pal ON p.project_id = pal.project_id
+        WHERE p.is_deleted = FALSE
+            AND (pal.project_id IS NOT NULL OR p.updated_at &gt;= #{startTime})
+    </select>
+
+    <!-- 最近编辑的项目项结果映射 -->
+    <resultMap id="RecentProjectItemMap" type="com.victor.iatms.entity.dto.RecentProjectItemDTO">
+        <id column="project_id" property="projectId"/>
+        <result column="name" property="name"/>
+        <result column="description" property="description"/>
+        <result column="last_accessed" property="lastAccessed"/>
+        <result column="access_count" property="accessCount"/>
+        <result column="module_count" property="moduleCount"/>
+        <result column="api_count" property="apiCount"/>
+        <result column="case_count" property="caseCount"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+        <association property="creatorInfo" javaType="com.victor.iatms.entity.dto.CreatorInfoDTO">
+            <id column="creator_user_id" property="userId"/>
+            <result column="creator_name" property="name"/>
+            <result column="creator_avatar_url" property="avatarUrl"/>
+        </association>
+        <association property="lastActivity" javaType="com.victor.iatms.entity.dto.LastActivityDTO">
+            <result column="last_activity_type" property="type"/>
+            <result column="last_activity_description" property="description"/>
+            <result column="last_activity_timestamp" property="timestamp"/>
+            <result column="last_activity_user_id" property="userId"/>
+            <result column="last_activity_user_name" property="userName"/>
+        </association>
+    </resultMap>
+
 </mapper>

@@ -1,8 +1,6 @@
 package com.victor.iatms.controller;
 
 import com.victor.iatms.annotation.GlobalInterceptor;
-import com.victor.iatms.entity.dto.AddTestCaseDTO;
-import com.victor.iatms.entity.dto.AddTestCaseResponseDTO;
 import com.victor.iatms.entity.dto.CreateTestCaseDTO;
 import com.victor.iatms.entity.dto.CreateTestCaseResponseDTO;
 import com.victor.iatms.entity.dto.TestCaseListQueryDTO;
@@ -54,41 +52,6 @@ public class TestCaseController {
                 return ResponseVO.forbidden(e.getMessage());
             } else {
                 return ResponseVO.businessError(e.getMessage());
-            }
-        } catch (Exception e) {
-            return ResponseVO.serverError("创建测试用例失败：" + e.getMessage());
-        }
-    }
-    
-    /**
-     * 添加测试用例
-     * 
-     * @param addTestCaseDTO 添加测试用例请求
-     * @return 创建的测试用例信息
-     */
-    @PostMapping
-    @GlobalInterceptor(checkLogin = true)
-    public ResponseVO<AddTestCaseResponseDTO> addTestCase(@RequestBody AddTestCaseDTO addTestCaseDTO) {
-        try {
-            // TODO: 从当前用户上下文获取用户ID
-            Integer currentUserId = 1; // 临时硬编码，实际应该从认证上下文获取
-
-            AddTestCaseResponseDTO result = testCaseService.addTestCase(addTestCaseDTO, currentUserId);
-            return ResponseVO.success("测试用例创建成功", result);
-
-        } catch (IllegalArgumentException e) {
-            // 根据不同的错误类型返回不同的错误响应
-            if (e.getMessage().contains("接口不存在") ||
-                e.getMessage().contains("接口已禁用")) {
-                return ResponseVO.notFound(e.getMessage());
-            } else if (e.getMessage().contains("权限不足")) {
-                return ResponseVO.forbidden(e.getMessage());
-            } else if (e.getMessage().contains("用例编码已存在") ||
-                     e.getMessage().contains("模板用例不存在") ||
-                     e.getMessage().contains("参数验证失败")) {
-                return ResponseVO.businessError(e.getMessage());
-            } else {
-                return ResponseVO.paramError(e.getMessage());
             }
         } catch (Exception e) {
             return ResponseVO.serverError("创建测试用例失败：" + e.getMessage());

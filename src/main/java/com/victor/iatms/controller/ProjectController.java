@@ -12,6 +12,8 @@ import com.victor.iatms.entity.dto.ProjectMembersPageResultDTO;
 import com.victor.iatms.entity.dto.ProjectMembersQueryDTO;
 import com.victor.iatms.entity.dto.ProjectPageResultDTO;
 import com.victor.iatms.entity.dto.ProjectRelationCheckDTO;
+import com.victor.iatms.entity.dto.RecentProjectsQueryDTO;
+import com.victor.iatms.entity.dto.RecentProjectsResponseDTO;
 import com.victor.iatms.entity.dto.UpdateProjectDTO;
 import com.victor.iatms.entity.dto.UpdateProjectResponseDTO;
 import com.victor.iatms.entity.po.Project;
@@ -464,6 +466,39 @@ public class ProjectController {
         }
         if (queryDTO.getPageSize() != null && queryDTO.getPageSize() < 1) {
             throw new IllegalArgumentException("每页条数必须大于0");
+        }
+    }
+    
+    /**
+     * 分页获取最近编辑的项目
+     * 
+     * @param queryDTO 查询参数
+     * @return 分页的最近编辑项目列表
+     */
+    @GetMapping("/recent-projects")
+    @GlobalInterceptor(checkLogin = true)
+    public ResponseVO<RecentProjectsResponseDTO> getRecentProjects(RecentProjectsQueryDTO queryDTO) {
+        try {
+            // TODO: 从当前用户上下文获取用户ID
+            Integer currentUserId = 1; // 临时硬编码，实际应该从认证上下文获取
+
+            RecentProjectsResponseDTO result = projectService.getRecentProjects(queryDTO, currentUserId);
+            return ResponseVO.success("查询成功", result);
+
+        } catch (IllegalArgumentException e) {
+            // 根据不同的错误类型返回不同的错误响应
+            if (e.getMessage().contains("权限不足")) {
+                return ResponseVO.forbidden(e.getMessage());
+            } else if (e.getMessage().contains("参数验证失败") ||
+                     e.getMessage().contains("时间范围参数错误") ||
+                     e.getMessage().contains("排序字段无效") ||
+                     e.getMessage().contains("分页大小不能超过")) {
+                return ResponseVO.paramError(e.getMessage());
+            } else {
+                return ResponseVO.businessError(e.getMessage());
+            }
+        } catch (Exception e) {
+            return ResponseVO.serverError("查询最近编辑项目失败：" + e.getMessage());
         }
     }
 }

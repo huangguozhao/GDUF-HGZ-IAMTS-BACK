@@ -8,6 +8,9 @@ import com.victor.iatms.entity.dto.ProjectListResponseDTO;
 import com.victor.iatms.entity.dto.ProjectMemberDTO;
 import com.victor.iatms.entity.dto.ProjectMembersQueryDTO;
 import com.victor.iatms.entity.dto.ProjectMembersSummaryDTO;
+import com.victor.iatms.entity.dto.RecentProjectItemDTO;
+import com.victor.iatms.entity.dto.RecentProjectsQueryDTO;
+import com.victor.iatms.entity.dto.TimeRangeDTO;
 import com.victor.iatms.entity.dto.UpdateProjectResponseDTO;
 import com.victor.iatms.entity.po.Project;
 import org.apache.ibatis.annotations.Mapper;
@@ -194,4 +197,26 @@ public interface ProjectMapper {
      * @return 影响行数
      */
     int cascadeDeleteTestCases(@Param("projectId") Integer projectId, @Param("deletedBy") Integer deletedBy);
+    
+    /**
+     * 分页查询最近编辑的项目列表
+     * @param queryDTO 查询参数
+     * @param currentUserId 当前用户ID
+     * @param timeRange 时间范围
+     * @return 最近编辑的项目列表
+     */
+    List<RecentProjectItemDTO> selectRecentProjects(@Param("queryDTO") RecentProjectsQueryDTO queryDTO, 
+                                                    @Param("currentUserId") Integer currentUserId,
+                                                    @Param("timeRange") TimeRangeDTO timeRange);
+    
+    /**
+     * 统计最近编辑的项目总数
+     * @param queryDTO 查询参数
+     * @param currentUserId 当前用户ID
+     * @param timeRange 时间范围
+     * @return 总数
+     */
+    Long countRecentProjects(@Param("queryDTO") RecentProjectsQueryDTO queryDTO, 
+                            @Param("currentUserId") Integer currentUserId,
+                            @Param("timeRange") TimeRangeDTO timeRange);
 }
