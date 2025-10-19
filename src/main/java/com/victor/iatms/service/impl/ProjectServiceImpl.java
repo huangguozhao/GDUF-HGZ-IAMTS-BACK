@@ -18,7 +18,7 @@ import com.victor.iatms.entity.dto.ProjectRelationCheckDTO;
 import com.victor.iatms.entity.dto.UpdateProjectDTO;
 import com.victor.iatms.entity.dto.UpdateProjectResponseDTO;
 import com.victor.iatms.entity.enums.ModuleStructureEnum;
-import com.victor.iatms.entity.enums.ProjectMemberSortFieldEnum;
+import com.victor.iatms.entity.enums.ModuleSortFieldEnum;
 import com.victor.iatms.entity.enums.ProjectSortFieldEnum;
 import com.victor.iatms.entity.enums.SortOrderEnum;
 import com.victor.iatms.entity.po.Project;
@@ -68,6 +68,8 @@ public class ProjectServiceImpl implements ProjectService {
             modules = buildModuleTree(modules);
         } else {
             modules = projectMapper.selectModuleListFlat(queryDTO);
+            // 为平铺结构添加层级和路径信息
+            addLevelAndPathInfo(modules);
         }
         
         // 统计总数
@@ -534,6 +536,16 @@ public class ProjectServiceImpl implements ProjectService {
         if (!StringUtils.hasText(queryDTO.getSortOrder())) {
             queryDTO.setSortOrder(Constants.DEFAULT_SORT_ORDER);
         }
+        
+        // 验证排序字段
+        if (!ModuleSortFieldEnum.isValidSortField(queryDTO.getSortBy())) {
+            queryDTO.setSortBy(Constants.DEFAULT_MODULE_SORT_BY);
+        }
+        
+        // 验证排序顺序
+        if (!SortOrderEnum.isValidSortOrder(queryDTO.getSortOrder())) {
+            queryDTO.setSortOrder(Constants.DEFAULT_SORT_ORDER);
+        }
     }
     
     /**
@@ -567,6 +579,52 @@ public class ProjectServiceImpl implements ProjectService {
         }
         
         return rootModules;
+    }
+    
+    /**
+     * 为平铺结构添加层级和路径信息
+     */
+    private void addLevelAndPathInfo(List<ModuleDTO> modules) {
+        if (modules == null || modules.isEmpty()) {
+            return;
+        }
+        
+        // 创建模块ID到模块的映射
+        java.util.Map<Integer, ModuleDTO> moduleMap = new java.util.HashMap<>();
+        for (ModuleDTO module : modules) {
+            moduleMap.put(module.getModuleId(), module);
+        }
+        
+        // 为每个模块计算层级和路径
+        for (ModuleDTO module : modules) {
+            calculateLevelAndPath(module, moduleMap);
+        }
+    }
+    
+    /**
+     * 计算模块的层级和路径
+     */
+    private void calculateLevelAndPath(ModuleDTO module, java.util.Map<Integer, ModuleDTO> moduleMap) {
+        if (module.getParentModuleId() == null) {
+            // 根模块
+            module.setLevel(1);
+            module.setPath(module.getName());
+        } else {
+            // 子模块
+            ModuleDTO parent = moduleMap.get(module.getParentModuleId());
+            if (parent != null) {
+                // 递归计算父模块的层级和路径
+                if (parent.getLevel() == null) {
+                    calculateLevelAndPath(parent, moduleMap);
+                }
+                module.setLevel(parent.getLevel() + 1);
+                module.setPath(parent.getPath() + "/" + module.getName());
+            } else {
+                // 父模块不存在，设为根模块
+                module.setLevel(1);
+                module.setPath(module.getName());
+            }
+        }
     }
     
     /**

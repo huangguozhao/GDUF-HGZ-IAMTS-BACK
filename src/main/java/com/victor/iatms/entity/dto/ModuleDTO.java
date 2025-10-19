@@ -59,7 +59,7 @@ public class ModuleDTO {
     /**
      * 标签
      */
-    private String tags;
+    private List<String> tags;
     
     /**
      * 创建人ID

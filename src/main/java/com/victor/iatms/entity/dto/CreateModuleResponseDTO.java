@@ -1,27 +1,28 @@
-package com.victor.iatms.entity.po;
+package com.victor.iatms.entity.dto;
 
 import lombok.Data;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
- * 模块实体类
+ * 创建模块响应DTO
  */
 @Data
-public class Module {
+public class CreateModuleResponseDTO {
     
     /**
-     * 模块ID，自增主键
+     * 模块ID
      */
     private Integer moduleId;
     
     /**
-     * 模块编码，项目内唯一
+     * 模块编码
      */
     private String moduleCode;
     
     /**
-     * 项目ID，关联Projects表的主键
+     * 项目ID
      */
     private Integer projectId;
     
@@ -46,7 +47,7 @@ public class Module {
     private Integer sortOrder;
     
     /**
-     * 模块状态：active, inactive, archived
+     * 模块状态
      */
     private String status;
     
@@ -56,24 +57,24 @@ public class Module {
     private Integer ownerId;
     
     /**
-     * 标签信息，JSON格式
+     * 模块负责人姓名
      */
-    private String tags;
+    private String ownerName;
     
     /**
-     * 版本号
+     * 标签信息
      */
-    private String version;
+    private List<String> tags;
     
     /**
-     * 创建人ID，关联用户表
+     * 创建人ID
      */
     private Integer createdBy;
     
     /**
-     * 更新人ID
+     * 创建人姓名
      */
-    private Integer updatedBy;
+    private String creatorName;
     
     /**
      * 创建时间
@@ -84,19 +85,4 @@ public class Module {
      * 更新时间
      */
     private LocalDateTime updatedAt;
-    
-    /**
-     * 是否删除
-     */
-    private Boolean isDeleted;
-    
-    /**
-     * 删除时间
-     */
-    private LocalDateTime deletedAt;
-    
-    /**
-     * 删除人ID
-     */
-    private Integer deletedBy;
 }

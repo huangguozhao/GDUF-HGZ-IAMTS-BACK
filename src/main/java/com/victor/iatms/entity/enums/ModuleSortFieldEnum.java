@@ -36,6 +36,9 @@ public enum ModuleSortFieldEnum {
         return desc;
     }
     
+    /**
+     * 根据代码获取枚举
+     */
     public static ModuleSortFieldEnum getByCode(String code) {
         for (ModuleSortFieldEnum field : values()) {
             if (field.getCode().equals(code)) {
@@ -43,5 +46,12 @@ public enum ModuleSortFieldEnum {
             }
         }
         return null;
+    }
+    
+    /**
+     * 验证排序字段是否有效
+     */
+    public static boolean isValidSortField(String sortField) {
+        return getByCode(sortField) != null;
     }
 }

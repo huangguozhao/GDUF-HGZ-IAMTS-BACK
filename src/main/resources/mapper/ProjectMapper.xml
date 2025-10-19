@@ -28,7 +28,7 @@
         <result column="description" property="description"/>
         <result column="sort_order" property="sortOrder"/>
         <result column="status" property="status"/>
-        <result column="tags" property="tags"/>
+        <result column="tags" property="tags" typeHandler="com.victor.iatms.utils.JsonTypeHandler"/>
         <result column="creator_id" property="createdBy"/>
         <result column="creator_name" property="creatorName"/>
         <result column="created_at" property="createdAt"/>

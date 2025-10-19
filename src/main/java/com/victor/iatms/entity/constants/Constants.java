@@ -736,5 +736,93 @@ public class Constants {
     public static final String MODULE_SORT_BY_SORT_ORDER = "sort_order";
     public static final String MODULE_SORT_BY_NAME = "name";
     public static final String MODULE_SORT_BY_CREATED_AT = "created_at";
+    
+    /**
+     * 模块编码相关常量
+     */
+    public static final Integer MODULE_CODE_MAX_LENGTH = 50;
+    public static final Integer MODULE_NAME_MAX_LENGTH = 255;
+    public static final Integer MODULE_DESCRIPTION_MAX_LENGTH = 1000;
+    
+    /**
+     * 模块编码格式验证
+     */
+    public static final String MODULE_CODE_PATTERN = "^[A-Z0-9_]+$";
+    
+    /**
+     * 系统模块相关常量
+     */
+    public static final String SYSTEM_MODULE_CODE_PREFIX = "SYS_";
+    public static final String SYSTEM_MODULE_NAME_KEYWORD = "系统";
+    
+    /**
+     * 模块删除相关常量
+     */
+    public static final String MODULE_DELETE_ERROR_MODULE_NOT_FOUND = "MODULE_NOT_FOUND";
+    public static final String MODULE_DELETE_ERROR_MODULE_ALREADY_DELETED = "MODULE_ALREADY_DELETED";
+    public static final String MODULE_DELETE_ERROR_CANNOT_DELETE_SYSTEM_MODULE = "CANNOT_DELETE_SYSTEM_MODULE";
+    public static final String MODULE_DELETE_ERROR_HAS_CHILD_MODULES = "HAS_CHILD_MODULES";
+    public static final String MODULE_DELETE_ERROR_HAS_APIS = "HAS_APIS";
+    public static final String MODULE_DELETE_ERROR_MODULE_IN_USE = "MODULE_IN_USE";
+    public static final String MODULE_DELETE_ERROR_PERMISSION_DENIED = "PERMISSION_DENIED";
+    public static final String MODULE_DELETE_ERROR_DELETE_FAILED = "DELETE_FAILED";
+    
+    /**
+     * 模块修改相关常量
+     */
+    public static final String MODULE_UPDATE_ERROR_MODULE_NOT_FOUND = "MODULE_NOT_FOUND";
+    public static final String MODULE_UPDATE_ERROR_MODULE_ALREADY_DELETED = "MODULE_ALREADY_DELETED";
+    public static final String MODULE_UPDATE_ERROR_CANNOT_UPDATE_SYSTEM_MODULE = "CANNOT_UPDATE_SYSTEM_MODULE";
+    public static final String MODULE_UPDATE_ERROR_MODULE_CODE_EXISTS = "MODULE_CODE_EXISTS";
+    public static final String MODULE_UPDATE_ERROR_PARENT_MODULE_NOT_FOUND = "PARENT_MODULE_NOT_FOUND";
+    public static final String MODULE_UPDATE_ERROR_CIRCULAR_REFERENCE = "CIRCULAR_REFERENCE";
+    public static final String MODULE_UPDATE_ERROR_OWNER_NOT_FOUND = "OWNER_NOT_FOUND";
+    public static final String MODULE_UPDATE_ERROR_PERMISSION_DENIED = "PERMISSION_DENIED";
+    public static final String MODULE_UPDATE_ERROR_UPDATE_FAILED = "UPDATE_FAILED";
+    
+    /**
+     * 接口相关常量
+     */
+    public static final String DEFAULT_API_STATUS = "active";
+    public static final String DEFAULT_API_SORT_BY = "created_at";
+    
+    /**
+     * 接口列表相关常量
+     */
+    public static final String API_LIST_ERROR_MODULE_NOT_FOUND = "MODULE_NOT_FOUND";
+    public static final String API_LIST_ERROR_MODULE_ALREADY_DELETED = "MODULE_ALREADY_DELETED";
+    public static final String API_LIST_ERROR_PERMISSION_DENIED = "PERMISSION_DENIED";
+    public static final String API_LIST_ERROR_QUERY_FAILED = "QUERY_FAILED";
+    
+    /**
+     * 测试用例相关常量
+     */
+    public static final String DEFAULT_TEST_CASE_PRIORITY = "P2";
+    public static final String DEFAULT_TEST_CASE_SEVERITY = "medium";
+    public static final Boolean DEFAULT_TEST_CASE_ENABLED = true;
+    public static final Boolean DEFAULT_TEST_CASE_TEMPLATE = false;
+    public static final String DEFAULT_VERSION = "1.0";
+    
+    /**
+     * 测试用例编码相关常量
+     */
+    public static final Integer TEST_CASE_CODE_MAX_LENGTH = 50;
+    public static final Integer TEST_CASE_NAME_MAX_LENGTH = 255;
+    public static final Integer TEST_CASE_DESCRIPTION_MAX_LENGTH = 1000;
+    
+    /**
+     * 测试用例编码格式验证
+     */
+    public static final String TEST_CASE_CODE_PATTERN = "^[A-Z0-9_-]+$";
+    
+    /**
+     * 测试用例创建相关常量
+     */
+    public static final String TEST_CASE_CREATE_ERROR_API_NOT_FOUND = "API_NOT_FOUND";
+    public static final String TEST_CASE_CREATE_ERROR_API_DISABLED = "API_DISABLED";
+    public static final String TEST_CASE_CREATE_ERROR_CASE_CODE_EXISTS = "CASE_CODE_EXISTS";
+    public static final String TEST_CASE_CREATE_ERROR_TEMPLATE_NOT_FOUND = "TEMPLATE_NOT_FOUND";
+    public static final String TEST_CASE_CREATE_ERROR_PERMISSION_DENIED = "PERMISSION_DENIED";
+    public static final String TEST_CASE_CREATE_ERROR_CREATE_FAILED = "CREATE_FAILED";
 
 }

@@ -3,7 +3,7 @@
 <mapper namespace="com.victor.iatms.mappers.TestCaseMapper">
 
     <!-- 测试用例结果映射 -->
-    <resultMap id="TestCaseDTOResultMap" type="com.victor.iatms.entity.dto.TestCaseDTO">
+    <resultMap id="TestCaseMap" type="com.victor.iatms.entity.po.TestCase">
         <id column="case_id" property="caseId"/>
         <result column="case_code" property="caseCode"/>
         <result column="api_id" property="apiId"/>
@@ -11,338 +11,160 @@
         <result column="description" property="description"/>
         <result column="priority" property="priority"/>
         <result column="severity" property="severity"/>
-        <result column="tags" property="tagsJson" javaType="java.lang.String"/>
+        <result column="tags" property="tags"/>
+        <result column="pre_conditions" property="preConditions"/>
+        <result column="test_steps" property="testSteps"/>
+        <result column="request_override" property="requestOverride"/>
+        <result column="expected_http_status" property="expectedHttpStatus"/>
+        <result column="expected_response_schema" property="expectedResponseSchema"/>
+        <result column="expected_response_body" property="expectedResponseBody"/>
+        <result column="assertions" property="assertions"/>
+        <result column="extractors" property="extractors"/>
+        <result column="validators" property="validators"/>
         <result column="is_enabled" property="isEnabled"/>
         <result column="is_template" property="isTemplate"/>
+        <result column="template_id" property="templateId"/>
         <result column="version" property="version"/>
         <result column="created_by" property="createdBy"/>
-        <result column="creator_name" property="creatorName"/>
+        <result column="updated_by" property="updatedBy"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+        <result column="is_deleted" property="isDeleted"/>
+        <result column="deleted_at" property="deletedAt"/>
+        <result column="deleted_by" property="deletedBy"/>
+    </resultMap>
+
+    <!-- 创建测试用例响应结果映射 -->
+    <resultMap id="CreateTestCaseResponseMap" type="com.victor.iatms.entity.dto.CreateTestCaseResponseDTO">
+        <id column="case_id" property="caseId"/>
+        <result column="case_code" property="caseCode"/>
+        <result column="api_id" property="apiId"/>
+        <result column="name" property="name"/>
         <result column="created_at" property="createdAt"/>
         <result column="updated_at" property="updatedAt"/>
     </resultMap>
 
-    <!-- 分页查询测试用例列表 -->
-    <select id="findTestCaseList" resultMap="TestCaseDTOResultMap">
-        SELECT 
-            tc.case_id,
-            tc.case_code,
-            tc.api_id,
-            tc.name,
-            tc.description,
-            tc.priority,
-            tc.severity,
-            tc.tags,
-            tc.is_enabled,
-            tc.is_template,
-            tc.version,
-            tc.created_by,
-            u.name AS creator_name,
-            tc.created_at,
-            tc.updated_at
-        FROM TestCases tc
-        LEFT JOIN Users u ON tc.created_by = u.user_id
-        <where>
-            tc.is_deleted = FALSE
-            AND tc.api_id = #{query.apiId}
-            <if test="query.name != null and query.name != ''">
-                AND tc.name LIKE CONCAT('%', #{query.name}, '%')
-            </if>
-            <if test="query.priority != null and query.priority != ''">
-                AND tc.priority = #{query.priority}
-            </if>
-            <if test="query.severity != null and query.severity != ''">
-                AND tc.severity = #{query.severity}
-            </if>
-            <if test="query.isEnabled != null">
-                AND tc.is_enabled = #{query.isEnabled}
-            </if>
-            <if test="query.isTemplate != null">
-                AND tc.is_template = #{query.isTemplate}
-            </if>
-            <if test="query.createdBy != null">
-                AND tc.created_by = #{query.createdBy}
-            </if>
-            <if test="query.tags != null and query.tags.length > 0">
-                AND (
-                <foreach collection="query.tags" item="tag" separator=" OR ">
-                    JSON_CONTAINS(tc.tags, JSON_QUOTE(#{tag}))
-                </foreach>
-                )
-            </if>
-        </where>
-        ORDER BY tc.created_at DESC
-    </select>
-
-    <!-- 统计测试用例总数 -->
-    <select id="countTestCases" resultType="long">
-        SELECT COUNT(*)
-        FROM TestCases tc
-        <where>
-            tc.is_deleted = FALSE
-            AND tc.api_id = #{query.apiId}
-            <if test="query.name != null and query.name != ''">
-                AND tc.name LIKE CONCAT('%', #{query.name}, '%')
-            </if>
-            <if test="query.priority != null and query.priority != ''">
-                AND tc.priority = #{query.priority}
-            </if>
-            <if test="query.severity != null and query.severity != ''">
-                AND tc.severity = #{query.severity}
-            </if>
-            <if test="query.isEnabled != null">
-                AND tc.is_enabled = #{query.isEnabled}
-            </if>
-            <if test="query.isTemplate != null">
-                AND tc.is_template = #{query.isTemplate}
-            </if>
-            <if test="query.createdBy != null">
-                AND tc.created_by = #{query.createdBy}
-            </if>
-            <if test="query.tags != null and query.tags.length > 0">
-                AND (
-                <foreach collection="query.tags" item="tag" separator=" OR ">
-                    JSON_CONTAINS(tc.tags, JSON_QUOTE(#{tag}))
-                </foreach>
-                )
-            </if>
-        </where>
-    </select>
-
     <!-- 插入测试用例 -->
-    <insert id="insertTestCase" parameterType="com.victor.iatms.entity.po.TestCase" useGeneratedKeys="true" keyProperty="caseId">
+    <insert id="insert" parameterType="com.victor.iatms.entity.po.TestCase" useGeneratedKeys="true" keyProperty="caseId">
         INSERT INTO TestCases (
-            case_code, api_id, name, description, priority, severity, tags,
-            pre_conditions, test_steps, request_override, expected_http_status,
-            expected_response_schema, expected_response_body, assertions,
-            extractors, validators, is_enabled, is_template, template_id,
-            version, created_by, updated_by, created_at, updated_at,
-            is_deleted, deleted_at, deleted_by
+            case_code,
+            api_id,
+            name,
+            description,
+            priority,
+            severity,
+            tags,
+            pre_conditions,
+            test_steps,
+            request_override,
+            expected_http_status,
+            expected_response_schema,
+            expected_response_body,
+            assertions,
+            extractors,
+            validators,
+            is_enabled,
+            is_template,
+            template_id,
+            version,
+            created_by,
+            updated_by,
+            created_at,
+            updated_at,
+            is_deleted
         ) VALUES (
-            #{caseCode}, #{apiId}, #{name}, #{description}, #{priority}, #{severity}, #{tags},
-            #{preConditions}, #{testSteps}, #{requestOverride}, #{expectedHttpStatus},
-            #{expectedResponseSchema}, #{expectedResponseBody}, #{assertions},
-            #{extractors}, #{validators}, #{isEnabled}, #{isTemplate}, #{templateId},
-            #{version}, #{createdBy}, #{updatedBy}, NOW(), NOW(),
-            FALSE, NULL, NULL
+            #{caseCode},
+            #{apiId},
+            #{name},
+            #{description},
+            #{priority},
+            #{severity},
+            #{tags},
+            #{preConditions},
+            #{testSteps},
+            #{requestOverride},
+            #{expectedHttpStatus},
+            #{expectedResponseSchema},
+            #{expectedResponseBody},
+            #{assertions},
+            #{extractors},
+            #{validators},
+            #{isEnabled},
+            #{isTemplate},
+            #{templateId},
+            #{version},
+            #{createdBy},
+            #{updatedBy},
+            #{createdAt},
+            #{updatedAt},
+            #{isDeleted}
         )
     </insert>
 
-    <!-- 根据接口ID统计用例数量 -->
-    <select id="countByApiId" parameterType="int" resultType="long">
+    <!-- 根据ID查询测试用例 -->
+    <select id="selectById" resultMap="TestCaseMap">
+        SELECT 
+            case_id,
+            case_code,
+            api_id,
+            name,
+            description,
+            priority,
+            severity,
+            tags,
+            pre_conditions,
+            test_steps,
+            request_override,
+            expected_http_status,
+            expected_response_schema,
+            expected_response_body,
+            assertions,
+            extractors,
+            validators,
+            is_enabled,
+            is_template,
+            template_id,
+            version,
+            created_by,
+            updated_by,
+            created_at,
+            updated_at,
+            is_deleted,
+            deleted_at,
+            deleted_by
+        FROM TestCases
+        WHERE case_id = #{caseId}
+    </select>
+
+    <!-- 检查用例编码在指定接口下是否存在 -->
+    <select id="checkCaseCodeExists" resultType="int">
+        SELECT COUNT(*)
+        FROM TestCases
+        WHERE case_code = #{caseCode}
+          AND api_id = #{apiId}
+          AND is_deleted = FALSE
+    </select>
+
+    <!-- 统计指定接口下的测试用例数量 -->
+    <select id="countByApiId" resultType="int">
         SELECT COUNT(*)
         FROM TestCases
         WHERE api_id = #{apiId}
-        AND is_deleted = FALSE
+          AND is_deleted = FALSE
     </select>
 
-    <!-- 根据接口ID和用例编码统计数量 -->
-    <select id="countByApiIdAndCaseCode" resultType="long">
-        SELECT COUNT(*)
-        FROM TestCases
-        WHERE api_id = #{apiId}
-        AND case_code = #{caseCode}
-        AND is_deleted = FALSE
-    </select>
-
-    <!-- 根据用例ID查询测试用例 -->
-    <select id="findById" parameterType="int" resultType="com.victor.iatms.entity.po.TestCase">
+    <!-- 根据测试用例ID获取创建后的测试用例详情 -->
+    <select id="selectCreateTestCaseDetailById" resultMap="CreateTestCaseResponseMap">
         SELECT 
-            case_id, case_code, api_id, name, description, priority, severity, tags,
-            pre_conditions, test_steps, request_override, expected_http_status,
-            expected_response_schema, expected_response_body, assertions,
-            extractors, validators, is_enabled, is_template, template_id,
-            version, created_by, updated_by, created_at, updated_at,
-            is_deleted, deleted_at, deleted_by
-        FROM TestCases 
-        WHERE case_id = #{caseId}
-        AND is_deleted = FALSE
-    </select>
-
-    <!-- 根据用例ID和接口ID查询测试用例 -->
-    <select id="findByIdAndApiId" resultType="com.victor.iatms.entity.po.TestCase">
-        SELECT 
-            case_id, case_code, api_id, name, description, priority, severity, tags,
-            pre_conditions, test_steps, request_override, expected_http_status,
-            expected_response_schema, expected_response_body, assertions,
-            extractors, validators, is_enabled, is_template, template_id,
-            version, created_by, updated_by, created_at, updated_at,
-            is_deleted, deleted_at, deleted_by
-        FROM TestCases 
-        WHERE case_id = #{caseId}
-        AND api_id = #{apiId}
-        AND is_deleted = FALSE
-    </select>
-
-    <!-- 更新测试用例 -->
-    <update id="updateTestCase" parameterType="com.victor.iatms.entity.po.TestCase">
-        UPDATE TestCases
-        <set>
-            <if test="caseCode != null and caseCode != ''">
-                case_code = #{caseCode},
-            </if>
-            <if test="name != null and name != ''">
-                name = #{name},
-            </if>
-            <if test="description != null">
-                description = #{description},
-            </if>
-            <if test="priority != null and priority != ''">
-                priority = #{priority},
-            </if>
-            <if test="severity != null and severity != ''">
-                severity = #{severity},
-            </if>
-            <if test="tags != null">
-                tags = #{tags},
-            </if>
-            <if test="preConditions != null">
-                pre_conditions = #{preConditions},
-            </if>
-            <if test="testSteps != null">
-                test_steps = #{testSteps},
-            </if>
-            <if test="requestOverride != null">
-                request_override = #{requestOverride},
-            </if>
-            <if test="expectedHttpStatus != null">
-                expected_http_status = #{expectedHttpStatus},
-            </if>
-            <if test="expectedResponseSchema != null">
-                expected_response_schema = #{expectedResponseSchema},
-            </if>
-            <if test="expectedResponseBody != null">
-                expected_response_body = #{expectedResponseBody},
-            </if>
-            <if test="assertions != null">
-                assertions = #{assertions},
-            </if>
-            <if test="extractors != null">
-                extractors = #{extractors},
-            </if>
-            <if test="validators != null">
-                validators = #{validators},
-            </if>
-            <if test="isEnabled != null">
-                is_enabled = #{isEnabled},
-            </if>
-            <if test="isTemplate != null">
-                is_template = #{isTemplate},
-            </if>
-            <if test="templateId != null">
-                template_id = #{templateId},
-            </if>
-            <if test="version != null and version != ''">
-                version = #{version},
-            </if>
-            <if test="updatedBy != null">
-                updated_by = #{updatedBy},
-            </if>
-            updated_at = NOW()
-        </set>
-        WHERE case_id = #{caseId}
-        AND is_deleted = FALSE
-    </update>
-
-    <!-- 根据接口ID和用例编码统计数量（排除指定用例ID） -->
-    <select id="countByApiIdAndCaseCodeExcludeId" resultType="long">
-        SELECT COUNT(*)
-        FROM TestCases
-        WHERE api_id = #{apiId}
-        AND case_code = #{caseCode}
-        AND case_id != #{excludeCaseId}
-        AND is_deleted = FALSE
-    </select>
-
-    <!-- 软删除测试用例 -->
-    <update id="deleteTestCase">
-        UPDATE TestCases
-        SET is_deleted = TRUE,
-            deleted_at = NOW(),
-            deleted_by = #{deletedBy}
-        WHERE case_id = #{caseId}
-        AND is_deleted = FALSE
-    </update>
-
-    <!-- 检查用例是否已被删除 -->
-    <select id="isTestCaseDeleted" parameterType="int" resultType="boolean">
-        SELECT is_deleted
+            case_id,
+            case_code,
+            api_id,
+            name,
+            created_at,
+            updated_at
         FROM TestCases
         WHERE case_id = #{caseId}
-    </select>
-
-    <!-- 批量插入测试用例 -->
-    <insert id="batchInsertTestCases" parameterType="java.util.List">
-        INSERT INTO TestCases (
-            case_code, api_id, name, description, priority, severity, tags,
-            pre_conditions, test_steps, request_override, expected_http_status,
-            expected_response_schema, expected_response_body, assertions,
-            extractors, validators, is_enabled, is_template, template_id,
-            version, created_by, created_at, updated_at
-        ) VALUES
-        <foreach collection="testCases" item="testCase" separator=",">
-            (
-                #{testCase.caseCode}, #{testCase.apiId}, #{testCase.name}, #{testCase.description},
-                #{testCase.priority}, #{testCase.severity}, #{testCase.tags},
-                #{testCase.preConditions}, #{testCase.testSteps}, #{testCase.requestOverride},
-                #{testCase.expectedHttpStatus}, #{testCase.expectedResponseSchema},
-                #{testCase.expectedResponseBody}, #{testCase.assertions},
-                #{testCase.extractors}, #{testCase.validators}, #{testCase.isEnabled},
-                #{testCase.isTemplate}, #{testCase.templateId}, #{testCase.version},
-                #{testCase.createdBy}, NOW(), NOW()
-            )
-        </foreach>
-    </insert>
-
-    <!-- 根据接口ID和用例编码列表查询已存在的用例 -->
-    <select id="findExistingCaseCodes" resultType="string">
-        SELECT case_code
-        FROM TestCases
-        WHERE api_id = #{apiId}
-        AND case_code IN
-        <foreach collection="caseCodes" item="caseCode" open="(" separator="," close=")">
-            #{caseCode}
-        </foreach>
-        AND is_deleted = FALSE
-    </select>
-
-    <!-- 查询用于导出的测试用例列表 -->
-    <select id="findTestCasesForExport" resultType="com.victor.iatms.entity.dto.ExportTestCaseDTO">
-        SELECT 
-            tc.case_code,
-            tc.name,
-            tc.description,
-            tc.priority,
-            tc.severity,
-            tc.tags AS tagsJson,
-            tc.pre_conditions,
-            tc.test_steps,
-            tc.request_override,
-            tc.expected_http_status,
-            tc.expected_response_schema,
-            tc.expected_response_body,
-            tc.assertions,
-            tc.extractors,
-            tc.validators,
-            tc.is_enabled,
-            tc.is_template,
-            tc.version,
-            tc.created_by,
-            u.name AS creator_name,
-            tc.created_at,
-            tc.updated_at
-        FROM TestCases tc
-        LEFT JOIN Users u ON tc.created_by = u.user_id
-        <where>
-            tc.is_deleted = FALSE
-            AND tc.api_id = #{apiId}
-            <if test="includeDisabled == null or includeDisabled == false">
-                AND tc.is_enabled = TRUE
-            </if>
-            <if test="includeTemplates == null or includeTemplates == false">
-                AND tc.is_template = FALSE
-            </if>
-        </where>
-        ORDER BY tc.created_at DESC
+          AND is_deleted = FALSE
     </select>
 
 </mapper>

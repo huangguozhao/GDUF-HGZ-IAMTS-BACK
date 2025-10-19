@@ -2,9 +2,8 @@ package com.victor.iatms.entity.dto;
 
 import lombok.Data;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 创建测试用例请求DTO
@@ -13,22 +12,23 @@ import java.util.List;
 public class CreateTestCaseDTO {
 
     /**
+     * 接口ID
+     */
+    private Integer apiId;
+
+    /**
      * 用例编码，如不提供则自动生成
      */
-    @Size(max = 50, message = "用例编码长度不能超过50个字符")
     private String caseCode;
 
     /**
      * 用例名称
      */
-    @NotBlank(message = "用例名称不能为空")
-    @Size(max = 255, message = "用例名称长度不能超过255个字符")
     private String name;
 
     /**
      * 用例描述
      */
-    @Size(max = 1000, message = "用例描述长度不能超过1000个字符")
     private String description;
 
     /**
@@ -49,17 +49,17 @@ public class CreateTestCaseDTO {
     /**
      * 前置条件配置
      */
-    private String preConditions;
+    private List<Map<String, Object>> preConditions;
 
     /**
      * 测试步骤
      */
-    private String testSteps;
+    private List<Map<String, Object>> testSteps;
 
     /**
      * 请求参数覆盖配置
      */
-    private String requestOverride;
+    private Map<String, Object> requestOverride;
 
     /**
      * 预期HTTP状态码
@@ -69,7 +69,7 @@ public class CreateTestCaseDTO {
     /**
      * 预期响应Schema
      */
-    private String expectedResponseSchema;
+    private Map<String, Object> expectedResponseSchema;
 
     /**
      * 预期响应体
@@ -79,17 +79,17 @@ public class CreateTestCaseDTO {
     /**
      * 断言规则
      */
-    private String assertions;
+    private List<Map<String, Object>> assertions;
 
     /**
      * 响应提取规则
      */
-    private String extractors;
+    private List<Map<String, Object>> extractors;
 
     /**
      * 验证器配置
      */
-    private String validators;
+    private List<Map<String, Object>> validators;
 
     /**
      * 是否启用
