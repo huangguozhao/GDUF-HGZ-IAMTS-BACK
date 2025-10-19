@@ -1,0 +1,747 @@
+package com.victor.iatms.service.impl;
+
+import com.victor.iatms.entity.constants.Constants;
+import com.victor.iatms.entity.dto.AddProjectDTO;
+import com.victor.iatms.entity.dto.AddProjectResponseDTO;
+import com.victor.iatms.entity.dto.ModuleDTO;
+import com.victor.iatms.entity.dto.ModuleListQueryDTO;
+import com.victor.iatms.entity.dto.ModuleListResponseDTO;
+import com.victor.iatms.entity.dto.ProjectDeleteResultDTO;
+import com.victor.iatms.entity.dto.ProjectListQueryDTO;
+import com.victor.iatms.entity.dto.ProjectListResponseDTO;
+import com.victor.iatms.entity.dto.ProjectMemberDTO;
+import com.victor.iatms.entity.dto.ProjectMembersPageResultDTO;
+import com.victor.iatms.entity.dto.ProjectMembersQueryDTO;
+import com.victor.iatms.entity.dto.ProjectMembersSummaryDTO;
+import com.victor.iatms.entity.dto.ProjectPageResultDTO;
+import com.victor.iatms.entity.dto.ProjectRelationCheckDTO;
+import com.victor.iatms.entity.dto.UpdateProjectDTO;
+import com.victor.iatms.entity.dto.UpdateProjectResponseDTO;
+import com.victor.iatms.entity.enums.ModuleStructureEnum;
+import com.victor.iatms.entity.enums.ProjectMemberSortFieldEnum;
+import com.victor.iatms.entity.enums.ProjectSortFieldEnum;
+import com.victor.iatms.entity.enums.SortOrderEnum;
+import com.victor.iatms.entity.po.Project;
+import com.victor.iatms.mappers.ProjectMapper;
+import com.victor.iatms.service.ProjectService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * 项目服务实现类
+ */
+@Service
+public class ProjectServiceImpl implements ProjectService {
+    
+    @Autowired
+    private ProjectMapper projectMapper;
+    
+    @Override
+    public ModuleListResponseDTO getModuleList(ModuleListQueryDTO queryDTO) {
+        // 参数校验
+        validateModuleListQuery(queryDTO);
+        
+        // 检查项目是否存在
+        Project project = projectMapper.selectById(queryDTO.getProjectId());
+        if (project == null) {
+            throw new IllegalArgumentException("项目不存在");
+        }
+        
+        // 检查项目是否已被删除
+        if (project.getIsDeleted()) {
+            throw new IllegalArgumentException("项目已被删除");
+        }
+        
+        // 设置默认值
+        setModuleQueryDefaultValues(queryDTO);
+        
+        // 查询模块列表
+        List<ModuleDTO> modules;
+        if (ModuleStructureEnum.TREE.getCode().equals(queryDTO.getStructure())) {
+            modules = projectMapper.selectModuleListTree(queryDTO);
+            // 构建树形结构
+            modules = buildModuleTree(modules);
+        } else {
+            modules = projectMapper.selectModuleListFlat(queryDTO);
+        }
+        
+        // 统计总数
+        Integer totalModules = projectMapper.countModules(queryDTO);
+        
+        // 构建响应
+        ModuleListResponseDTO response = new ModuleListResponseDTO();
+        response.setProjectId(queryDTO.getProjectId());
+        response.setProjectName(project.getName());
+        response.setTotalModules(totalModules);
+        response.setModules(modules);
+        
+        return response;
+    }
+    
+    @Override
+    public ProjectMembersPageResultDTO findProjectMembers(ProjectMembersQueryDTO queryDTO) {
+        // 参数校验
+        validateProjectMembersQuery(queryDTO);
+        
+        // 检查项目是否存在
+        Project project = projectMapper.selectById(queryDTO.getProjectId());
+        if (project == null) {
+            throw new IllegalArgumentException("项目不存在");
+        }
+        
+        // 检查项目是否已被删除
+        if (project.getIsDeleted()) {
+            throw new IllegalArgumentException("项目已被删除");
+        }
+        
+        // 设置默认值
+        setDefaultValues(queryDTO);
+        
+        // 计算分页偏移量
+        int offset = (queryDTO.getPage() - 1) * queryDTO.getPageSize();
+        queryDTO.setOffset(offset);
+        
+        // 查询成员列表
+        List<ProjectMemberDTO> members = projectMapper.selectProjectMembers(queryDTO);
+        
+        // 查询总数
+        Long total = projectMapper.countProjectMembers(queryDTO);
+        
+        // 查询统计摘要
+        ProjectMembersSummaryDTO summary = projectMapper.selectProjectMembersSummary(queryDTO.getProjectId());
+        
+        // 构建结果
+        ProjectMembersPageResultDTO result = new ProjectMembersPageResultDTO();
+        result.setTotal(total);
+        result.setItems(members);
+        result.setPage(queryDTO.getPage());
+        result.setPageSize(queryDTO.getPageSize());
+        result.setSummary(summary);
+        
+        return result;
+    }
+    
+    @Override
+    public ProjectPageResultDTO getProjectList(ProjectListQueryDTO queryDTO) {
+        // 参数校验和默认值设置
+        validateAndSetDefaults(queryDTO);
+        
+        // 计算分页偏移量
+        int offset = (queryDTO.getPage() - 1) * queryDTO.getPageSize();
+        queryDTO.setOffset(offset);
+        
+        // 查询项目列表
+        List<ProjectListResponseDTO> items = projectMapper.selectProjectList(queryDTO);
+        
+        // 查询总数
+        Long total = projectMapper.countProjects(queryDTO);
+        
+        // 构建分页结果
+        ProjectPageResultDTO result = new ProjectPageResultDTO();
+        result.setTotal(total);
+        result.setItems(items);
+        result.setPage(queryDTO.getPage());
+        result.setPageSize(queryDTO.getPageSize());
+        
+        return result;
+    }
+    
+    @Override
+    public Project getProjectById(Integer projectId) {
+        if (projectId == null) {
+            throw new IllegalArgumentException("项目ID不能为空");
+        }
+        return projectMapper.selectById(projectId);
+    }
+    
+    @Override
+    public Project getProjectByCode(String projectCode) {
+        if (!StringUtils.hasText(projectCode)) {
+            throw new IllegalArgumentException("项目编码不能为空");
+        }
+        return projectMapper.selectByCode(projectCode);
+    }
+    
+    @Override
+    public Integer createProject(Project project) {
+        // 参数校验
+        validateProject(project);
+        
+        // 检查项目编码是否已存在
+        if (checkProjectCodeExists(project.getProjectCode(), null)) {
+            throw new IllegalArgumentException("项目编码已存在");
+        }
+        
+        // 设置默认值
+        setProjectDefaults(project);
+        
+        // 插入项目
+        int result = projectMapper.insert(project);
+        if (result > 0) {
+            return project.getProjectId();
+        }
+        throw new RuntimeException("创建项目失败");
+    }
+    
+    @Override
+    public UpdateProjectResponseDTO editProject(Integer projectId, UpdateProjectDTO updateProjectDTO, Integer updatedBy) {
+        // 参数校验
+        validateEditProject(projectId, updateProjectDTO, updatedBy);
+        
+        // 检查项目是否存在
+        Project existingProject = projectMapper.selectById(projectId);
+        if (existingProject == null) {
+            throw new IllegalArgumentException("项目不存在");
+        }
+        
+        // 检查项目是否已被删除
+        if (existingProject.getIsDeleted()) {
+            throw new IllegalArgumentException("项目已被删除，无法编辑");
+        }
+        
+        // 检查是否为系统项目
+        if (isSystemProject(existingProject)) {
+            throw new IllegalArgumentException("不能编辑系统项目");
+        }
+        
+        // 检查权限（只能编辑自己创建的项目）
+        if (!existingProject.getCreatedBy().equals(updatedBy)) {
+            throw new IllegalArgumentException("只能编辑自己创建的项目");
+        }
+        
+        // 检查项目名称是否已存在（如果更新了名称）
+        if (StringUtils.hasText(updateProjectDTO.getName()) && 
+            !updateProjectDTO.getName().equals(existingProject.getName())) {
+            if (checkProjectNameExists(updateProjectDTO.getName(), projectId)) {
+                throw new IllegalArgumentException("项目名称已被其他项目使用");
+            }
+        }
+        
+        // 更新项目信息
+        Project projectToUpdate = new Project();
+        projectToUpdate.setProjectId(projectId);
+        
+        // 只更新提供的字段
+        if (StringUtils.hasText(updateProjectDTO.getName())) {
+            projectToUpdate.setName(updateProjectDTO.getName());
+        }
+        if (updateProjectDTO.getDescription() != null) {
+            projectToUpdate.setDescription(updateProjectDTO.getDescription());
+        }
+        
+        projectToUpdate.setUpdatedBy(updatedBy);
+        
+        // 执行更新
+        int result = projectMapper.updateById(projectToUpdate);
+        if (result <= 0) {
+            throw new RuntimeException("更新项目失败");
+        }
+        
+        // 查询更新后的项目详情
+        UpdateProjectResponseDTO responseDTO = projectMapper.selectProjectForUpdate(projectId);
+        if (responseDTO == null) {
+            throw new RuntimeException("获取项目详情失败");
+        }
+        
+        return responseDTO;
+    }
+    
+    @Override
+    public Boolean updateProject(Project project) {
+        if (project.getProjectId() == null) {
+            throw new IllegalArgumentException("项目ID不能为空");
+        }
+        
+        // 检查项目是否存在
+        Project existingProject = projectMapper.selectById(project.getProjectId());
+        if (existingProject == null) {
+            throw new IllegalArgumentException("项目不存在");
+        }
+        
+        // 如果更新了项目编码，检查是否重复
+        if (StringUtils.hasText(project.getProjectCode()) && 
+            !project.getProjectCode().equals(existingProject.getProjectCode())) {
+            if (checkProjectCodeExists(project.getProjectCode(), project.getProjectId())) {
+                throw new IllegalArgumentException("项目编码已存在");
+            }
+        }
+        
+        // 更新项目
+        int result = projectMapper.updateById(project);
+        return result > 0;
+    }
+    
+    @Override
+    public Boolean deleteProject(Integer projectId, Integer deletedBy) {
+        if (projectId == null) {
+            throw new IllegalArgumentException("项目ID不能为空");
+        }
+        
+        // 检查项目是否存在
+        Project existingProject = projectMapper.selectById(projectId);
+        if (existingProject == null) {
+            throw new IllegalArgumentException("项目不存在");
+        }
+        
+        // 逻辑删除项目
+        int result = projectMapper.deleteById(projectId, deletedBy);
+        return result > 0;
+    }
+    
+    @Override
+    public ProjectDeleteResultDTO safeDeleteProject(Integer projectId, Integer deletedBy, Boolean forceDelete) {
+        ProjectDeleteResultDTO result = new ProjectDeleteResultDTO();
+        
+        try {
+            // 参数校验
+            if (projectId == null) {
+                throw new IllegalArgumentException("项目ID不能为空");
+            }
+            if (deletedBy == null) {
+                throw new IllegalArgumentException("删除人ID不能为空");
+            }
+            
+            // 检查项目是否存在
+            Project existingProject = projectMapper.selectById(projectId);
+            if (existingProject == null) {
+                result.setSuccess(false);
+                result.setMessage("项目不存在");
+                result.setErrorCode("PROJECT_NOT_FOUND");
+                return result;
+            }
+            
+            // 检查项目是否已被删除
+            if (existingProject.getIsDeleted()) {
+                result.setSuccess(false);
+                result.setMessage("项目已被删除");
+                result.setErrorCode("PROJECT_ALREADY_DELETED");
+                return result;
+            }
+            
+            // 检查是否为系统项目
+            if (isSystemProject(existingProject)) {
+                result.setSuccess(false);
+                result.setMessage("不能删除系统项目");
+                result.setErrorCode("CANNOT_DELETE_SYSTEM_PROJECT");
+                return result;
+            }
+            
+            // 检查权限（只能删除自己创建的项目）
+            if (!existingProject.getCreatedBy().equals(deletedBy)) {
+                result.setSuccess(false);
+                result.setMessage("只能删除自己创建的项目");
+                result.setErrorCode("PERMISSION_DENIED");
+                return result;
+            }
+            
+            // 检查关联数据
+            ProjectRelationCheckDTO relationCheck = checkProjectRelations(projectId);
+            if (!forceDelete && !relationCheck.getCanDelete()) {
+                result.setSuccess(false);
+                result.setMessage("项目存在关联数据，无法删除");
+                result.setErrorCode("HAS_RELATED_DATA");
+                return result;
+            }
+            
+            // 执行级联删除
+            int deletedModulesCount = 0;
+            int deletedApisCount = 0;
+            int deletedTestCasesCount = 0;
+            
+            if (relationCheck.getHasModules()) {
+                deletedModulesCount = projectMapper.cascadeDeleteModules(projectId, deletedBy);
+            }
+            if (relationCheck.getHasApis()) {
+                deletedApisCount = projectMapper.cascadeDeleteApis(projectId, deletedBy);
+            }
+            if (relationCheck.getHasTestCases()) {
+                deletedTestCasesCount = projectMapper.cascadeDeleteTestCases(projectId, deletedBy);
+            }
+            
+            // 删除项目本身
+            int projectDeleteResult = projectMapper.deleteById(projectId, deletedBy);
+            if (projectDeleteResult <= 0) {
+                result.setSuccess(false);
+                result.setMessage("删除项目失败");
+                result.setErrorCode("DELETE_FAILED");
+                return result;
+            }
+            
+            // 设置成功结果
+            result.setSuccess(true);
+            result.setMessage("项目删除成功");
+            result.setDeletedModulesCount(deletedModulesCount);
+            result.setDeletedApisCount(deletedApisCount);
+            result.setDeletedTestCasesCount(deletedTestCasesCount);
+            
+        } catch (IllegalArgumentException e) {
+            result.setSuccess(false);
+            result.setMessage(e.getMessage());
+            result.setErrorCode("PARAM_ERROR");
+        } catch (Exception e) {
+            result.setSuccess(false);
+            result.setMessage("删除项目失败：" + e.getMessage());
+            result.setErrorCode("SYSTEM_ERROR");
+        }
+        
+        return result;
+    }
+    
+    @Override
+    public ProjectRelationCheckDTO checkProjectRelations(Integer projectId) {
+        ProjectRelationCheckDTO result = new ProjectRelationCheckDTO();
+        
+        try {
+            // 检查关联模块
+            int modulesCount = projectMapper.checkProjectHasModules(projectId);
+            result.setHasModules(modulesCount > 0);
+            result.setModulesCount(modulesCount);
+            
+            // 检查关联接口
+            int apisCount = projectMapper.checkProjectHasApis(projectId);
+            result.setHasApis(apisCount > 0);
+            result.setApisCount(apisCount);
+            
+            // 检查关联用例
+            int testCasesCount = projectMapper.checkProjectHasTestCases(projectId);
+            result.setHasTestCases(testCasesCount > 0);
+            result.setTestCasesCount(testCasesCount);
+            
+            // 检查关联测试报告
+            int testReportsCount = projectMapper.checkProjectHasTestReports(projectId);
+            result.setHasTestReports(testReportsCount > 0);
+            result.setTestReportsCount(testReportsCount);
+            
+            // 判断是否可以删除
+            boolean canDelete = modulesCount == 0 && apisCount == 0 && testCasesCount == 0 && testReportsCount == 0;
+            result.setCanDelete(canDelete);
+            
+            // 设置需要级联删除的数据类型
+            List<String> cascadeTypes = new ArrayList<>();
+            if (modulesCount > 0) cascadeTypes.add("modules");
+            if (apisCount > 0) cascadeTypes.add("apis");
+            if (testCasesCount > 0) cascadeTypes.add("testCases");
+            if (testReportsCount > 0) cascadeTypes.add("testReports");
+            result.setCascadeDeleteTypes(cascadeTypes.toArray(new String[0]));
+            
+        } catch (Exception e) {
+            result.setCanDelete(false);
+        }
+        
+        return result;
+    }
+    
+    /**
+     * 检查是否为系统项目
+     */
+    private boolean isSystemProject(Project project) {
+        // 可以根据项目名称、编码或其他标识来判断是否为系统项目
+        // 这里简单示例：项目名称包含"系统"或编码以"SYS"开头
+        return project.getName().contains("系统") || 
+               (project.getProjectCode() != null && project.getProjectCode().startsWith("SYS"));
+    }
+    
+    @Override
+    public AddProjectResponseDTO addProject(AddProjectDTO addProjectDTO, Integer creatorId) {
+        // 参数校验
+        validateAddProject(addProjectDTO, creatorId);
+        
+        // 检查项目名称是否已存在
+        if (checkProjectNameExists(addProjectDTO.getName(), null)) {
+            throw new IllegalArgumentException("项目名称已存在");
+        }
+        
+        // 创建项目实体
+        Project project = new Project();
+        project.setName(addProjectDTO.getName());
+        project.setDescription(addProjectDTO.getDescription());
+        project.setCreatedBy(creatorId);
+        
+        // 设置默认值
+        setProjectDefaults(project);
+        
+        // 插入项目
+        int result = projectMapper.insert(project);
+        if (result <= 0) {
+            throw new RuntimeException("创建项目失败");
+        }
+        
+        // 查询创建的项目详情
+        AddProjectResponseDTO responseDTO = projectMapper.selectProjectDetailById(project.getProjectId());
+        if (responseDTO == null) {
+            throw new RuntimeException("获取项目详情失败");
+        }
+        
+        return responseDTO;
+    }
+    
+    @Override
+    public Boolean checkProjectCodeExists(String projectCode, Integer excludeId) {
+        if (!StringUtils.hasText(projectCode)) {
+            return false;
+        }
+        int count = projectMapper.checkProjectCodeExists(projectCode, excludeId);
+        return count > 0;
+    }
+    
+    /**
+     * 检查项目名称是否存在
+     */
+    public Boolean checkProjectNameExists(String projectName, Integer excludeId) {
+        if (!StringUtils.hasText(projectName)) {
+            return false;
+        }
+        int count = projectMapper.checkProjectNameExists(projectName, excludeId);
+        return count > 0;
+    }
+    
+    /**
+     * 模块列表查询参数校验
+     */
+    private void validateModuleListQuery(ModuleListQueryDTO queryDTO) {
+        if (queryDTO == null) {
+            throw new IllegalArgumentException("查询参数不能为空");
+        }
+        if (queryDTO.getProjectId() == null) {
+            throw new IllegalArgumentException("项目ID不能为空");
+        }
+    }
+    
+    /**
+     * 设置模块查询默认值
+     */
+    private void setModuleQueryDefaultValues(ModuleListQueryDTO queryDTO) {
+        if (!StringUtils.hasText(queryDTO.getStructure())) {
+            queryDTO.setStructure(Constants.DEFAULT_MODULE_STRUCTURE);
+        }
+        if (!StringUtils.hasText(queryDTO.getStatus())) {
+            queryDTO.setStatus(Constants.DEFAULT_MODULE_STATUS);
+        }
+        if (queryDTO.getIncludeDeleted() == null) {
+            queryDTO.setIncludeDeleted(Constants.DEFAULT_INCLUDE_DELETED);
+        }
+        if (queryDTO.getIncludeStatistics() == null) {
+            queryDTO.setIncludeStatistics(Constants.DEFAULT_INCLUDE_STATISTICS);
+        }
+        if (!StringUtils.hasText(queryDTO.getSortBy())) {
+            queryDTO.setSortBy(Constants.DEFAULT_MODULE_SORT_BY);
+        }
+        if (!StringUtils.hasText(queryDTO.getSortOrder())) {
+            queryDTO.setSortOrder(Constants.DEFAULT_SORT_ORDER);
+        }
+    }
+    
+    /**
+     * 构建模块树形结构
+     */
+    private List<ModuleDTO> buildModuleTree(List<ModuleDTO> modules) {
+        if (modules == null || modules.isEmpty()) {
+            return new ArrayList<>();
+        }
+        
+        // 创建模块ID到模块的映射
+        java.util.Map<Integer, ModuleDTO> moduleMap = new java.util.HashMap<>();
+        for (ModuleDTO module : modules) {
+            moduleMap.put(module.getModuleId(), module);
+            module.setChildren(new ArrayList<>());
+        }
+        
+        // 构建树形结构
+        List<ModuleDTO> rootModules = new ArrayList<>();
+        for (ModuleDTO module : modules) {
+            if (module.getParentModuleId() == null) {
+                // 根模块
+                rootModules.add(module);
+            } else {
+                // 子模块
+                ModuleDTO parent = moduleMap.get(module.getParentModuleId());
+                if (parent != null) {
+                    parent.getChildren().add(module);
+                }
+            }
+        }
+        
+        return rootModules;
+    }
+    
+    /**
+     * 项目成员查询参数校验
+     */
+    private void validateProjectMembersQuery(ProjectMembersQueryDTO queryDTO) {
+        if (queryDTO == null) {
+            throw new IllegalArgumentException("查询参数不能为空");
+        }
+        if (queryDTO.getProjectId() == null) {
+            throw new IllegalArgumentException("项目ID不能为空");
+        }
+        if (queryDTO.getPage() != null && queryDTO.getPage() < 1) {
+            throw new IllegalArgumentException("页码必须大于0");
+        }
+        if (queryDTO.getPageSize() != null && (queryDTO.getPageSize() < 1 || queryDTO.getPageSize() > Constants.MAX_PAGE_SIZE)) {
+            throw new IllegalArgumentException("每页条数必须在1-" + Constants.MAX_PAGE_SIZE + "之间");
+        }
+    }
+    
+    /**
+     * 设置项目成员查询默认值
+     */
+    private void setDefaultValues(ProjectMembersQueryDTO queryDTO) {
+        if (queryDTO.getPage() == null) {
+            queryDTO.setPage(Constants.DEFAULT_PAGE);
+        }
+        if (queryDTO.getPageSize() == null) {
+            queryDTO.setPageSize(Constants.DEFAULT_PAGE_SIZE);
+        }
+        if (!StringUtils.hasText(queryDTO.getStatus())) {
+            queryDTO.setStatus(Constants.DEFAULT_MEMBER_STATUS);
+        }
+        if (!StringUtils.hasText(queryDTO.getSortBy())) {
+            queryDTO.setSortBy(Constants.DEFAULT_MEMBER_SORT_BY);
+        }
+        if (!StringUtils.hasText(queryDTO.getSortOrder())) {
+            queryDTO.setSortOrder(Constants.DEFAULT_SORT_ORDER);
+        }
+    }
+    
+    /**
+     * 编辑项目参数校验
+     */
+    private void validateEditProject(Integer projectId, UpdateProjectDTO updateProjectDTO, Integer updatedBy) {
+        if (projectId == null) {
+            throw new IllegalArgumentException("项目ID不能为空");
+        }
+        if (updateProjectDTO == null) {
+            throw new IllegalArgumentException("项目信息不能为空");
+        }
+        if (updatedBy == null) {
+            throw new IllegalArgumentException("更新人ID不能为空");
+        }
+        
+        // 检查是否至少有一个字段需要更新
+        if (!StringUtils.hasText(updateProjectDTO.getName()) && updateProjectDTO.getDescription() == null) {
+            throw new IllegalArgumentException("至少需要提供一个字段进行更新");
+        }
+        
+        // 如果提供了项目名称，检查长度
+        if (StringUtils.hasText(updateProjectDTO.getName())) {
+            if (updateProjectDTO.getName().length() > Constants.PROJECT_NAME_MAX_LENGTH) {
+                throw new IllegalArgumentException("项目名称长度不能超过" + Constants.PROJECT_NAME_MAX_LENGTH + "个字符");
+            }
+        }
+        
+        // 如果提供了项目描述，检查长度
+        if (updateProjectDTO.getDescription() != null && 
+            updateProjectDTO.getDescription().length() > Constants.PROJECT_DESCRIPTION_MAX_LENGTH) {
+            throw new IllegalArgumentException("项目描述长度不能超过" + Constants.PROJECT_DESCRIPTION_MAX_LENGTH + "个字符");
+        }
+    }
+    
+    /**
+     * 添加项目参数校验
+     */
+    private void validateAddProject(AddProjectDTO addProjectDTO, Integer creatorId) {
+        if (addProjectDTO == null) {
+            throw new IllegalArgumentException("项目信息不能为空");
+        }
+        if (!StringUtils.hasText(addProjectDTO.getName())) {
+            throw new IllegalArgumentException("项目名称不能为空");
+        }
+        if (addProjectDTO.getName().length() > Constants.PROJECT_NAME_MAX_LENGTH) {
+            throw new IllegalArgumentException("项目名称长度不能超过" + Constants.PROJECT_NAME_MAX_LENGTH + "个字符");
+        }
+        if (addProjectDTO.getDescription() != null && 
+            addProjectDTO.getDescription().length() > Constants.PROJECT_DESCRIPTION_MAX_LENGTH) {
+            throw new IllegalArgumentException("项目描述长度不能超过" + Constants.PROJECT_DESCRIPTION_MAX_LENGTH + "个字符");
+        }
+        if (creatorId == null) {
+            throw new IllegalArgumentException("创建人ID不能为空");
+        }
+    }
+    
+    /**
+     * 参数校验和默认值设置
+     */
+    private void validateAndSetDefaults(ProjectListQueryDTO queryDTO) {
+        if (queryDTO == null) {
+            throw new IllegalArgumentException("查询参数不能为空");
+        }
+        
+        // 设置默认分页参数
+        if (queryDTO.getPage() == null || queryDTO.getPage() < 1) {
+            queryDTO.setPage(Constants.DEFAULT_PAGE);
+        }
+        if (queryDTO.getPageSize() == null || queryDTO.getPageSize() < 1) {
+            queryDTO.setPageSize(Constants.DEFAULT_PAGE_SIZE);
+        }
+        if (queryDTO.getPageSize() > Constants.MAX_PAGE_SIZE) {
+            queryDTO.setPageSize(Constants.MAX_PAGE_SIZE);
+        }
+        
+        // 设置默认排序参数
+        if (!StringUtils.hasText(queryDTO.getSortBy())) {
+            queryDTO.setSortBy("created_at");
+        }
+        if (!StringUtils.hasText(queryDTO.getSortOrder())) {
+            queryDTO.setSortOrder("desc");
+        }
+        
+        // 验证排序字段
+        if (!ProjectSortFieldEnum.isValidSortField(queryDTO.getSortBy())) {
+            queryDTO.setSortBy("created_at");
+        }
+        
+        // 验证排序顺序
+        if (!SortOrderEnum.isValidSortOrder(queryDTO.getSortOrder())) {
+            queryDTO.setSortOrder("desc");
+        }
+        
+        // 设置默认的包含删除状态
+        if (queryDTO.getIncludeDeleted() == null) {
+            queryDTO.setIncludeDeleted(false);
+        }
+    }
+    
+    /**
+     * 项目参数校验
+     */
+    private void validateProject(Project project) {
+        if (project == null) {
+            throw new IllegalArgumentException("项目信息不能为空");
+        }
+        if (!StringUtils.hasText(project.getName())) {
+            throw new IllegalArgumentException("项目名称不能为空");
+        }
+        if (!StringUtils.hasText(project.getProjectCode())) {
+            throw new IllegalArgumentException("项目编码不能为空");
+        }
+        if (project.getCreatedBy() == null) {
+            throw new IllegalArgumentException("创建人ID不能为空");
+        }
+    }
+    
+    /**
+     * 设置项目默认值
+     */
+    private void setProjectDefaults(Project project) {
+        if (!StringUtils.hasText(project.getStatus())) {
+            project.setStatus(Constants.PROJECT_STATUS_ACTIVE);
+        }
+        if (!StringUtils.hasText(project.getVersion())) {
+            project.setVersion(Constants.DEFAULT_VERSION);
+        }
+        if (project.getIsDeleted() == null) {
+            project.setIsDeleted(false);
+        }
+        if (project.getCreatedAt() == null) {
+            project.setCreatedAt(LocalDateTime.now());
+        }
+        if (project.getUpdatedAt() == null) {
+            project.setUpdatedAt(LocalDateTime.now());
+        }
+    }
+}

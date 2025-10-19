@@ -1,0 +1,132 @@
+# Application Configuration
+spring:
+  application:
+    name: iatms
+  # profiles:
+    # active: dev  # 默认激活开发环境
+  datasource:
+    url: jdbc:mysql://localhost:3306/iatmsdb?useUnicode=true&characterEncoding=utf8&serverTimezone=UTC&useSSL=false&allowPublicKeyRetrieval=true
+    username: root
+    password: 12345678
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    # Connection Pool Configuration
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+  data:
+    redis:
+      host: localhost
+      port: 6379
+#      password:
+      database: 0
+      timeout: 5000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-wait: -1ms
+          max-idle: 8
+          min-idle: 0
+  mail:
+    host: smtp.qq.com # 必须改为QQ的SMTP服务器
+    port: 587
+    username: 3194665063@qq.com # QQ邮箱地址
+    password: fpcbqscycdmydgjb # 替换为上面获取的16位QQ邮箱授权码，不是QQ密码！
+    default-encoding: UTF-8
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true # QQ邮箱也要求加密连接
+            required: true
+        # QQ邮箱推荐添加以下配置
+        socketFactory:
+          fallback: false
+        debug: true # 开启调试日志，方便排查问题
+# Quartz Configuration (暂时禁用，避免启动错误)
+# 如果需要使用定时任务，请先执行 quartz_tables.sql 创建必要的数据库表
+#  quartz:
+#    job-store-type: jdbc
+#    jdbc:
+#      initialize-schema: always
+#    properties:
+#      org:
+#        quartz:
+#          scheduler:
+#            instanceName: IATMScheduler
+#            instanceId: AUTO
+#          threadPool:
+#            threadCount: 10
+#          jobStore:
+#            class: org.quartz.impl.jdbcjobstore.JobStoreTX
+#            driverDelegateClass: org.quartz.impl.jdbcjobstore.StdJDBCDelegate
+#            tablePrefix: QRTZ_
+#            isClustered: false
+
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: GMT+8
+    default-property-inclusion: NON_NULL
+  validation:
+    enabled: true
+
+# Server Configuration
+server:
+  port: 8080
+  servlet:
+    context-path: /api
+
+# MyBatis Configuration
+mybatis:
+  mapper-locations: classpath:mapper/*.xml
+  type-aliases-package: com.victor.iatms.entity.po
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+# PageHelper Configuration
+pagehelper:
+  helper-dialect: mysql
+  reasonable: true
+  support-methods-arguments: true
+  params: count=countSql
+
+# JWT Configuration
+jwt:
+  secret: iatms-secret-key-2024-very-long-and-secure-key-for-jwt-token-generation
+  expiration: 86400000
+  header: Authorization
+  prefix: Bearer
+
+# Logging Configuration
+logging:
+  level:
+    com.victor.iatms: DEBUG
+    org.springframework.web: INFO
+    org.mybatis: DEBUG
+    org.mybatis.spring: DEBUG
+    org.apache.ibatis: DEBUG
+    org.springframework.jdbc: DEBUG
+    org.springframework.transaction: DEBUG
+    org.quartz: INFO
+    root: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+
+# Actuator Configuration
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when-authorized

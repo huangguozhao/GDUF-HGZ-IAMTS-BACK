@@ -1,0 +1,600 @@
+{
+  "info": {
+    "name": "TestExecutionController API测试",
+    "description": "测试执行控制器的所有接口测试集合（共29个接口）",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080/api",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. 测试用例执行",
+      "item": [
+        {
+          "name": "执行单个测试用例",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"environment\": \"test\",\n  \"timeout\": 30000\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/test-cases/1/execute",
+              "host": ["{{baseUrl}}"],
+              "path": ["test-cases", "1", "execute"]
+            }
+          }
+        },
+        {
+          "name": "异步执行测试用例",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"environment\": \"test\",\n  \"async\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/test-cases/1/execute-async",
+              "host": ["{{baseUrl}}"],
+              "path": ["test-cases", "1", "execute-async"]
+            }
+          }
+        },
+        {
+          "name": "查询任务状态",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/tasks/test-task-id-123/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["tasks", "test-task-id-123", "status"]
+            }
+          }
+        },
+        {
+          "name": "取消任务执行",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/tasks/test-task-id-123/cancel",
+              "host": ["{{baseUrl}}"],
+              "path": ["tasks", "test-task-id-123", "cancel"]
+            }
+          }
+        },
+        {
+          "name": "获取执行结果详情",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/test-results/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["test-results", "1"]
+            }
+          }
+        },
+        {
+          "name": "获取执行日志",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/test-results/1/logs",
+              "host": ["{{baseUrl}}"],
+              "path": ["test-results", "1", "logs"]
+            }
+          }
+        },
+        {
+          "name": "生成测试报告",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/test-results/1/report",
+              "host": ["{{baseUrl}}"],
+              "path": ["test-results", "1", "report"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. 模块执行",
+      "item": [
+        {
+          "name": "执行模块测试（同步）",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"environment\": \"test\",\n  \"concurrency\": 5\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/modules/1/execute",
+              "host": ["{{baseUrl}}"],
+              "path": ["modules", "1", "execute"]
+            }
+          }
+        },
+        {
+          "name": "异步执行模块测试",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"environment\": \"test\",\n  \"async\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/modules/1/execute-async",
+              "host": ["{{baseUrl}}"],
+              "path": ["modules", "1", "execute-async"]
+            }
+          }
+        },
+        {
+          "name": "查询模块任务状态",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/module-tasks/module-task-123/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["module-tasks", "module-task-123", "status"]
+            }
+          }
+        },
+        {
+          "name": "取消模块任务执行",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/module-tasks/module-task-123/cancel",
+              "host": ["{{baseUrl}}"],
+              "path": ["module-tasks", "module-task-123", "cancel"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. 项目执行",
+      "item": [
+        {
+          "name": "执行项目测试",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"environment\": \"test\",\n  \"concurrency\": 10\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/projects/1/execute",
+              "host": ["{{baseUrl}}"],
+              "path": ["projects", "1", "execute"]
+            }
+          }
+        },
+        {
+          "name": "异步执行项目测试",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"environment\": \"test\",\n  \"async\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/projects/1/execute-async",
+              "host": ["{{baseUrl}}"],
+              "path": ["projects", "1", "execute-async"]
+            }
+          }
+        },
+        {
+          "name": "查询项目任务状态",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/project-tasks/project-task-123/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["project-tasks", "project-task-123", "status"]
+            }
+          }
+        },
+        {
+          "name": "取消项目任务执行",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/project-tasks/project-task-123/cancel",
+              "host": ["{{baseUrl}}"],
+              "path": ["project-tasks", "project-task-123", "cancel"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. 接口执行",
+      "item": [
+        {
+          "name": "执行接口测试",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"environment\": \"test\",\n  \"concurrency\": 3\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/apis/1/execute",
+              "host": ["{{baseUrl}}"],
+              "path": ["apis", "1", "execute"]
+            }
+          }
+        },
+        {
+          "name": "异步执行接口测试",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"environment\": \"test\",\n  \"async\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/apis/1/execute-async",
+              "host": ["{{baseUrl}}"],
+              "path": ["apis", "1", "execute-async"]
+            }
+          }
+        },
+        {
+          "name": "查询接口任务状态",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api-tasks/api-task-123/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["api-tasks", "api-task-123", "status"]
+            }
+          }
+        },
+        {
+          "name": "取消接口任务执行",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api-tasks/api-task-123/cancel",
+              "host": ["{{baseUrl}}"],
+              "path": ["api-tasks", "api-task-123", "cancel"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. 测试套件执行",
+      "item": [
+        {
+          "name": "执行测试套件",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"environment\": \"test\",\n  \"concurrency\": 5\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/test-suites/1/execute",
+              "host": ["{{baseUrl}}"],
+              "path": ["test-suites", "1", "execute"]
+            }
+          }
+        },
+        {
+          "name": "异步执行测试套件",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"environment\": \"test\",\n  \"async\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/test-suites/1/execute-async",
+              "host": ["{{baseUrl}}"],
+              "path": ["test-suites", "1", "execute-async"]
+            }
+          }
+        },
+        {
+          "name": "查询测试套件任务状态",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/suite-tasks/suite-task-123/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["suite-tasks", "suite-task-123", "status"]
+            }
+          }
+        },
+        {
+          "name": "取消测试套件任务执行",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/suite-tasks/suite-task-123/cancel",
+              "host": ["{{baseUrl}}"],
+              "path": ["suite-tasks", "suite-task-123", "cancel"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. 测试结果查询",
+      "item": [
+        {
+          "name": "获取测试结果列表（无参数）",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/test-results",
+              "host": ["{{baseUrl}}"],
+              "path": ["test-results"]
+            }
+          }
+        },
+        {
+          "name": "获取测试结果列表（带分页）",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/test-results?page=1&page_size=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["test-results"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "page_size",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "查询失败的测试结果",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/test-results?status=failed&page=1&page_size=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["test-results"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "failed"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "page_size",
+                  "value": "20"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "按任务类型查询",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/test-results?task_type=test_case&ref_id=101",
+              "host": ["{{baseUrl}}"],
+              "path": ["test-results"],
+              "query": [
+                {
+                  "key": "task_type",
+                  "value": "test_case"
+                },
+                {
+                  "key": "ref_id",
+                  "value": "101"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "复杂条件查询",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/test-results?task_type=test_case&status=passed&priority=P0,P1&environment=test&sort_by=start_time&sort_order=desc",
+              "host": ["{{baseUrl}}"],
+              "path": ["test-results"],
+              "query": [
+                {
+                  "key": "task_type",
+                  "value": "test_case"
+                },
+                {
+                  "key": "status",
+                  "value": "passed"
+                },
+                {
+                  "key": "priority",
+                  "value": "P0,P1"
+                },
+                {
+                  "key": "environment",
+                  "value": "test"
+                },
+                {
+                  "key": "sort_by",
+                  "value": "start_time"
+                },
+                {
+                  "key": "sort_order",
+                  "value": "desc"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "关键字搜索",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/test-results?search_keyword=登录&page=1&page_size=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["test-results"],
+              "query": [
+                {
+                  "key": "search_keyword",
+                  "value": "登录"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "page_size",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
+

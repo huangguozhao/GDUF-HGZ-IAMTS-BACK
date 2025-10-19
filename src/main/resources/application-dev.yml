@@ -1,0 +1,44 @@
+# Development Environment Configuration
+spring:
+  # Database Configuration for Development
+  datasource:
+    url: jdbc:mysql://localhost:3306/iatmsdb_dev?useUnicode=true&characterEncoding=utf8&serverTimezone=UTC&useSSL=false&allowPublicKeyRetrieval=true
+    username: root
+    password: 12345678
+
+  # Redis Configuration for Development
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password: 
+
+  # Mail Configuration for Development (可以使用测试邮箱)
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: dev-test@gmail.com
+    password: dev-app-password
+
+# Logging Configuration for Development
+logging:
+  level:
+    com.victor.iatms: DEBUG
+    org.springframework.web: DEBUG
+    org.mybatis: DEBUG
+
+# JWT Configuration for Development
+jwt:
+  secret: dev-secret-key-for-development-only
+  expiration: 86400000
+
+# Web Log Configuration for Development (详细日志模式)
+web:
+  log:
+    enabled: true              # 启用Web日志
+    log-headers: true          # 记录请求头
+    log-params: true           # 记录查询参数
+    log-args: true             # 记录方法参数
+    log-response: true         # 记录响应结果
+    max-response-length: 2000  # 响应最大长度（开发环境可以长一些）
+    max-param-length: 1000     # 参数最大长度

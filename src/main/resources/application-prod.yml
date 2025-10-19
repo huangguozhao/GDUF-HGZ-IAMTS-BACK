@@ -1,0 +1,51 @@
+# Production Environment Configuration
+spring:
+  # Database Configuration for Production
+  datasource:
+    url: jdbc:mysql://prod-server:3306/iatmsdb?useUnicode=true&characterEncoding=utf8&serverTimezone=UTC&useSSL=true&allowPublicKeyRetrieval=false
+    username: ${DB_USERNAME:prod_user}
+    password: ${DB_PASSWORD:prod_password}
+    # Connection Pool Configuration for Production
+    hikari:
+      maximum-pool-size: 50
+      minimum-idle: 10
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+
+  # Redis Configuration for Production
+  data:
+    redis:
+      host: ${REDIS_HOST:prod-redis-server}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:prod_redis_password}
+      database: 0
+
+  # Mail Configuration for Production
+  mail:
+    host: ${MAIL_HOST:smtp.company.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:system@company.com}
+    password: ${MAIL_PASSWORD:mail_password}
+
+# Logging Configuration for Production
+logging:
+  level:
+    com.victor.iatms: INFO
+    org.springframework.web: WARN
+    org.mybatis: WARN
+
+# JWT Configuration for Production
+jwt:
+  secret: ${JWT_SECRET:production-secret-key-must-be-very-long-and-secure}
+  expiration: 86400000
+
+# Security Configuration for Production
+server:
+  port: ${SERVER_PORT:8080}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info

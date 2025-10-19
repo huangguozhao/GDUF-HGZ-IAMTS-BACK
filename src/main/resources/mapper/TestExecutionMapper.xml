@@ -1,0 +1,1743 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.victor.iatms.mappers.TestExecutionMapper">
+
+    <!-- 根据用例ID查询用例执行信息 -->
+    <select id="findTestCaseForExecution" resultType="com.victor.iatms.entity.dto.TestCaseExecutionDTO">
+        SELECT 
+            tc.case_id,
+            tc.case_code,
+            tc.name,
+            tc.description,
+            tc.priority,
+            tc.severity,
+            tc.tags,
+            tc.pre_conditions,
+            tc.test_steps,
+            tc.request_override,
+            tc.expected_http_status,
+            tc.expected_response_schema,
+            tc.expected_response_body,
+            tc.assertions,
+            tc.extractors,
+            tc.validators,
+            tc.is_enabled,
+            tc.version,
+            a.api_id AS 'apiInfo.apiId',
+            a.api_code AS 'apiInfo.apiCode',
+            a.name AS 'apiInfo.name',
+            a.method AS 'apiInfo.method',
+            a.path AS 'apiInfo.path',
+            a.base_url AS 'apiInfo.baseUrl',
+            a.full_url AS 'apiInfo.fullUrl',
+            a.request_parameters AS 'apiInfo.requestParameters',
+            a.path_parameters AS 'apiInfo.pathParameters',
+            a.request_headers AS 'apiInfo.requestHeaders',
+            a.request_body AS 'apiInfo.requestBody',
+            a.request_body_type AS 'apiInfo.requestBodyType',
+            a.response_body_type AS 'apiInfo.responseBodyType',
+            a.description AS 'apiInfo.description',
+            a.status AS 'apiInfo.status',
+            a.version AS 'apiInfo.version',
+            a.timeout_seconds AS 'apiInfo.timeoutSeconds',
+            a.auth_type AS 'apiInfo.authType',
+            a.auth_config AS 'apiInfo.authConfig',
+            a.tags AS 'apiInfo.tags',
+            a.examples AS 'apiInfo.examples'
+        FROM TestCases tc
+        LEFT JOIN Apis a ON tc.api_id = a.api_id
+        WHERE tc.case_id = #{caseId}
+        AND tc.is_deleted = FALSE
+        AND tc.is_enabled = TRUE
+        AND a.is_deleted = FALSE
+        AND a.status = 'active'
+    </select>
+
+    <!-- 插入测试结果 -->
+    <insert id="insertTestCaseResult" parameterType="com.victor.iatms.entity.po.TestCaseResult" useGeneratedKeys="true" keyProperty="resultId">
+        INSERT INTO TestCaseResults (
+            report_id, execution_id, task_type, ref_id, full_name, status, duration,
+            start_time, end_time, failure_message, failure_trace, failure_type, error_code,
+            steps_json, parameters_json, attachments_json, logs_link, screenshot_link, video_link,
+            environment, browser, os, device, tags_json, severity, priority, retry_count, flaky,
+            created_at, is_deleted
+        ) VALUES (
+            #{reportId}, #{executionId}, #{taskType}, #{refId}, #{fullName}, #{status}, #{duration},
+            #{startTime}, #{endTime}, #{failureMessage}, #{failureTrace}, #{failureType}, #{errorCode},
+            #{stepsJson}, #{parametersJson}, #{attachmentsJson}, #{logsLink}, #{screenshotLink}, #{videoLink},
+            #{environment}, #{browser}, #{os}, #{device}, #{tagsJson}, #{severity}, #{priority}, #{retryCount}, #{flaky},
+            NOW(), FALSE
+        )
+    </insert>
+
+    <!-- 插入测试报告汇总 -->
+    <insert id="insertTestReportSummary" parameterType="com.victor.iatms.entity.po.TestReportSummary" useGeneratedKeys="true" keyProperty="reportId">
+        INSERT INTO TestReportSummaries (
+            report_name, report_type, execution_id, project_id, environment, start_time, end_time, duration,
+            total_cases, executed_cases, passed_cases, failed_cases, broken_cases, skipped_cases, success_rate,
+            total_duration, avg_duration, max_duration, min_duration, report_status, file_format, file_path,
+            file_size, download_url, generated_by, tags_json, summary_json, trend_data_json,
+            created_at, updated_at, is_deleted
+        ) VALUES (
+            #{reportName}, #{reportType}, #{executionId}, #{projectId}, #{environment}, #{startTime}, #{endTime}, #{duration},
+            #{totalCases}, #{executedCases}, #{passedCases}, #{failedCases}, #{brokenCases}, #{skippedCases}, #{successRate},
+            #{totalDuration}, #{avgDuration}, #{maxDuration}, #{minDuration}, #{reportStatus}, #{fileFormat}, #{filePath},
+            #{fileSize}, #{downloadUrl}, #{generatedBy}, #{tagsJson}, #{summaryJson}, #{trendDataJson},
+            NOW(), NOW(), FALSE
+        )
+    </insert>
+
+    <!-- 更新测试报告汇总 -->
+    <update id="updateTestReportSummary" parameterType="com.victor.iatms.entity.po.TestReportSummary">
+        UPDATE TestReportSummaries SET
+            report_name = #{reportName},
+            report_type = #{reportType},
+            execution_id = #{executionId},
+            project_id = #{projectId},
+            environment = #{environment},
+            start_time = #{startTime},
+            end_time = #{endTime},
+            duration = #{duration},
+            total_cases = #{totalCases},
+            executed_cases = #{executedCases},
+            passed_cases = #{passedCases},
+            failed_cases = #{failedCases},
+            broken_cases = #{brokenCases},
+            skipped_cases = #{skippedCases},
+            success_rate = #{successRate},
+            total_duration = #{totalDuration},
+            avg_duration = #{avgDuration},
+            max_duration = #{maxDuration},
+            min_duration = #{minDuration},
+            report_status = #{reportStatus},
+            file_format = #{fileFormat},
+            file_path = #{filePath},
+            file_size = #{fileSize},
+            download_url = #{downloadUrl},
+            generated_by = #{generatedBy},
+            tags_json = #{tagsJson},
+            summary_json = #{summaryJson},
+            trend_data_json = #{trendDataJson},
+            updated_at = NOW()
+        WHERE report_id = #{reportId}
+        AND is_deleted = FALSE
+    </update>
+
+    <!-- 根据报告ID查询测试结果列表 -->
+    <select id="findTestCaseResultsByReportId" resultType="com.victor.iatms.entity.po.TestCaseResult">
+        SELECT 
+            result_id, report_id, execution_id, task_type, ref_id, full_name, status, duration,
+            start_time, end_time, failure_message, failure_trace, failure_type, error_code,
+            steps_json, parameters_json, attachments_json, logs_link, screenshot_link, video_link,
+            environment, browser, os, device, tags_json, severity, priority, retry_count, flaky,
+            created_at, is_deleted, deleted_at, deleted_by
+        FROM TestCaseResults
+        WHERE report_id = #{reportId}
+        AND is_deleted = FALSE
+        ORDER BY created_at DESC
+    </select>
+
+    <!-- 根据执行ID查询测试结果 -->
+    <select id="findTestCaseResultByExecutionId" resultType="com.victor.iatms.entity.po.TestCaseResult">
+        SELECT 
+            result_id, report_id, execution_id, task_type, ref_id, full_name, status, duration,
+            start_time, end_time, failure_message, failure_trace, failure_type, error_code,
+            steps_json, parameters_json, attachments_json, logs_link, screenshot_link, video_link,
+            environment, browser, os, device, tags_json, severity, priority, retry_count, flaky,
+            created_at, is_deleted, deleted_at, deleted_by
+        FROM TestCaseResults
+        WHERE execution_id = #{executionId}
+        AND is_deleted = FALSE
+        LIMIT 1
+    </select>
+
+    <!-- 根据报告ID查询报告汇总 -->
+    <select id="findTestReportSummaryById" resultType="com.victor.iatms.entity.po.TestReportSummary">
+        SELECT 
+            report_id, report_name, report_type, execution_id, project_id, environment, start_time, end_time, duration,
+            total_cases, executed_cases, passed_cases, failed_cases, broken_cases, skipped_cases, success_rate,
+            total_duration, avg_duration, max_duration, min_duration, report_status, file_format, file_path,
+            file_size, download_url, generated_by, tags_json, summary_json, trend_data_json,
+            created_at, updated_at, is_deleted, deleted_at, deleted_by
+        FROM TestReportSummaries
+        WHERE report_id = #{reportId}
+        AND is_deleted = FALSE
+    </select>
+
+    <!-- 查询最新的报告汇总 -->
+    <select id="findLatestReportSummary" resultType="com.victor.iatms.entity.po.TestReportSummary">
+        SELECT 
+            report_id, report_name, report_type, execution_id, project_id, environment, start_time, end_time, duration,
+            total_cases, executed_cases, passed_cases, failed_cases, broken_cases, skipped_cases, success_rate,
+            total_duration, avg_duration, max_duration, min_duration, report_status, file_format, file_path,
+            file_size, download_url, generated_by, tags_json, summary_json, trend_data_json,
+            created_at, updated_at, is_deleted, deleted_at, deleted_by
+        FROM TestReportSummaries
+        WHERE project_id = #{projectId}
+        AND environment = #{environment}
+        AND is_deleted = FALSE
+        ORDER BY created_at DESC
+        LIMIT 1
+    </select>
+
+    <!-- 更新测试结果 -->
+    <update id="updateTestCaseResult" parameterType="com.victor.iatms.entity.po.TestCaseResult">
+        UPDATE TestCaseResults SET
+            report_id = #{reportId},
+            task_type = #{taskType},
+            ref_id = #{refId},
+            full_name = #{fullName},
+            status = #{status},
+            duration = #{duration},
+            start_time = #{startTime},
+            end_time = #{endTime},
+            failure_message = #{failureMessage},
+            failure_trace = #{failureTrace},
+            failure_type = #{failureType},
+            error_code = #{errorCode},
+            steps_json = #{stepsJson},
+            parameters_json = #{parametersJson},
+            attachments_json = #{attachmentsJson},
+            logs_link = #{logsLink},
+            screenshot_link = #{screenshotLink},
+            video_link = #{videoLink},
+            environment = #{environment},
+            browser = #{browser},
+            os = #{os},
+            device = #{device},
+            tags_json = #{tagsJson},
+            severity = #{severity},
+            priority = #{priority},
+            retry_count = #{retryCount},
+            flaky = #{flaky}
+        WHERE execution_id = #{executionId}
+        AND is_deleted = FALSE
+    </update>
+
+    <!-- ========== 模块执行相关SQL ========== -->
+
+    <!-- 根据ID查询模块 -->
+    <select id="findModuleById" resultType="com.victor.iatms.entity.po.Module">
+        SELECT 
+            module_id,
+            module_code,
+            project_id,
+            name,
+            description,
+            status,
+            version,
+            created_by,
+            updated_by,
+            created_at,
+            updated_at,
+            is_deleted,
+            deleted_at,
+            deleted_by
+        FROM Modules 
+        WHERE module_id = #{moduleId} 
+        AND is_deleted = FALSE
+    </select>
+
+    <!-- 查询模块下的所有接口的测试用例 -->
+    <select id="findTestCasesByModuleId" resultType="com.victor.iatms.entity.po.TestCase">
+        SELECT 
+            tc.case_id,
+            tc.case_code,
+            tc.api_id,
+            tc.name,
+            tc.description,
+            tc.priority,
+            tc.severity,
+            tc.tags,
+            tc.pre_conditions,
+            tc.test_steps,
+            tc.request_override,
+            tc.expected_http_status,
+            tc.expected_response_schema,
+            tc.expected_response_body,
+            tc.assertions,
+            tc.extractors,
+            tc.validators,
+            tc.is_enabled,
+            tc.is_template,
+            tc.template_id,
+            tc.version,
+            tc.created_by,
+            tc.updated_by,
+            tc.created_at,
+            tc.updated_at,
+            tc.is_deleted,
+            tc.deleted_at,
+            tc.deleted_by
+        FROM TestCases tc
+        INNER JOIN Apis a ON tc.api_id = a.api_id
+        WHERE a.module_id = #{moduleId}
+        AND tc.is_deleted = FALSE
+        AND a.is_deleted = FALSE
+        AND a.status = 'active'
+        <if test="enabledOnly != null and enabledOnly == true">
+            AND tc.is_enabled = TRUE
+        </if>
+        <if test="priorityList != null and priorityList.size() > 0">
+            AND tc.priority IN
+            <foreach collection="priorityList" item="priority" open="(" separator="," close=")">
+                #{priority}
+            </foreach>
+        </if>
+        <if test="tagsList != null and tagsList.size() > 0">
+            AND EXISTS (
+                SELECT 1 FROM JSON_TABLE(tc.tags, '$[*]' COLUMNS (tag VARCHAR(100) PATH '$')) jt
+                WHERE jt.tag IN
+                <foreach collection="tagsList" item="tag" open="(" separator="," close=")">
+                    #{tag}
+                </foreach>
+            )
+        </if>
+        ORDER BY tc.priority, tc.created_at
+    </select>
+
+    <!-- 统计模块下的测试用例数量 -->
+    <select id="countTestCasesByModuleId" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM TestCases tc
+        INNER JOIN Apis a ON tc.api_id = a.api_id
+        WHERE a.module_id = #{moduleId}
+        AND tc.is_deleted = FALSE
+        AND a.is_deleted = FALSE
+        AND a.status = 'active'
+        <if test="enabledOnly != null and enabledOnly == true">
+            AND tc.is_enabled = TRUE
+        </if>
+        <if test="priorityList != null and priorityList.size() > 0">
+            AND tc.priority IN
+            <foreach collection="priorityList" item="priority" open="(" separator="," close=")">
+                #{priority}
+            </foreach>
+        </if>
+        <if test="tagsList != null and tagsList.size() > 0">
+            AND EXISTS (
+                SELECT 1 FROM JSON_TABLE(tc.tags, '$[*]' COLUMNS (tag VARCHAR(100) PATH '$')) jt
+                WHERE jt.tag IN
+                <foreach collection="tagsList" item="tag" open="(" separator="," close=")">
+                    #{tag}
+                </foreach>
+            )
+        </if>
+    </select>
+
+    <!-- 查询模块下的接口列表 -->
+    <select id="findApiIdsByModuleId" resultType="java.lang.Integer">
+        SELECT api_id
+        FROM Apis
+        WHERE module_id = #{moduleId}
+        AND is_deleted = FALSE
+        AND status = 'active'
+        ORDER BY created_at
+    </select>
+
+    <!-- ========== 项目执行相关SQL ========== -->
+
+    <!-- 根据ID查询项目 -->
+    <select id="findProjectById" resultType="com.victor.iatms.entity.po.Project">
+        SELECT 
+            project_id,
+            project_code,
+            name,
+            description,
+            status,
+            version,
+            created_by,
+            updated_by,
+            created_at,
+            updated_at,
+            is_deleted,
+            deleted_at,
+            deleted_by
+        FROM Projects 
+        WHERE project_id = #{projectId} 
+        AND is_deleted = FALSE
+    </select>
+
+    <!-- 查询项目下的所有模块 -->
+    <select id="findModulesByProjectId" resultType="com.victor.iatms.entity.po.Module">
+        SELECT 
+            module_id,
+            module_code,
+            project_id,
+            name,
+            description,
+            status,
+            version,
+            created_by,
+            updated_by,
+            created_at,
+            updated_at,
+            is_deleted,
+            deleted_at,
+            deleted_by
+        FROM Modules 
+        WHERE project_id = #{projectId}
+        AND is_deleted = FALSE
+        <if test="status != null and status != ''">
+            AND status = #{status}
+        </if>
+        <if test="moduleIds != null and moduleIds.size() > 0">
+            AND module_id IN
+            <foreach collection="moduleIds" item="moduleId" open="(" separator="," close=")">
+                #{moduleId}
+            </foreach>
+        </if>
+        ORDER BY created_at
+    </select>
+
+    <!-- 查询项目下的所有测试用例 -->
+    <select id="findTestCasesByProjectId" resultType="com.victor.iatms.entity.po.TestCase">
+        SELECT 
+            tc.case_id,
+            tc.case_code,
+            tc.api_id,
+            tc.name,
+            tc.description,
+            tc.priority,
+            tc.severity,
+            tc.tags,
+            tc.pre_conditions,
+            tc.test_steps,
+            tc.request_override,
+            tc.expected_http_status,
+            tc.expected_response_schema,
+            tc.expected_response_body,
+            tc.assertions,
+            tc.extractors,
+            tc.validators,
+            tc.is_enabled,
+            tc.is_template,
+            tc.template_id,
+            tc.version,
+            tc.created_by,
+            tc.updated_by,
+            tc.created_at,
+            tc.updated_at,
+            tc.is_deleted,
+            tc.deleted_at,
+            tc.deleted_by
+        FROM TestCases tc
+        INNER JOIN Apis a ON tc.api_id = a.api_id
+        INNER JOIN Modules m ON a.module_id = m.module_id
+        WHERE m.project_id = #{projectId}
+        AND tc.is_deleted = FALSE
+        AND a.is_deleted = FALSE
+        AND m.is_deleted = FALSE
+        AND a.status = 'active'
+        AND m.status = 'active'
+        <if test="moduleIds != null and moduleIds.size() > 0">
+            AND m.module_id IN
+            <foreach collection="moduleIds" item="moduleId" open="(" separator="," close=")">
+                #{moduleId}
+            </foreach>
+        </if>
+        <if test="enabledOnly != null and enabledOnly == true">
+            AND tc.is_enabled = TRUE
+        </if>
+        <if test="priorityList != null and priorityList.size() > 0">
+            AND tc.priority IN
+            <foreach collection="priorityList" item="priority" open="(" separator="," close=")">
+                #{priority}
+            </foreach>
+        </if>
+        <if test="tagsList != null and tagsList.size() > 0">
+            AND EXISTS (
+                SELECT 1 FROM JSON_TABLE(tc.tags, '$[*]' COLUMNS (tag VARCHAR(100) PATH '$')) jt
+                WHERE jt.tag IN
+                <foreach collection="tagsList" item="tag" open="(" separator="," close=")">
+                    #{tag}
+                </foreach>
+            )
+        </if>
+        ORDER BY tc.priority, tc.created_at
+    </select>
+
+    <!-- 统计项目下的测试用例数量 -->
+    <select id="countTestCasesByProjectId" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM TestCases tc
+        INNER JOIN Apis a ON tc.api_id = a.api_id
+        INNER JOIN Modules m ON a.module_id = m.module_id
+        WHERE m.project_id = #{projectId}
+        AND tc.is_deleted = FALSE
+        AND a.is_deleted = FALSE
+        AND m.is_deleted = FALSE
+        AND a.status = 'active'
+        AND m.status = 'active'
+        <if test="moduleIds != null and moduleIds.size() > 0">
+            AND m.module_id IN
+            <foreach collection="moduleIds" item="moduleId" open="(" separator="," close=")">
+                #{moduleId}
+            </foreach>
+        </if>
+        <if test="enabledOnly != null and enabledOnly == true">
+            AND tc.is_enabled = TRUE
+        </if>
+        <if test="priorityList != null and priorityList.size() > 0">
+            AND tc.priority IN
+            <foreach collection="priorityList" item="priority" open="(" separator="," close=")">
+                #{priority}
+            </foreach>
+        </if>
+        <if test="tagsList != null and tagsList.size() > 0">
+            AND EXISTS (
+                SELECT 1 FROM JSON_TABLE(tc.tags, '$[*]' COLUMNS (tag VARCHAR(100) PATH '$')) jt
+                WHERE jt.tag IN
+                <foreach collection="tagsList" item="tag" open="(" separator="," close=")">
+                    #{tag}
+                </foreach>
+            )
+        </if>
+    </select>
+
+    <!-- 查询项目下的模块ID列表 -->
+    <select id="findModuleIdsByProjectId" resultType="java.lang.Integer">
+        SELECT module_id
+        FROM Modules
+        WHERE project_id = #{projectId}
+        AND is_deleted = FALSE
+        <if test="status != null and status != ''">
+            AND status = #{status}
+        </if>
+        <if test="moduleIds != null and moduleIds.size() > 0">
+            AND module_id IN
+            <foreach collection="moduleIds" item="moduleId" open="(" separator="," close=")">
+                #{moduleId}
+            </foreach>
+        </if>
+        ORDER BY created_at
+    </select>
+
+    <!-- ========== 接口执行相关SQL ========== -->
+
+    <!-- 根据ID查询接口 -->
+    <select id="findApiById" resultType="com.victor.iatms.entity.po.Api">
+        SELECT 
+            api_id,
+            api_code,
+            module_id,
+            name,
+            method,
+            path,
+            base_url,
+            full_url,
+            request_parameters,
+            path_parameters,
+            request_headers,
+            request_body,
+            request_body_type,
+            response_body_type,
+            description,
+            status,
+            version,
+            timeout_seconds,
+            auth_type,
+            auth_config,
+            tags,
+            examples,
+            created_by,
+            updated_by,
+            created_at,
+            updated_at,
+            is_deleted,
+            deleted_at,
+            deleted_by
+        FROM Apis 
+        WHERE api_id = #{apiId} 
+        AND is_deleted = FALSE
+    </select>
+
+    <!-- 查询接口下的所有测试用例 -->
+    <select id="findTestCasesByApiId" resultType="com.victor.iatms.entity.po.TestCase">
+        SELECT 
+            tc.case_id,
+            tc.case_code,
+            tc.api_id,
+            tc.name,
+            tc.description,
+            tc.priority,
+            tc.severity,
+            tc.tags,
+            tc.pre_conditions,
+            tc.test_steps,
+            tc.request_override,
+            tc.expected_http_status,
+            tc.expected_response_schema,
+            tc.expected_response_body,
+            tc.assertions,
+            tc.extractors,
+            tc.validators,
+            tc.is_enabled,
+            tc.is_template,
+            tc.template_id,
+            tc.version,
+            tc.created_by,
+            tc.updated_by,
+            tc.created_at,
+            tc.updated_at,
+            tc.is_deleted,
+            tc.deleted_at,
+            tc.deleted_by
+        FROM TestCases tc
+        WHERE tc.api_id = #{apiId}
+        AND tc.is_deleted = FALSE
+        <if test="enabledOnly != null and enabledOnly == true">
+            AND tc.is_enabled = TRUE
+        </if>
+        <if test="priorityList != null and priorityList.size() > 0">
+            AND tc.priority IN
+            <foreach collection="priorityList" item="priority" open="(" separator="," close=")">
+                #{priority}
+            </foreach>
+        </if>
+        <if test="tagsList != null and tagsList.size() > 0">
+            AND EXISTS (
+                SELECT 1 FROM JSON_TABLE(tc.tags, '$[*]' COLUMNS (tag VARCHAR(100) PATH '$')) jt
+                WHERE jt.tag IN
+                <foreach collection="tagsList" item="tag" open="(" separator="," close=")">
+                    #{tag}
+                </foreach>
+            )
+        </if>
+        <choose>
+            <when test="executionOrder != null and executionOrder == 'priority_desc'">
+                ORDER BY 
+                    CASE tc.priority 
+                        WHEN 'P0' THEN 1 
+                        WHEN 'P1' THEN 2 
+                        WHEN 'P2' THEN 3 
+                        WHEN 'P3' THEN 4 
+                        ELSE 5 
+                    END ASC, tc.created_at DESC
+            </when>
+            <when test="executionOrder != null and executionOrder == 'priority_asc'">
+                ORDER BY 
+                    CASE tc.priority 
+                        WHEN 'P0' THEN 1 
+                        WHEN 'P1' THEN 2 
+                        WHEN 'P2' THEN 3 
+                        WHEN 'P3' THEN 4 
+                        ELSE 5 
+                    END DESC, tc.created_at ASC
+            </when>
+            <when test="executionOrder != null and executionOrder == 'name_asc'">
+                ORDER BY tc.name ASC, tc.created_at ASC
+            </when>
+            <when test="executionOrder != null and executionOrder == 'name_desc'">
+                ORDER BY tc.name DESC, tc.created_at DESC
+            </when>
+            <otherwise>
+                ORDER BY 
+                    CASE tc.priority 
+                        WHEN 'P0' THEN 1 
+                        WHEN 'P1' THEN 2 
+                        WHEN 'P2' THEN 3 
+                        WHEN 'P3' THEN 4 
+                        ELSE 5 
+                    END ASC, tc.created_at DESC
+            </otherwise>
+        </choose>
+    </select>
+
+    <!-- 统计接口下的测试用例数量 -->
+    <select id="countTestCasesByApiId" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM TestCases tc
+        WHERE tc.api_id = #{apiId}
+        AND tc.is_deleted = FALSE
+        <if test="enabledOnly != null and enabledOnly == true">
+            AND tc.is_enabled = TRUE
+        </if>
+        <if test="priorityList != null and priorityList.size() > 0">
+            AND tc.priority IN
+            <foreach collection="priorityList" item="priority" open="(" separator="," close=")">
+                #{priority}
+            </foreach>
+        </if>
+        <if test="tagsList != null and tagsList.size() > 0">
+            AND EXISTS (
+                SELECT 1 FROM JSON_TABLE(tc.tags, '$[*]' COLUMNS (tag VARCHAR(100) PATH '$')) jt
+                WHERE jt.tag IN
+                <foreach collection="tagsList" item="tag" open="(" separator="," close=")">
+                    #{tag}
+                </foreach>
+            )
+        </if>
+    </select>
+
+    <!-- ========== 测试套件执行相关SQL ========== -->
+
+    <!-- 根据ID查询测试套件 -->
+    <select id="findTestSuiteById" resultType="com.victor.iatms.entity.po.TestSuite">
+        SELECT 
+            suite_id,
+            suite_code,
+            name,
+            description,
+            status,
+            project_id,
+            created_by,
+            updated_by,
+            created_at,
+            updated_at,
+            is_deleted,
+            deleted_at,
+            deleted_by
+        FROM TestSuites 
+        WHERE suite_id = #{suiteId} 
+        AND is_deleted = FALSE
+    </select>
+
+    <!-- 查询测试套件下的所有测试用例 -->
+    <select id="findTestCasesBySuiteId" resultType="com.victor.iatms.entity.po.TestCase">
+        SELECT 
+            tc.case_id,
+            tc.case_code,
+            tc.api_id,
+            tc.name,
+            tc.description,
+            tc.priority,
+            tc.severity,
+            tc.tags,
+            tc.pre_conditions,
+            tc.test_steps,
+            tc.request_override,
+            tc.expected_http_status,
+            tc.expected_response_schema,
+            tc.expected_response_body,
+            tc.assertions,
+            tc.extractors,
+            tc.validators,
+            tc.is_enabled,
+            tc.is_template,
+            tc.template_id,
+            tc.version,
+            tc.created_by,
+            tc.updated_by,
+            tc.created_at,
+            tc.updated_at,
+            tc.is_deleted,
+            tc.deleted_at,
+            tc.deleted_by
+        FROM TestCases tc
+        INNER JOIN SuiteCaseMappings scm ON tc.case_id = scm.case_id
+        WHERE scm.suite_id = #{suiteId}
+        AND tc.is_deleted = FALSE
+        AND scm.is_deleted = FALSE
+        <if test="enabledOnly != null and enabledOnly == true">
+            AND tc.is_enabled = TRUE
+        </if>
+        <if test="priorityList != null and priorityList.size() > 0">
+            AND tc.priority IN
+            <foreach collection="priorityList" item="priority" open="(" separator="," close=")">
+                #{priority}
+            </foreach>
+        </if>
+        <if test="tagsList != null and tagsList.size() > 0">
+            AND EXISTS (
+                SELECT 1 FROM JSON_TABLE(tc.tags, '$[*]' COLUMNS (tag VARCHAR(100) PATH '$')) jt
+                WHERE jt.tag IN
+                <foreach collection="tagsList" item="tag" open="(" separator="," close=")">
+                    #{tag}
+                </foreach>
+            )
+        </if>
+        ORDER BY 
+            CASE tc.priority 
+                WHEN 'P0' THEN 1 
+                WHEN 'P1' THEN 2 
+                WHEN 'P2' THEN 3 
+                WHEN 'P3' THEN 4 
+                ELSE 5 
+            END ASC, tc.created_at DESC
+    </select>
+
+    <!-- 统计测试套件下的测试用例数量 -->
+    <select id="countTestCasesBySuiteId" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM TestCases tc
+        INNER JOIN SuiteCaseMappings scm ON tc.case_id = scm.case_id
+        WHERE scm.suite_id = #{suiteId}
+        AND tc.is_deleted = FALSE
+        AND scm.is_deleted = FALSE
+        <if test="enabledOnly != null and enabledOnly == true">
+            AND tc.is_enabled = TRUE
+        </if>
+        <if test="priorityList != null and priorityList.size() > 0">
+            AND tc.priority IN
+            <foreach collection="priorityList" item="priority" open="(" separator="," close=")">
+                #{priority}
+            </foreach>
+        </if>
+        <if test="tagsList != null and tagsList.size() > 0">
+            AND EXISTS (
+                SELECT 1 FROM JSON_TABLE(tc.tags, '$[*]' COLUMNS (tag VARCHAR(100) PATH '$')) jt
+                WHERE jt.tag IN
+                <foreach collection="tagsList" item="tag" open="(" separator="," close=")">
+                    #{tag}
+                </foreach>
+            )
+        </if>
+    </select>
+
+    <!-- ========== 测试结果查询相关SQL ========== -->
+
+    <!-- 分页查询测试结果列表 -->
+    <select id="findTestResults" resultType="com.victor.iatms.entity.po.TestCaseResult">
+        SELECT 
+            tcr.result_id,
+            tcr.report_id,
+            tcr.execution_id,
+            tcr.task_type,
+            tcr.ref_id,
+            tcr.full_name,
+            tcr.status,
+            tcr.duration,
+            tcr.start_time,
+            tcr.end_time,
+            tcr.failure_message,
+            tcr.failure_trace,
+            tcr.failure_type,
+            tcr.error_code,
+            tcr.steps_json,
+            tcr.parameters_json,
+            tcr.attachments_json,
+            tcr.logs_link,
+            tcr.screenshot_link,
+            tcr.video_link,
+            tcr.environment,
+            tcr.browser,
+            tcr.os,
+            tcr.device,
+            tcr.tags_json,
+            tcr.severity,
+            tcr.priority,
+            tcr.retry_count,
+            tcr.flaky,
+            tcr.created_at
+        FROM TestCaseResults tcr
+        WHERE tcr.is_deleted = FALSE
+        <if test="query.taskType != null and query.taskType != ''">
+            AND tcr.task_type = #{query.taskType}
+        </if>
+        <if test="query.refId != null">
+            AND tcr.ref_id = #{query.refId}
+        </if>
+        <if test="query.status != null and query.status != ''">
+            AND tcr.status = #{query.status}
+        </if>
+        <if test="query.environment != null and query.environment != ''">
+            AND tcr.environment = #{query.environment}
+        </if>
+        <if test="query.priority != null and query.priority != ''">
+            AND tcr.priority IN
+            <foreach collection="query.priority.split(',')" item="p" open="(" separator="," close=")">
+                #{p}
+            </foreach>
+        </if>
+        <if test="query.severity != null and query.severity != ''">
+            AND tcr.severity = #{query.severity}
+        </if>
+        <if test="query.startTimeBegin != null">
+            AND tcr.start_time &gt;= #{query.startTimeBegin}
+        </if>
+        <if test="query.startTimeEnd != null">
+            AND tcr.start_time &lt;= #{query.startTimeEnd}
+        </if>
+        <if test="query.durationMin != null">
+            AND tcr.duration &gt;= #{query.durationMin}
+        </if>
+        <if test="query.durationMax != null">
+            AND tcr.duration &lt;= #{query.durationMax}
+        </if>
+        <if test="query.searchKeyword != null and query.searchKeyword != ''">
+            AND (
+                tcr.full_name LIKE CONCAT('%', #{query.searchKeyword}, '%')
+                OR tcr.failure_message LIKE CONCAT('%', #{query.searchKeyword}, '%')
+            )
+        </if>
+        <choose>
+            <when test="query.sortBy == 'start_time'">
+                ORDER BY tcr.start_time
+                <if test="query.sortOrder == 'asc'">ASC</if>
+                <if test="query.sortOrder != 'asc'">DESC</if>
+            </when>
+            <when test="query.sortBy == 'duration'">
+                ORDER BY tcr.duration
+                <if test="query.sortOrder == 'asc'">ASC</if>
+                <if test="query.sortOrder != 'asc'">DESC</if>
+            </when>
+            <when test="query.sortBy == 'priority'">
+                ORDER BY 
+                    CASE tcr.priority 
+                        WHEN 'P0' THEN 1 
+                        WHEN 'P1' THEN 2 
+                        WHEN 'P2' THEN 3 
+                        WHEN 'P3' THEN 4 
+                        ELSE 5 
+                    END
+                <if test="query.sortOrder == 'asc'">ASC</if>
+                <if test="query.sortOrder != 'asc'">DESC</if>
+            </when>
+            <when test="query.sortBy == 'severity'">
+                ORDER BY 
+                    CASE tcr.severity 
+                        WHEN 'blocker' THEN 1 
+                        WHEN 'critical' THEN 2 
+                        WHEN 'normal' THEN 3 
+                        WHEN 'minor' THEN 4 
+                        WHEN 'trivial' THEN 5
+                        ELSE 6 
+                    END
+                <if test="query.sortOrder == 'asc'">ASC</if>
+                <if test="query.sortOrder != 'asc'">DESC</if>
+            </when>
+            <otherwise>
+                ORDER BY tcr.start_time DESC
+            </otherwise>
+        </choose>
+        LIMIT #{query.offset}, #{query.pageSize}
+    </select>
+
+    <!-- 统计测试结果总数 -->
+    <select id="countTestResults" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM TestCaseResults tcr
+        WHERE tcr.is_deleted = FALSE
+        <if test="query.taskType != null and query.taskType != ''">
+            AND tcr.task_type = #{query.taskType}
+        </if>
+        <if test="query.refId != null">
+            AND tcr.ref_id = #{query.refId}
+        </if>
+        <if test="query.status != null and query.status != ''">
+            AND tcr.status = #{query.status}
+        </if>
+        <if test="query.environment != null and query.environment != ''">
+            AND tcr.environment = #{query.environment}
+        </if>
+        <if test="query.priority != null and query.priority != ''">
+            AND tcr.priority IN
+            <foreach collection="query.priority.split(',')" item="p" open="(" separator="," close=")">
+                #{p}
+            </foreach>
+        </if>
+        <if test="query.severity != null and query.severity != ''">
+            AND tcr.severity = #{query.severity}
+        </if>
+        <if test="query.startTimeBegin != null">
+            AND tcr.start_time &gt;= #{query.startTimeBegin}
+        </if>
+        <if test="query.startTimeEnd != null">
+            AND tcr.start_time &lt;= #{query.startTimeEnd}
+        </if>
+        <if test="query.durationMin != null">
+            AND tcr.duration &gt;= #{query.durationMin}
+        </if>
+        <if test="query.durationMax != null">
+            AND tcr.duration &lt;= #{query.durationMax}
+        </if>
+        <if test="query.searchKeyword != null and query.searchKeyword != ''">
+            AND (
+                tcr.full_name LIKE CONCAT('%', #{query.searchKeyword}, '%')
+                OR tcr.failure_message LIKE CONCAT('%', #{query.searchKeyword}, '%')
+            )
+        </if>
+    </select>
+
+    <!-- 统计测试结果摘要 -->
+    <select id="getTestResultSummary" resultType="com.victor.iatms.entity.dto.TestResultSummaryDTO">
+        SELECT 
+            COUNT(*) as totalCount,
+            SUM(CASE WHEN tcr.status = 'passed' THEN 1 ELSE 0 END) as passed,
+            SUM(CASE WHEN tcr.status = 'failed' THEN 1 ELSE 0 END) as failed,
+            SUM(CASE WHEN tcr.status = 'broken' THEN 1 ELSE 0 END) as broken,
+            SUM(CASE WHEN tcr.status = 'skipped' THEN 1 ELSE 0 END) as skipped,
+            SUM(CASE WHEN tcr.status = 'unknown' THEN 1 ELSE 0 END) as unknown,
+            ROUND(
+                (SUM(CASE WHEN tcr.status = 'passed' THEN 1 ELSE 0 END) * 100.0) / 
+                NULLIF(COUNT(*), 0), 2
+            ) as successRate,
+            ROUND(AVG(tcr.duration), 0) as avgDuration
+        FROM TestCaseResults tcr
+        WHERE tcr.is_deleted = FALSE
+        <if test="query.taskType != null and query.taskType != ''">
+            AND tcr.task_type = #{query.taskType}
+        </if>
+        <if test="query.refId != null">
+            AND tcr.ref_id = #{query.refId}
+        </if>
+        <if test="query.status != null and query.status != ''">
+            AND tcr.status = #{query.status}
+        </if>
+        <if test="query.environment != null and query.environment != ''">
+            AND tcr.environment = #{query.environment}
+        </if>
+        <if test="query.priority != null and query.priority != ''">
+            AND tcr.priority IN
+            <foreach collection="query.priority.split(',')" item="p" open="(" separator="," close=")">
+                #{p}
+            </foreach>
+        </if>
+        <if test="query.severity != null and query.severity != ''">
+            AND tcr.severity = #{query.severity}
+        </if>
+        <if test="query.startTimeBegin != null">
+            AND tcr.start_time &gt;= #{query.startTimeBegin}
+        </if>
+        <if test="query.startTimeEnd != null">
+            AND tcr.start_time &lt;= #{query.startTimeEnd}
+        </if>
+        <if test="query.durationMin != null">
+            AND tcr.duration &gt;= #{query.durationMin}
+        </if>
+        <if test="query.durationMax != null">
+            AND tcr.duration &lt;= #{query.durationMax}
+        </if>
+        <if test="query.searchKeyword != null and query.searchKeyword != ''">
+            AND (
+                tcr.full_name LIKE CONCAT('%', #{query.searchKeyword}, '%')
+                OR tcr.failure_message LIKE CONCAT('%', #{query.searchKeyword}, '%')
+            )
+        </if>
+    </select>
+
+    <!-- 根据结果ID查询测试结果详情 -->
+    <select id="findTestResultById" resultType="com.victor.iatms.entity.po.TestCaseResult">
+        SELECT 
+            result_id,
+            report_id,
+            execution_id,
+            task_type,
+            ref_id,
+            full_name,
+            status,
+            duration,
+            start_time,
+            end_time,
+            failure_message,
+            failure_trace,
+            failure_type,
+            error_code,
+            steps_json,
+            parameters_json,
+            attachments_json,
+            logs_link,
+            screenshot_link,
+            video_link,
+            environment,
+            browser,
+            os,
+            device,
+            tags_json,
+            severity,
+            priority,
+            retry_count,
+            flaky,
+            created_at,
+            is_deleted,
+            deleted_at,
+            deleted_by
+        FROM TestCaseResults
+        WHERE result_id = #{resultId}
+        AND is_deleted = FALSE
+    </select>
+
+    <!-- ========== 测试统计相关SQL ========== -->
+
+    <!-- 获取统计摘要 -->
+    <select id="getStatisticsSummary" resultType="com.victor.iatms.entity.dto.StatisticsSummaryDTO">
+        SELECT 
+            COUNT(*) as totalExecutions,
+            COUNT(DISTINCT ref_id) as totalCases,
+            SUM(CASE WHEN status = 'passed' THEN 1 ELSE 0 END) as passed,
+            SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END) as failed,
+            SUM(CASE WHEN status = 'broken' THEN 1 ELSE 0 END) as broken,
+            SUM(CASE WHEN status = 'skipped' THEN 1 ELSE 0 END) as skipped,
+            ROUND((SUM(CASE WHEN status = 'passed' THEN 1 ELSE 0 END) * 100.0) / NULLIF(COUNT(*), 0), 2) as successRate,
+            ROUND(AVG(duration), 0) as avgDuration,
+            MAX(duration) as maxDuration,
+            MIN(duration) as minDuration
+        FROM TestCaseResults
+        WHERE is_deleted = FALSE
+        <if test="startTime != null">
+            AND start_time &gt;= #{startTime}
+        </if>
+        <if test="endTime != null">
+            AND start_time &lt;= #{endTime}
+        </if>
+        <if test="projectId != null">
+            AND EXISTS (
+                SELECT 1 FROM TestReportSummaries trs 
+                WHERE trs.report_id = TestCaseResults.report_id 
+                AND trs.project_id = #{projectId}
+            )
+        </if>
+        <if test="environment != null and environment != ''">
+            AND environment = #{environment}
+        </if>
+    </select>
+
+    <!-- 按时间分组获取趋势数据 -->
+    <select id="getTrendData" resultType="com.victor.iatms.entity.dto.TrendDataDTO">
+        SELECT 
+            <choose>
+                <when test="groupBy == 'hour'">
+                    DATE_FORMAT(start_time, '%Y-%m-%d %H:00:00') as timePeriod,
+                    DATE_FORMAT(start_time, '%m-%d %H:00') as label,
+                </when>
+                <when test="groupBy == 'day'">
+                    DATE(start_time) as timePeriod,
+                    DATE_FORMAT(start_time, '%m-%d') as label,
+                </when>
+                <when test="groupBy == 'week'">
+                    DATE_FORMAT(start_time, '%Y-%u') as timePeriod,
+                    CONCAT('W', WEEK(start_time)) as label,
+                </when>
+                <when test="groupBy == 'month'">
+                    DATE_FORMAT(start_time, '%Y-%m') as timePeriod,
+                    DATE_FORMAT(start_time, '%Y-%m') as label,
+                </when>
+                <otherwise>
+                    DATE(start_time) as timePeriod,
+                    DATE_FORMAT(start_time, '%m-%d') as label,
+                </otherwise>
+            </choose>
+            COUNT(*) as total,
+            SUM(CASE WHEN status = 'passed' THEN 1 ELSE 0 END) as passed,
+            SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END) as failed,
+            SUM(CASE WHEN status = 'broken' THEN 1 ELSE 0 END) as broken,
+            SUM(CASE WHEN status = 'skipped' THEN 1 ELSE 0 END) as skipped,
+            ROUND((SUM(CASE WHEN status = 'passed' THEN 1 ELSE 0 END) * 100.0) / NULLIF(COUNT(*), 0), 2) as successRate,
+            ROUND(AVG(duration), 0) as avgDuration
+        FROM TestCaseResults
+        WHERE is_deleted = FALSE
+        <if test="startTime != null">
+            AND start_time &gt;= #{startTime}
+        </if>
+        <if test="endTime != null">
+            AND start_time &lt;= #{endTime}
+        </if>
+        <if test="projectId != null">
+            AND EXISTS (
+                SELECT 1 FROM TestReportSummaries trs 
+                WHERE trs.report_id = TestCaseResults.report_id 
+                AND trs.project_id = #{projectId}
+            )
+        </if>
+        <if test="environment != null and environment != ''">
+            AND environment = #{environment}
+        </if>
+        GROUP BY timePeriod, label
+        ORDER BY timePeriod ASC
+    </select>
+
+    <!-- 按指定维度分组获取统计数据 -->
+    <select id="getGroupData" resultType="com.victor.iatms.entity.dto.GroupDataDTO">
+        SELECT 
+            <choose>
+                <when test="groupBy == 'priority'">
+                    priority as groupKey,
+                    CONCAT(priority, '-', 
+                        CASE priority 
+                            WHEN 'P0' THEN '最高优先级'
+                            WHEN 'P1' THEN '高优先级'
+                            WHEN 'P2' THEN '中优先级'
+                            WHEN 'P3' THEN '低优先级'
+                            ELSE '未知'
+                        END
+                    ) as groupName,
+                </when>
+                <when test="groupBy == 'severity'">
+                    severity as groupKey,
+                    CONCAT(severity, '-', 
+                        CASE severity 
+                            WHEN 'blocker' THEN '阻塞'
+                            WHEN 'critical' THEN '严重'
+                            WHEN 'normal' THEN '一般'
+                            WHEN 'minor' THEN '次要'
+                            WHEN 'trivial' THEN '轻微'
+                            ELSE '未知'
+                        END
+                    ) as groupName,
+                </when>
+                <otherwise>
+                    task_type as groupKey,
+                    task_type as groupName,
+                </otherwise>
+            </choose>
+            COUNT(*) as total,
+            SUM(CASE WHEN status = 'passed' THEN 1 ELSE 0 END) as passed,
+            SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END) as failed,
+            SUM(CASE WHEN status = 'broken' THEN 1 ELSE 0 END) as broken,
+            SUM(CASE WHEN status = 'skipped' THEN 1 ELSE 0 END) as skipped,
+            ROUND((SUM(CASE WHEN status = 'passed' THEN 1 ELSE 0 END) * 100.0) / NULLIF(COUNT(*), 0), 2) as successRate,
+            ROUND(AVG(duration), 0) as avgDuration
+        FROM TestCaseResults
+        WHERE is_deleted = FALSE
+        <if test="startTime != null">
+            AND start_time &gt;= #{startTime}
+        </if>
+        <if test="endTime != null">
+            AND start_time &lt;= #{endTime}
+        </if>
+        <if test="projectId != null">
+            AND EXISTS (
+                SELECT 1 FROM TestReportSummaries trs 
+                WHERE trs.report_id = TestCaseResults.report_id 
+                AND trs.project_id = #{projectId}
+            )
+        </if>
+        <if test="environment != null and environment != ''">
+            AND environment = #{environment}
+        </if>
+        GROUP BY groupKey, groupName
+        ORDER BY 
+            <choose>
+                <when test="groupBy == 'priority'">
+                    CASE groupKey WHEN 'P0' THEN 1 WHEN 'P1' THEN 2 WHEN 'P2' THEN 3 WHEN 'P3' THEN 4 ELSE 5 END
+                </when>
+                <when test="groupBy == 'severity'">
+                    CASE groupKey WHEN 'blocker' THEN 1 WHEN 'critical' THEN 2 WHEN 'normal' THEN 3 WHEN 'minor' THEN 4 WHEN 'trivial' THEN 5 ELSE 6 END
+                </when>
+                <otherwise>
+                    total DESC
+                </otherwise>
+            </choose>
+    </select>
+
+    <!-- 获取主要问题统计 -->
+    <select id="getTopIssues" resultType="com.victor.iatms.entity.dto.TopIssueDTO">
+        SELECT 
+            failure_type as failureType,
+            COUNT(*) as count,
+            ROUND((COUNT(*) * 100.0) / (
+                SELECT COUNT(*) FROM TestCaseResults 
+                WHERE is_deleted = FALSE 
+                AND status IN ('failed', 'broken')
+                <if test="startTime != null">AND start_time &gt;= #{startTime}</if>
+                <if test="endTime != null">AND start_time &lt;= #{endTime}</if>
+                <if test="environment != null and environment != ''">AND environment = #{environment}</if>
+            ), 2) as percentage,
+            ROUND(AVG(duration), 0) as avgDuration
+        FROM TestCaseResults
+        WHERE is_deleted = FALSE
+        AND status IN ('failed', 'broken')
+        AND failure_type IS NOT NULL
+        <if test="startTime != null">
+            AND start_time &gt;= #{startTime}
+        </if>
+        <if test="endTime != null">
+            AND start_time &lt;= #{endTime}
+        </if>
+        <if test="projectId != null">
+            AND EXISTS (
+                SELECT 1 FROM TestReportSummaries trs 
+                WHERE trs.report_id = TestCaseResults.report_id 
+                AND trs.project_id = #{projectId}
+            )
+        </if>
+        <if test="environment != null and environment != ''">
+            AND environment = #{environment}
+        </if>
+        GROUP BY failure_type
+        ORDER BY count DESC
+        <if test="limit != null">
+            LIMIT #{limit}
+        </if>
+    </select>
+
+    <!-- ========== 近七天执行情况相关SQL ========== -->
+
+    <!-- 获取近七天总体统计摘要 -->
+    <select id="getWeeklySummary" resultType="com.victor.iatms.entity.dto.SummaryDTO">
+        SELECT 
+            COUNT(*) as totalExecutions,
+            COUNT(DISTINCT ref_id) as totalCases,
+            SUM(CASE WHEN status = 'passed' THEN 1 ELSE 0 END) as passed,
+            SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END) as failed,
+            SUM(CASE WHEN status = 'broken' THEN 1 ELSE 0 END) as broken,
+            SUM(CASE WHEN status = 'skipped' THEN 1 ELSE 0 END) as skipped,
+            ROUND((SUM(CASE WHEN status = 'passed' THEN 1 ELSE 0 END) * 100.0) / NULLIF(COUNT(*), 0), 2) as successRate,
+            ROUND(AVG(duration), 0) as avgDuration
+        FROM TestCaseResults
+        WHERE is_deleted = FALSE
+        <if test="startTime != null">
+            AND start_time &gt;= #{startTime}
+        </if>
+        <if test="endTime != null">
+            AND start_time &lt;= #{endTime}
+        </if>
+        <if test="projectId != null">
+            AND EXISTS (
+                SELECT 1 FROM TestReportSummaries trs 
+                WHERE trs.report_id = TestCaseResults.report_id 
+                AND trs.project_id = #{projectId}
+            )
+        </if>
+        <if test="moduleId != null">
+            AND EXISTS (
+                SELECT 1 FROM TestReportSummaries trs 
+                JOIN Modules m ON m.project_id = trs.project_id
+                WHERE trs.report_id = TestCaseResults.report_id 
+                AND m.module_id = #{moduleId}
+            )
+        </if>
+        <if test="environment != null and environment != ''">
+            AND environment = #{environment}
+        </if>
+    </select>
+
+    <!-- 获取近七天每日趋势数据 -->
+    <select id="getWeeklyDailyTrend" resultType="com.victor.iatms.entity.dto.DailyTrendDTO">
+        SELECT 
+            DATE(start_time) as date,
+            CASE DAYOFWEEK(start_time)
+                WHEN 1 THEN '周日'
+                WHEN 2 THEN '周一'
+                WHEN 3 THEN '周二'
+                WHEN 4 THEN '周三'
+                WHEN 5 THEN '周四'
+                WHEN 6 THEN '周五'
+                WHEN 7 THEN '周六'
+            END as dayOfWeek,
+            COUNT(*) as total,
+            SUM(CASE WHEN status = 'passed' THEN 1 ELSE 0 END) as passed,
+            SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END) as failed,
+            SUM(CASE WHEN status = 'broken' THEN 1 ELSE 0 END) as broken,
+            SUM(CASE WHEN status = 'skipped' THEN 1 ELSE 0 END) as skipped,
+            ROUND((SUM(CASE WHEN status = 'passed' THEN 1 ELSE 0 END) * 100.0) / NULLIF(COUNT(*), 0), 2) as successRate,
+            ROUND(AVG(duration), 0) as avgDuration
+        FROM TestCaseResults
+        WHERE is_deleted = FALSE
+        <if test="startTime != null">
+            AND start_time &gt;= #{startTime}
+        </if>
+        <if test="endTime != null">
+            AND start_time &lt;= #{endTime}
+        </if>
+        <if test="projectId != null">
+            AND EXISTS (
+                SELECT 1 FROM TestReportSummaries trs 
+                WHERE trs.report_id = TestCaseResults.report_id 
+                AND trs.project_id = #{projectId}
+            )
+        </if>
+        <if test="moduleId != null">
+            AND EXISTS (
+                SELECT 1 FROM TestReportSummaries trs 
+                JOIN Modules m ON m.project_id = trs.project_id
+                WHERE trs.report_id = TestCaseResults.report_id 
+                AND m.module_id = #{moduleId}
+            )
+        </if>
+        <if test="environment != null and environment != ''">
+            AND environment = #{environment}
+        </if>
+        GROUP BY DATE(start_time), dayOfWeek
+        ORDER BY date ASC
+    </select>
+
+    <!-- 获取项目统计排行（前5） -->
+    <select id="getWeeklyProjectStats" resultType="com.victor.iatms.entity.dto.ProjectStatsDTO">
+        SELECT 
+            trs.project_id as projectId,
+            p.project_name as projectName,
+            COUNT(*) as executions,
+            ROUND((SUM(CASE WHEN tcr.status = 'passed' THEN 1 ELSE 0 END) * 100.0) / NULLIF(COUNT(*), 0), 2) as successRate,
+            ROUND(AVG(tcr.duration), 0) as avgDuration
+        FROM TestCaseResults tcr
+        JOIN TestReportSummaries trs ON trs.report_id = tcr.report_id
+        JOIN Projects p ON p.project_id = trs.project_id
+        WHERE tcr.is_deleted = FALSE
+        <if test="startTime != null">
+            AND tcr.start_time &gt;= #{startTime}
+        </if>
+        <if test="endTime != null">
+            AND tcr.start_time &lt;= #{endTime}
+        </if>
+        <if test="projectId != null">
+            AND trs.project_id = #{projectId}
+        </if>
+        <if test="environment != null and environment != ''">
+            AND tcr.environment = #{environment}
+        </if>
+        GROUP BY trs.project_id, p.project_name
+        ORDER BY executions DESC
+        LIMIT 5
+    </select>
+
+    <!-- 获取模块统计排行（前5） -->
+    <select id="getWeeklyModuleStats" resultType="com.victor.iatms.entity.dto.ModuleStatsDTO">
+        SELECT 
+            m.module_id as moduleId,
+            m.module_name as moduleName,
+            COUNT(*) as executions,
+            ROUND((SUM(CASE WHEN tcr.status = 'passed' THEN 1 ELSE 0 END) * 100.0) / NULLIF(COUNT(*), 0), 2) as successRate,
+            ROUND(AVG(tcr.duration), 0) as avgDuration
+        FROM TestCaseResults tcr
+        JOIN TestReportSummaries trs ON trs.report_id = tcr.report_id
+        JOIN Modules m ON m.project_id = trs.project_id
+        WHERE tcr.is_deleted = FALSE
+        <if test="startTime != null">
+            AND tcr.start_time &gt;= #{startTime}
+        </if>
+        <if test="endTime != null">
+            AND tcr.start_time &lt;= #{endTime}
+        </if>
+        <if test="projectId != null">
+            AND trs.project_id = #{projectId}
+        </if>
+        <if test="moduleId != null">
+            AND m.module_id = #{moduleId}
+        </if>
+        <if test="environment != null and environment != ''">
+            AND tcr.environment = #{environment}
+        </if>
+        GROUP BY m.module_id, m.module_name
+        ORDER BY executions DESC
+        LIMIT 5
+    </select>
+
+    <!-- 获取近七天主要失败原因 -->
+    <select id="getWeeklyTopFailures" resultType="com.victor.iatms.entity.dto.TopFailureDTO">
+        SELECT 
+            failure_type as failureType,
+            COUNT(*) as count,
+            ROUND((COUNT(*) * 100.0) / (
+                SELECT COUNT(*) FROM TestCaseResults 
+                WHERE is_deleted = FALSE 
+                AND status IN ('failed', 'broken')
+                <if test="startTime != null">AND start_time &gt;= #{startTime}</if>
+                <if test="endTime != null">AND start_time &lt;= #{endTime}</if>
+                <if test="environment != null and environment != ''">AND environment = #{environment}</if>
+            ), 2) as percentage,
+            ROUND(AVG(duration), 0) as avgDuration,
+            'stable' as trend
+        FROM TestCaseResults
+        WHERE is_deleted = FALSE
+        AND status IN ('failed', 'broken')
+        AND failure_type IS NOT NULL
+        <if test="startTime != null">
+            AND start_time &gt;= #{startTime}
+        </if>
+        <if test="endTime != null">
+            AND start_time &lt;= #{endTime}
+        </if>
+        <if test="projectId != null">
+            AND EXISTS (
+                SELECT 1 FROM TestReportSummaries trs 
+                WHERE trs.report_id = TestCaseResults.report_id 
+                AND trs.project_id = #{projectId}
+            )
+        </if>
+        <if test="moduleId != null">
+            AND EXISTS (
+                SELECT 1 FROM TestReportSummaries trs 
+                JOIN Modules m ON m.project_id = trs.project_id
+                WHERE trs.report_id = TestCaseResults.report_id 
+                AND m.module_id = #{moduleId}
+            )
+        </if>
+        <if test="environment != null and environment != ''">
+            AND environment = #{environment}
+        </if>
+        GROUP BY failure_type
+        ORDER BY count DESC
+        <if test="limit != null">
+            LIMIT #{limit}
+        </if>
+    </select>
+
+    <!-- 获取近七天性能指标 -->
+    <select id="getWeeklyPerformanceMetrics" resultType="com.victor.iatms.entity.dto.PerformanceMetricsDTO">
+        SELECT 
+            (SELECT duration FROM TestCaseResults 
+             WHERE is_deleted = FALSE
+             <if test="startTime != null">AND start_time &gt;= #{startTime}</if>
+             <if test="endTime != null">AND start_time &lt;= #{endTime}</if>
+             <if test="projectId != null">
+                 AND EXISTS (SELECT 1 FROM TestReportSummaries trs 
+                           WHERE trs.report_id = TestCaseResults.report_id 
+                           AND trs.project_id = #{projectId})
+             </if>
+             <if test="moduleId != null">
+                 AND EXISTS (SELECT 1 FROM TestReportSummaries trs 
+                           JOIN Modules m ON m.project_id = trs.project_id
+                           WHERE trs.report_id = TestCaseResults.report_id 
+                           AND m.module_id = #{moduleId})
+             </if>
+             <if test="environment != null and environment != ''">AND environment = #{environment}</if>
+             ORDER BY duration DESC LIMIT 1 OFFSET (SELECT FLOOR(COUNT(*) * 0.05) FROM TestCaseResults 
+             WHERE is_deleted = FALSE
+             <if test="startTime != null">AND start_time &gt;= #{startTime}</if>
+             <if test="endTime != null">AND start_time &lt;= #{endTime}</if>
+             <if test="environment != null and environment != ''">AND environment = #{environment}</if>
+             )) as p95Duration,
+            (SELECT duration FROM TestCaseResults 
+             WHERE is_deleted = FALSE
+             <if test="startTime != null">AND start_time &gt;= #{startTime}</if>
+             <if test="endTime != null">AND start_time &lt;= #{endTime}</if>
+             <if test="projectId != null">
+                 AND EXISTS (SELECT 1 FROM TestReportSummaries trs 
+                           WHERE trs.report_id = TestCaseResults.report_id 
+                           AND trs.project_id = #{projectId})
+             </if>
+             <if test="moduleId != null">
+                 AND EXISTS (SELECT 1 FROM TestReportSummaries trs 
+                           JOIN Modules m ON m.project_id = trs.project_id
+                           WHERE trs.report_id = TestCaseResults.report_id 
+                           AND m.module_id = #{moduleId})
+             </if>
+             <if test="environment != null and environment != ''">AND environment = #{environment}</if>
+             ORDER BY duration DESC LIMIT 1 OFFSET (SELECT FLOOR(COUNT(*) * 0.01) FROM TestCaseResults 
+             WHERE is_deleted = FALSE
+             <if test="startTime != null">AND start_time &gt;= #{startTime}</if>
+             <if test="endTime != null">AND start_time &lt;= #{endTime}</if>
+             <if test="environment != null and environment != ''">AND environment = #{environment}</if>
+             )) as p99Duration,
+            MAX(duration) as maxDuration,
+            MIN(duration) as minDuration,
+            ROUND(COUNT(*) / 7.0, 2) as throughput
+        FROM TestCaseResults
+        WHERE is_deleted = FALSE
+        <if test="startTime != null">
+            AND start_time &gt;= #{startTime}
+        </if>
+        <if test="endTime != null">
+            AND start_time &lt;= #{endTime}
+        </if>
+        <if test="projectId != null">
+            AND EXISTS (
+                SELECT 1 FROM TestReportSummaries trs 
+                WHERE trs.report_id = TestCaseResults.report_id 
+                AND trs.project_id = #{projectId}
+            )
+        </if>
+        <if test="moduleId != null">
+            AND EXISTS (
+                SELECT 1 FROM TestReportSummaries trs 
+                JOIN Modules m ON m.project_id = trs.project_id
+                WHERE trs.report_id = TestCaseResults.report_id 
+                AND m.module_id = #{moduleId}
+            )
+        </if>
+        <if test="environment != null and environment != ''">
+            AND environment = #{environment}
+        </if>
+    </select>
+
+    <!-- 获取上周同期数据（用于对比） -->
+    <select id="getLastWeekSummary" resultType="com.victor.iatms.entity.dto.SummaryDTO">
+        SELECT 
+            COUNT(*) as totalExecutions,
+            COUNT(DISTINCT ref_id) as totalCases,
+            SUM(CASE WHEN status = 'passed' THEN 1 ELSE 0 END) as passed,
+            SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END) as failed,
+            SUM(CASE WHEN status = 'broken' THEN 1 ELSE 0 END) as broken,
+            SUM(CASE WHEN status = 'skipped' THEN 1 ELSE 0 END) as skipped,
+            ROUND((SUM(CASE WHEN status = 'passed' THEN 1 ELSE 0 END) * 100.0) / NULLIF(COUNT(*), 0), 2) as successRate,
+            ROUND(AVG(duration), 0) as avgDuration
+        FROM TestCaseResults
+        WHERE is_deleted = FALSE
+        <if test="lastWeekStart != null">
+            AND start_time &gt;= #{lastWeekStart}
+        </if>
+        <if test="lastWeekEnd != null">
+            AND start_time &lt;= #{lastWeekEnd}
+        </if>
+        <if test="projectId != null">
+            AND EXISTS (
+                SELECT 1 FROM TestReportSummaries trs 
+                WHERE trs.report_id = TestCaseResults.report_id 
+                AND trs.project_id = #{projectId}
+            )
+        </if>
+        <if test="moduleId != null">
+            AND EXISTS (
+                SELECT 1 FROM TestReportSummaries trs 
+                JOIN Modules m ON m.project_id = trs.project_id
+                WHERE trs.report_id = TestCaseResults.report_id 
+                AND m.module_id = #{moduleId}
+            )
+        </if>
+        <if test="environment != null and environment != ''">
+            AND environment = #{environment}
+        </if>
+    </select>
+
+    <!-- ========== 个人测试概况相关SQL ========== -->
+
+    <!-- 获取用户基本信息 -->
+    <select id="getUserInfo" resultType="com.victor.iatms.entity.dto.UserInfoDTO">
+        SELECT 
+            user_id as userId,
+            name,
+            avatar_url as avatarUrl,
+            department,
+            position,
+            last_login as lastLogin,
+            created_at as memberSince
+        FROM Users
+        WHERE user_id = #{userId}
+        AND is_deleted = FALSE
+    </select>
+
+    <!-- 获取用户执行统计信息 -->
+    <select id="getUserExecutionStats" resultType="com.victor.iatms.entity.dto.ExecutionStatsDTO">
+        SELECT 
+            COUNT(*) as totalExecutions,
+            ROUND((SUM(CASE WHEN tcr.status = 'passed' THEN 1 ELSE 0 END) * 100.0) / NULLIF(COUNT(*), 0), 2) as successRate,
+            ROUND(AVG(tcr.duration), 0) as avgDuration,
+            (SELECT COUNT(*) FROM TestCases tc WHERE tc.created_by = #{userId} AND tc.is_deleted = FALSE) as casesCreated,
+            (SELECT COUNT(*) FROM TestCases tc WHERE tc.updated_by = #{userId} AND tc.is_deleted = FALSE) as casesMaintained,
+            (SELECT COUNT(*) FROM TestCaseResults tcr2 
+             JOIN TestReportSummaries trs2 ON trs2.report_id = tcr2.report_id 
+             WHERE tcr2.status IN ('failed', 'broken') 
+             AND trs2.generated_by = #{userId}
+             AND tcr2.is_deleted = FALSE) as bugsFound
+        FROM TestCaseResults tcr
+        JOIN TestReportSummaries trs ON trs.report_id = tcr.report_id
+        WHERE trs.generated_by = #{userId}
+        AND tcr.is_deleted = FALSE
+        <if test="startTime != null">
+            AND tcr.start_time &gt;= #{startTime}
+        </if>
+        <if test="endTime != null">
+            AND tcr.start_time &lt;= #{endTime}
+        </if>
+    </select>
+
+    <!-- 获取用户项目统计概览 -->
+    <select id="getUserProjectStats" resultType="com.victor.iatms.entity.dto.ProjectStatsDTO">
+        SELECT 
+            trs.project_id as projectId,
+            p.project_name as projectName,
+            COUNT(*) as executions,
+            ROUND((SUM(CASE WHEN tcr.status = 'passed' THEN 1 ELSE 0 END) * 100.0) / NULLIF(COUNT(*), 0), 2) as successRate,
+            ROUND(AVG(tcr.duration), 0) as avgDuration
+        FROM TestCaseResults tcr
+        JOIN TestReportSummaries trs ON trs.report_id = tcr.report_id
+        JOIN Projects p ON p.project_id = trs.project_id
+        WHERE trs.generated_by = #{userId}
+        AND tcr.is_deleted = FALSE
+        <if test="startTime != null">
+            AND tcr.start_time &gt;= #{startTime}
+        </if>
+        <if test="endTime != null">
+            AND tcr.start_time &lt;= #{endTime}
+        </if>
+        GROUP BY trs.project_id, p.project_name
+        ORDER BY executions DESC
+        LIMIT 5
+    </select>
+
+    <!-- 获取用户最近活动记录 -->
+    <select id="getUserRecentActivity" resultType="com.victor.iatms.entity.dto.RecentActivityDTO">
+        SELECT 
+            log_id as activityId,
+            operation_type as type,
+            CONCAT(operation_type, ' ', target_name) as description,
+            target_id,
+            target_name,
+            timestamp,
+            JSON_OBJECT(
+                'status', status,
+                'request_method', request_method,
+                'request_path', request_path
+            ) as details
+        FROM Logs
+        WHERE user_id = #{userId}
+        ORDER BY timestamp DESC
+        <if test="limit != null">
+            LIMIT #{limit}
+        </if>
+    </select>
+
+    <!-- 获取用户待办事项 -->
+    <select id="getUserPendingTasks" resultType="com.victor.iatms.entity.dto.PendingTaskDTO">
+        SELECT 
+            task_id as taskId,
+            task_type as type,
+            task_title as title,
+            priority,
+            due_date as dueDate,
+            assigner,
+            progress
+        FROM Tasks
+        WHERE assignee_id = #{userId}
+        AND status IN ('pending', 'in_progress')
+        AND is_deleted = FALSE
+        ORDER BY priority DESC, due_date ASC
+    </select>
+
+    <!-- 获取系统状态信息 -->
+    <select id="getSystemStatus" resultType="com.victor.iatms.entity.dto.SystemStatusDTO">
+        SELECT 
+            (SELECT COUNT(*) FROM TestCases WHERE is_deleted = FALSE) as totalCases,
+            (SELECT COUNT(*) FROM Projects WHERE is_deleted = FALSE) as activeProjects,
+            (SELECT COUNT(*) FROM TestCaseResults 
+             WHERE DATE(start_time) = CURDATE() 
+             AND is_deleted = FALSE) as todayExecutions,
+            'good' as systemHealth
+    </select>
+
+    <!-- 获取用户质量健康评分 -->
+    <select id="getUserHealthScore" resultType="com.victor.iatms.entity.dto.HealthScoreDTO">
+        SELECT 
+            ROUND(
+                (COALESCE(execution_quality, 0) + COALESCE(case_coverage, 0) + COALESCE(defect_density, 0)) / 3, 0
+            ) as overall,
+            COALESCE(execution_quality, 85) as executionQuality,
+            COALESCE(case_coverage, 75) as caseCoverage,
+            COALESCE(defect_density, 20) as defectDensity,
+            'improving' as trend
+        FROM (
+            SELECT 
+                CASE 
+                    WHEN success_rate >= 90 THEN 95
+                    WHEN success_rate >= 80 THEN 85
+                    WHEN success_rate >= 70 THEN 75
+                    ELSE 65
+                END as execution_quality,
+                CASE 
+                    WHEN case_count >= 50 THEN 90
+                    WHEN case_count >= 30 THEN 80
+                    WHEN case_count >= 20 THEN 70
+                    ELSE 60
+                END as case_coverage,
+                CASE 
+                    WHEN bug_count &lt;= 10 THEN 90
+                    WHEN bug_count &lt;= 20 THEN 80
+                    WHEN bug_count &lt;= 30 THEN 70
+                    ELSE 60
+                END as defect_density
+            FROM (
+                SELECT 
+                    ROUND((SUM(CASE WHEN tcr.status = 'passed' THEN 1 ELSE 0 END) * 100.0) / NULLIF(COUNT(*), 0), 2) as success_rate,
+                    (SELECT COUNT(*) FROM TestCases tc WHERE tc.created_by = #{userId} AND tc.is_deleted = FALSE) as case_count,
+                    (SELECT COUNT(*) FROM TestCaseResults tcr2 
+                     JOIN TestReportSummaries trs2 ON trs2.report_id = tcr2.report_id 
+                     WHERE tcr2.status IN ('failed', 'broken') 
+                     AND trs2.generated_by = #{userId}
+                     AND tcr2.is_deleted = FALSE) as bug_count
+                FROM TestCaseResults tcr
+                JOIN TestReportSummaries trs ON trs.report_id = tcr.report_id
+                WHERE trs.generated_by = #{userId}
+                AND tcr.is_deleted = FALSE
+                <if test="startTime != null">
+                    AND tcr.start_time &gt;= #{startTime}
+                </if>
+                <if test="endTime != null">
+                    AND tcr.start_time &lt;= #{endTime}
+                </if>
+            ) stats
+        ) scores
+    </select>
+
+</mapper>

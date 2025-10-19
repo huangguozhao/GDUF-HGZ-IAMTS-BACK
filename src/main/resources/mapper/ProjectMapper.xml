@@ -1,0 +1,703 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.victor.iatms.mappers.ProjectMapper">
+
+    <!-- 项目列表响应结果映射 -->
+    <resultMap id="ProjectListResponseMap" type="com.victor.iatms.entity.dto.ProjectListResponseDTO">
+        <id column="project_id" property="projectId"/>
+        <result column="name" property="name"/>
+        <result column="description" property="description"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+        <result column="is_deleted" property="isDeleted"/>
+        <result column="deleted_at" property="deletedAt"/>
+        <association property="creatorInfo" javaType="com.victor.iatms.entity.dto.ProjectListResponseDTO$CreatorInfoDTO">
+            <id column="creator_id" property="userId"/>
+            <result column="creator_name" property="name"/>
+            <result column="creator_avatar_url" property="avatarUrl"/>
+        </association>
+    </resultMap>
+
+    <!-- 模块结果映射 -->
+    <resultMap id="ModuleMap" type="com.victor.iatms.entity.dto.ModuleDTO">
+        <id column="module_id" property="moduleId"/>
+        <result column="module_code" property="moduleCode"/>
+        <result column="project_id" property="projectId"/>
+        <result column="parent_module_id" property="parentModuleId"/>
+        <result column="name" property="name"/>
+        <result column="description" property="description"/>
+        <result column="sort_order" property="sortOrder"/>
+        <result column="status" property="status"/>
+        <result column="tags" property="tags"/>
+        <result column="creator_id" property="createdBy"/>
+        <result column="creator_name" property="creatorName"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+        <result column="is_deleted" property="isDeleted"/>
+        <result column="api_count" property="apiCount"/>
+        <result column="case_count" property="caseCount"/>
+        <result column="level" property="level"/>
+        <result column="path" property="path"/>
+        <association property="ownerInfo" javaType="com.victor.iatms.entity.dto.OwnerInfoDTO">
+            <result column="owner_user_id" property="userId"/>
+            <result column="owner_name" property="name"/>
+            <result column="owner_avatar_url" property="avatarUrl"/>
+        </association>
+    </resultMap>
+
+    <!-- 项目成员结果映射 -->
+    <resultMap id="ProjectMemberMap" type="com.victor.iatms.entity.dto.ProjectMemberDTO">
+        <id column="member_id" property="memberId"/>
+        <result column="user_id" property="userId"/>
+        <result column="permission_level" property="permissionLevel"/>
+        <result column="project_role" property="projectRole"/>
+        <result column="status" property="status"/>
+        <result column="join_time" property="joinTime"/>
+        <result column="last_active_time" property="lastActiveTime"/>
+        <result column="assigned_tasks" property="assignedTasks"/>
+        <result column="completed_tasks" property="completedTasks"/>
+        <result column="completion_rate" property="completionRate"/>
+        <result column="additional_roles" property="additionalRoles"/>
+        <result column="creator_id" property="createdBy"/>
+        <result column="creator_name" property="creatorName"/>
+        <association property="userInfo" javaType="com.victor.iatms.entity.dto.UserInfoDTO">
+            <result column="user_name" property="name"/>
+            <result column="user_email" property="email"/>
+            <result column="user_avatar_url" property="avatarUrl"/>
+            <result column="user_phone" property="phone"/>
+            <result column="user_department_id" property="departmentId"/>
+            <result column="user_employee_id" property="employeeId"/>
+            <result column="user_position" property="position"/>
+            <result column="user_status" property="status"/>
+        </association>
+    </resultMap>
+
+    <!-- 项目成员统计摘要结果映射 -->
+    <resultMap id="ProjectMembersSummaryMap" type="com.victor.iatms.entity.dto.ProjectMembersSummaryDTO">
+        <result column="total_members" property="totalMembers"/>
+        <result column="active_members" property="activeMembers"/>
+        <result column="by_permission" property="byPermission" typeHandler="com.victor.iatms.utils.JsonTypeHandler"/>
+        <result column="by_role" property="byRole" typeHandler="com.victor.iatms.utils.JsonTypeHandler"/>
+    </resultMap>
+
+    <!-- 编辑项目响应结果映射 -->
+    <resultMap id="UpdateProjectResponseMap" type="com.victor.iatms.entity.dto.UpdateProjectResponseDTO">
+        <id column="project_id" property="projectId"/>
+        <result column="name" property="name"/>
+        <result column="description" property="description"/>
+        <result column="creator_id" property="creatorId"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+        <result column="is_deleted" property="isDeleted"/>
+    </resultMap>
+
+    <!-- 添加项目响应结果映射 -->
+    <resultMap id="AddProjectResponseMap" type="com.victor.iatms.entity.dto.AddProjectResponseDTO">
+        <id column="project_id" property="projectId"/>
+        <result column="name" property="name"/>
+        <result column="description" property="description"/>
+        <result column="creator_id" property="creatorId"/>
+        <result column="creator_name" property="creatorName"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+    </resultMap>
+
+    <!-- 项目基础信息结果映射 -->
+    <resultMap id="ProjectMap" type="com.victor.iatms.entity.po.Project">
+        <id column="project_id" property="projectId"/>
+        <result column="project_code" property="projectCode"/>
+        <result column="name" property="name"/>
+        <result column="description" property="description"/>
+        <result column="status" property="status"/>
+        <result column="version" property="version"/>
+        <result column="creator_id" property="createdBy"/>
+        <result column="updated_by" property="updatedBy"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+        <result column="is_deleted" property="isDeleted"/>
+        <result column="deleted_at" property="deletedAt"/>
+        <result column="deleted_by" property="deletedBy"/>
+    </resultMap>
+
+    <!-- 分页查询项目列表 -->
+    <select id="selectProjectList" resultMap="ProjectListResponseMap">
+        SELECT 
+            p.project_id,
+            p.name,
+            p.description,
+            p.created_at,
+            p.updated_at,
+            p.is_deleted,
+            p.deleted_at,
+            u.user_id AS creator_id,
+            u.name AS creator_name,
+            u.avatar_url AS creator_avatar_url
+        FROM Projects p
+        LEFT JOIN Users u ON p.creator_id = u.user_id
+        <where>
+            <if test="query.includeDeleted == null or query.includeDeleted == false">
+                AND p.is_deleted = FALSE
+            </if>
+            <if test="query.name != null and query.name != ''">
+                AND p.name LIKE CONCAT('%', #{query.name}, '%')
+            </if>
+            <if test="query.creatorId != null">
+                AND p.creator_id = #{query.creatorId}
+            </if>
+        </where>
+        <choose>
+            <when test="query.sortBy == 'name'">
+                ORDER BY p.name 
+                <if test="query.sortOrder == 'asc'">ASC</if>
+                <if test="query.sortOrder == 'desc'">DESC</if>
+            </when>
+            <when test="query.sortBy == 'updated_at'">
+                ORDER BY p.updated_at 
+                <if test="query.sortOrder == 'asc'">ASC</if>
+                <if test="query.sortOrder == 'desc'">DESC</if>
+            </when>
+            <otherwise>
+                ORDER BY p.created_at 
+                <if test="query.sortOrder == 'asc'">ASC</if>
+                <if test="query.sortOrder == 'desc'">DESC</if>
+            </otherwise>
+        </choose>
+        LIMIT #{query.pageSize} OFFSET #{query.offset}
+    </select>
+
+    <!-- 统计项目总数 -->
+    <select id="countProjects" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM Projects p
+        <where>
+            <if test="query.includeDeleted == null or query.includeDeleted == false">
+                AND p.is_deleted = FALSE
+            </if>
+            <if test="query.name != null and query.name != ''">
+                AND p.name LIKE CONCAT('%', #{query.name}, '%')
+            </if>
+            <if test="query.creatorId != null">
+                AND p.creator_id = #{query.creatorId}
+            </if>
+        </where>
+    </select>
+
+    <!-- 根据ID查询项目 -->
+    <select id="selectById" resultMap="ProjectMap">
+        SELECT 
+            project_id,
+            project_code,
+            name,
+            description,
+            status,
+            version,
+            creator_id,
+            updated_by,
+            created_at,
+            updated_at,
+            is_deleted,
+            deleted_at,
+            deleted_by
+        FROM Projects
+        WHERE project_id = #{projectId}
+    </select>
+
+    <!-- 根据项目编码查询项目 -->
+    <select id="selectByCode" resultMap="ProjectMap">
+        SELECT 
+            project_id,
+            project_code,
+            name,
+            description,
+            status,
+            version,
+            creator_id,
+            updated_by,
+            created_at,
+            updated_at,
+            is_deleted,
+            deleted_at,
+            deleted_by
+        FROM Projects
+        WHERE project_code = #{projectCode}
+        AND is_deleted = FALSE
+    </select>
+
+    <!-- 插入项目 -->
+    <insert id="insert" parameterType="com.victor.iatms.entity.po.Project" useGeneratedKeys="true" keyProperty="projectId">
+        INSERT INTO Projects (
+            project_code,
+            name,
+            description,
+            status,
+            version,
+            creator_id,
+            updated_by,
+            created_at,
+            updated_at,
+            is_deleted
+        ) VALUES (
+            #{projectCode},
+            #{name},
+            #{description},
+            #{status},
+            #{version},
+            #{createdBy},
+            #{updatedBy},
+            #{createdAt},
+            #{updatedAt},
+            #{isDeleted}
+        )
+    </insert>
+
+    <!-- 更新项目 -->
+    <update id="updateById" parameterType="com.victor.iatms.entity.po.Project">
+        UPDATE Projects
+        <set>
+            <if test="name != null and name != ''">
+                name = #{name},
+            </if>
+            <if test="description != null">
+                description = #{description},
+            </if>
+            <if test="status != null and status != ''">
+                status = #{status},
+            </if>
+            <if test="version != null and version != ''">
+                version = #{version},
+            </if>
+            <if test="updatedBy != null">
+                updated_by = #{updatedBy},
+            </if>
+            updated_at = NOW()
+        </set>
+        WHERE project_id = #{projectId}
+    </update>
+
+    <!-- 逻辑删除项目 -->
+    <update id="deleteById">
+        UPDATE Projects
+        SET 
+            is_deleted = TRUE,
+            deleted_at = NOW(),
+            deleted_by = #{deletedBy}
+        WHERE project_id = #{projectId}
+    </update>
+
+    <!-- 检查项目名称是否存在 -->
+    <select id="checkProjectNameExists" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM Projects
+        WHERE name = #{projectName}
+        <if test="excludeId != null">
+            AND project_id != #{excludeId}
+        </if>
+    </select>
+
+    <!-- 检查项目编码是否存在 -->
+    <select id="checkProjectCodeExists" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM Projects
+        WHERE project_code = #{projectCode}
+        <if test="excludeId != null">
+            AND project_id != #{excludeId}
+        </if>
+    </select>
+
+    <!-- 根据项目ID获取项目详情（包含创建人信息） -->
+    <select id="selectProjectDetailById" resultMap="AddProjectResponseMap">
+        SELECT 
+            p.project_id,
+            p.name,
+            p.description,
+            p.creator_id AS creator_id,
+            u.name AS creator_name,
+            p.created_at,
+            p.updated_at
+        FROM Projects p
+        LEFT JOIN Users u ON p.creator_id = u.user_id
+        WHERE p.project_id = #{projectId}
+    </select>
+
+    <!-- 查询模块列表（平铺结构） -->
+    <select id="selectModuleListFlat" resultMap="ModuleMap">
+        SELECT 
+            m.module_id,
+            m.module_code,
+            m.project_id,
+            m.parent_module_id,
+            m.name,
+            m.description,
+            m.sort_order,
+            m.status,
+            m.tags,
+            m.creator_id,
+            creator.name as creator_name,
+            m.created_at,
+            m.updated_at,
+            m.is_deleted,
+            <if test="includeStatistics != null and includeStatistics == true">
+                COALESCE(api_stats.api_count, 0) as api_count,
+                COALESCE(case_stats.case_count, 0) as case_count,
+            </if>
+            <if test="includeStatistics == null or includeStatistics == false">
+                0 as api_count,
+                0 as case_count,
+            </if>
+            CASE 
+                WHEN m.parent_module_id IS NULL THEN 1
+                ELSE 2
+            END as level,
+            CASE 
+                WHEN m.parent_module_id IS NULL THEN m.name
+                ELSE CONCAT(parent.name, '/', m.name)
+            END as path,
+            owner.user_id as owner_user_id,
+            owner.name as owner_name,
+            owner.avatar_url as owner_avatar_url
+        FROM Modules m
+        LEFT JOIN Users creator ON m.creator_id = creator.user_id
+        LEFT JOIN Users owner ON m.owner_id = owner.user_id
+        LEFT JOIN Modules parent ON m.parent_module_id = parent.module_id
+        <if test="includeStatistics != null and includeStatistics == true">
+            LEFT JOIN (
+                SELECT 
+                    module_id,
+                    COUNT(*) as api_count
+                FROM Apis 
+                WHERE is_deleted = FALSE
+                GROUP BY module_id
+            ) api_stats ON m.module_id = api_stats.module_id
+            LEFT JOIN (
+                SELECT 
+                    a.module_id,
+                    COUNT(*) as case_count
+                FROM TestCases tc
+                LEFT JOIN Apis a ON tc.api_id = a.api_id
+                WHERE tc.is_deleted = FALSE AND a.is_deleted = FALSE
+                GROUP BY a.module_id
+            ) case_stats ON m.module_id = case_stats.module_id
+        </if>
+        WHERE m.project_id = #{projectId}
+        <if test="status != null and status != ''">
+            AND m.status = #{status}
+        </if>
+        <if test="includeDeleted == null or includeDeleted == false">
+            AND m.is_deleted = FALSE
+        </if>
+        <if test="searchKeyword != null and searchKeyword != ''">
+            AND (m.name LIKE CONCAT('%', #{searchKeyword}, '%') 
+                 OR m.description LIKE CONCAT('%', #{searchKeyword}, '%'))
+        </if>
+        <choose>
+            <when test="sortBy == 'name'">
+                ORDER BY m.name ${sortOrder}
+            </when>
+            <when test="sortBy == 'created_at'">
+                ORDER BY m.created_at ${sortOrder}
+            </when>
+            <otherwise>
+                ORDER BY m.sort_order ${sortOrder}, m.created_at ASC
+            </otherwise>
+        </choose>
+    </select>
+
+    <!-- 查询模块列表（树形结构） -->
+    <select id="selectModuleListTree" resultMap="ModuleMap">
+        SELECT 
+            m.module_id,
+            m.module_code,
+            m.project_id,
+            m.parent_module_id,
+            m.name,
+            m.description,
+            m.sort_order,
+            m.status,
+            m.tags,
+            m.creator_id,
+            creator.name as creator_name,
+            m.created_at,
+            m.updated_at,
+            m.is_deleted,
+            <if test="includeStatistics != null and includeStatistics == true">
+                COALESCE(api_stats.api_count, 0) as api_count,
+                COALESCE(case_stats.case_count, 0) as case_count,
+            </if>
+            <if test="includeStatistics == null or includeStatistics == false">
+                0 as api_count,
+                0 as case_count,
+            </if>
+            owner.user_id as owner_user_id,
+            owner.name as owner_name,
+            owner.avatar_url as owner_avatar_url
+        FROM Modules m
+        LEFT JOIN Users creator ON m.creator_id = creator.user_id
+        LEFT JOIN Users owner ON m.owner_id = owner.user_id
+        <if test="includeStatistics != null and includeStatistics == true">
+            LEFT JOIN (
+                SELECT 
+                    module_id,
+                    COUNT(*) as api_count
+                FROM Apis 
+                WHERE is_deleted = FALSE
+                GROUP BY module_id
+            ) api_stats ON m.module_id = api_stats.module_id
+            LEFT JOIN (
+                SELECT 
+                    a.module_id,
+                    COUNT(*) as case_count
+                FROM TestCases tc
+                LEFT JOIN Apis a ON tc.api_id = a.api_id
+                WHERE tc.is_deleted = FALSE AND a.is_deleted = FALSE
+                GROUP BY a.module_id
+            ) case_stats ON m.module_id = case_stats.module_id
+        </if>
+        WHERE m.project_id = #{projectId}
+        <if test="status != null and status != ''">
+            AND m.status = #{status}
+        </if>
+        <if test="includeDeleted == null or includeDeleted == false">
+            AND m.is_deleted = FALSE
+        </if>
+        <if test="searchKeyword != null and searchKeyword != ''">
+            AND (m.name LIKE CONCAT('%', #{searchKeyword}, '%') 
+                 OR m.description LIKE CONCAT('%', #{searchKeyword}, '%'))
+        </if>
+        <choose>
+            <when test="sortBy == 'name'">
+                ORDER BY m.name ${sortOrder}
+            </when>
+            <when test="sortBy == 'created_at'">
+                ORDER BY m.created_at ${sortOrder}
+            </when>
+            <otherwise>
+                ORDER BY m.sort_order ${sortOrder}, m.created_at ASC
+            </otherwise>
+        </choose>
+    </select>
+
+    <!-- 统计模块总数 -->
+    <select id="countModules" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM Modules m
+        WHERE m.project_id = #{projectId}
+        <if test="status != null and status != ''">
+            AND m.status = #{status}
+        </if>
+        <if test="includeDeleted == null or includeDeleted == false">
+            AND m.is_deleted = FALSE
+        </if>
+        <if test="searchKeyword != null and searchKeyword != ''">
+            AND (m.name LIKE CONCAT('%', #{searchKeyword}, '%') 
+                 OR m.description LIKE CONCAT('%', #{searchKeyword}, '%'))
+        </if>
+    </select>
+
+    <!-- 分页查询项目成员列表 -->
+    <select id="selectProjectMembers" resultMap="ProjectMemberMap">
+        SELECT 
+            pm.member_id,
+            pm.user_id,
+            pm.permission_level,
+            pm.project_role,
+            pm.status,
+            pm.join_time,
+            pm.last_active_time,
+            COALESCE(task_stats.assigned_tasks, 0) as assigned_tasks,
+            COALESCE(task_stats.completed_tasks, 0) as completed_tasks,
+            CASE 
+                WHEN COALESCE(task_stats.assigned_tasks, 0) = 0 THEN 0.0
+                ELSE ROUND(COALESCE(task_stats.completed_tasks, 0) * 100.0 / COALESCE(task_stats.assigned_tasks, 0), 1)
+            END as completion_rate,
+            pm.additional_roles,
+            pm.creator_id,
+            creator.name as creator_name,
+            u.name as user_name,
+            u.email as user_email,
+            u.avatar_url as user_avatar_url,
+            u.phone as user_phone,
+            u.department_id as user_department_id,
+            u.employee_id as user_employee_id,
+            u.position as user_position,
+            u.status as user_status
+        FROM ProjectMembers pm
+        LEFT JOIN Users u ON pm.user_id = u.user_id
+        LEFT JOIN Users creator ON pm.creator_id = creator.user_id
+        LEFT JOIN (
+            SELECT 
+                assignee_id,
+                COUNT(*) as assigned_tasks,
+                SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed_tasks
+            FROM Tasks 
+            WHERE project_id = #{projectId} AND is_deleted = FALSE
+            GROUP BY assignee_id
+        ) task_stats ON pm.user_id = task_stats.assignee_id
+        WHERE pm.project_id = #{projectId}
+        <if test="status != null and status != ''">
+            AND pm.status = #{status}
+        </if>
+        <if test="permissionLevel != null and permissionLevel != ''">
+            AND pm.permission_level = #{permissionLevel}
+        </if>
+        <if test="projectRole != null and projectRole != ''">
+            AND pm.project_role = #{projectRole}
+        </if>
+        <if test="searchKeyword != null and searchKeyword != ''">
+            AND (u.name LIKE CONCAT('%', #{searchKeyword}, '%') 
+                 OR u.email LIKE CONCAT('%', #{searchKeyword}, '%'))
+        </if>
+        <choose>
+            <when test="sortBy == 'name'">
+                ORDER BY u.name ${sortOrder}
+            </when>
+            <when test="sortBy == 'permission_level'">
+                ORDER BY pm.permission_level ${sortOrder}
+            </when>
+            <when test="sortBy == 'project_role'">
+                ORDER BY pm.project_role ${sortOrder}
+            </when>
+            <otherwise>
+                ORDER BY pm.join_time ${sortOrder}
+            </otherwise>
+        </choose>
+        LIMIT #{offset}, #{pageSize}
+    </select>
+
+    <!-- 统计项目成员总数 -->
+    <select id="countProjectMembers" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM ProjectMembers pm
+        LEFT JOIN Users u ON pm.user_id = u.user_id
+        WHERE pm.project_id = #{projectId}
+        <if test="status != null and status != ''">
+            AND pm.status = #{status}
+        </if>
+        <if test="permissionLevel != null and permissionLevel != ''">
+            AND pm.permission_level = #{permissionLevel}
+        </if>
+        <if test="projectRole != null and projectRole != ''">
+            AND pm.project_role = #{projectRole}
+        </if>
+        <if test="searchKeyword != null and searchKeyword != ''">
+            AND (u.name LIKE CONCAT('%', #{searchKeyword}, '%') 
+                 OR u.email LIKE CONCAT('%', #{searchKeyword}, '%'))
+        </if>
+    </select>
+
+    <!-- 获取项目成员统计摘要 -->
+    <select id="selectProjectMembersSummary" resultMap="ProjectMembersSummaryMap">
+        SELECT 
+            COUNT(*) as total_members,
+            SUM(CASE WHEN pm.status = 'active' THEN 1 ELSE 0 END) as active_members,
+            JSON_OBJECT(
+                'admin', SUM(CASE WHEN pm.permission_level = 'admin' THEN 1 ELSE 0 END),
+                'write', SUM(CASE WHEN pm.permission_level = 'write' THEN 1 ELSE 0 END),
+                'read', SUM(CASE WHEN pm.permission_level = 'read' THEN 1 ELSE 0 END)
+            ) as by_permission,
+            JSON_OBJECT(
+                'owner', SUM(CASE WHEN pm.project_role = 'owner' THEN 1 ELSE 0 END),
+                'manager', SUM(CASE WHEN pm.project_role = 'manager' THEN 1 ELSE 0 END),
+                'developer', SUM(CASE WHEN pm.project_role = 'developer' THEN 1 ELSE 0 END),
+                'tester', SUM(CASE WHEN pm.project_role = 'tester' THEN 1 ELSE 0 END),
+                'viewer', SUM(CASE WHEN pm.project_role = 'viewer' THEN 1 ELSE 0 END)
+            ) as by_role
+        FROM ProjectMembers pm
+        WHERE pm.project_id = #{projectId}
+    </select>
+
+    <!-- 根据项目ID获取项目详情（用于编辑项目响应） -->
+    <select id="selectProjectForUpdate" resultMap="UpdateProjectResponseMap">
+        SELECT 
+            project_id,
+            name,
+            description,
+            creator_id,
+            created_at,
+            updated_at,
+            is_deleted
+        FROM Projects
+        WHERE project_id = #{projectId}
+    </select>
+
+    <!-- 检查项目是否存在关联的模块 -->
+    <select id="checkProjectHasModules" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM Modules
+        WHERE project_id = #{projectId}
+        AND is_deleted = FALSE
+    </select>
+
+    <!-- 检查项目是否存在关联的接口 -->
+    <select id="checkProjectHasApis" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM Apis a
+        INNER JOIN Modules m ON a.module_id = m.module_id
+        WHERE m.project_id = #{projectId}
+        AND a.is_deleted = FALSE
+        AND m.is_deleted = FALSE
+    </select>
+
+    <!-- 检查项目是否存在关联的用例 -->
+    <select id="checkProjectHasTestCases" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM TestCases tc
+        INNER JOIN Apis a ON tc.api_id = a.api_id
+        INNER JOIN Modules m ON a.module_id = m.module_id
+        WHERE m.project_id = #{projectId}
+        AND tc.is_deleted = FALSE
+        AND a.is_deleted = FALSE
+        AND m.is_deleted = FALSE
+    </select>
+
+    <!-- 检查项目是否存在关联的测试报告 -->
+    <select id="checkProjectHasTestReports" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM TestReportSummaries
+        WHERE project_id = #{projectId}
+        AND is_deleted = FALSE
+    </select>
+
+    <!-- 级联软删除项目下的所有模块 -->
+    <update id="cascadeDeleteModules">
+        UPDATE Modules
+        SET 
+            is_deleted = TRUE,
+            deleted_at = NOW(),
+            deleted_by = #{deletedBy}
+        WHERE project_id = #{projectId}
+        AND is_deleted = FALSE
+    </update>
+
+    <!-- 级联软删除项目下的所有接口 -->
+    <update id="cascadeDeleteApis">
+        UPDATE Apis
+        SET 
+            is_deleted = TRUE,
+            deleted_at = NOW(),
+            deleted_by = #{deletedBy}
+        WHERE module_id IN (
+            SELECT module_id FROM Modules 
+            WHERE project_id = #{projectId} 
+            AND is_deleted = FALSE
+        )
+        AND is_deleted = FALSE
+    </update>
+
+    <!-- 级联软删除项目下的所有用例 -->
+    <update id="cascadeDeleteTestCases">
+        UPDATE TestCases
+        SET 
+            is_deleted = TRUE,
+            deleted_at = NOW(),
+            deleted_by = #{deletedBy}
+        WHERE api_id IN (
+            SELECT a.api_id FROM Apis a
+            INNER JOIN Modules m ON a.module_id = m.module_id
+            WHERE m.project_id = #{projectId}
+            AND a.is_deleted = FALSE
+            AND m.is_deleted = FALSE
+        )
+        AND is_deleted = FALSE
+    </update>
+
+</mapper>
