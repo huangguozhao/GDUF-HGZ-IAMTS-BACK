@@ -520,4 +520,159 @@
         WHERE tcr.report_id = #{reportId} AND tcr.is_deleted = 0
     </select>
 
+    <!-- ==================== 报告删除相关SQL ==================== -->
+
+    <!-- 删除报告响应结果映射 -->
+    <resultMap id="DeleteReportResponseResultMap" type="com.victor.iatms.entity.dto.DeleteReportResponseDTO">
+        <result column="report_id" property="reportId"/>
+        <result column="report_name" property="reportName"/>
+        <result column="deleted" property="deleted"/>
+        <result column="deletion_type" property="deletionType"/>
+        <result column="deleted_at" property="deletedAt"/>
+        <result column="affected_rows" property="affectedRows"/>
+        <result column="deleted_by" property="deletedBy"/>
+    </resultMap>
+
+    <!-- 报告依赖检查结果映射 -->
+    <resultMap id="ReportDependencyCheckResultMap" type="com.victor.iatms.entity.dto.ReportDependencyCheckDTO">
+        <result column="report_id" property="reportId"/>
+        <result column="dependencies" property="dependencies" typeHandler="com.victor.iatms.utils.JsonTypeHandler"/>
+    </resultMap>
+
+    <!-- 检查报告是否存在且未被删除 -->
+    <select id="selectByIdForDelete" parameterType="java.lang.Long" resultType="com.victor.iatms.entity.po.TestReportSummary">
+        SELECT 
+            report_id,
+            report_name,
+            report_type,
+            execution_id,
+            project_id,
+            environment,
+            start_time,
+            end_time,
+            duration,
+            total_cases,
+            executed_cases,
+            passed_cases,
+            failed_cases,
+            broken_cases,
+            skipped_cases,
+            success_rate,
+            total_duration,
+            avg_duration,
+            max_duration,
+            min_duration,
+            report_status,
+            file_format,
+            file_path,
+            file_size,
+            download_url,
+            generated_by,
+            tags_json,
+            summary_json,
+            trend_data_json,
+            created_at,
+            updated_at,
+            is_deleted,
+            deleted_at,
+            deleted_by
+        FROM TestReportSummaries
+        WHERE report_id = #{reportId}
+    </select>
+
+    <!-- 检查报告依赖关系 -->
+    <select id="checkReportDependencies" parameterType="java.lang.Long" resultMap="ReportDependencyCheckResultMap">
+        SELECT 
+            #{reportId} AS report_id,
+            JSON_ARRAY(
+                CASE 
+                    WHEN analysis_count > 0 THEN JSON_OBJECT(
+                        'type', 'analysis',
+                        'count', analysis_count,
+                        'description', '关联分析报告'
+                    )
+                    ELSE NULL
+                END,
+                CASE 
+                    WHEN comparison_count > 0 THEN JSON_OBJECT(
+                        'type', 'comparison',
+                        'count', comparison_count,
+                        'description', '对比分析报告'
+                    )
+                    ELSE NULL
+                END,
+                CASE 
+                    WHEN trend_count > 0 THEN JSON_OBJECT(
+                        'type', 'trend',
+                        'count', trend_count,
+                        'description', '趋势分析报告'
+                    )
+                    ELSE NULL
+                END
+            ) AS dependencies
+        FROM (
+            SELECT 
+                COALESCE(analysis_count, 0) AS analysis_count,
+                COALESCE(comparison_count, 0) AS comparison_count,
+                COALESCE(trend_count, 0) AS trend_count
+            FROM (
+                SELECT 
+                    (SELECT COUNT(*) FROM TestReportSummaries trs2 
+                     WHERE trs2.summary_json LIKE CONCAT('%', #{reportId}, '%') 
+                     AND trs2.is_deleted = 0) AS analysis_count,
+                    (SELECT COUNT(*) FROM TestReportSummaries trs3 
+                     WHERE trs3.trend_data_json LIKE CONCAT('%', #{reportId}, '%') 
+                     AND trs3.is_deleted = 0) AS comparison_count,
+                    (SELECT COUNT(*) FROM TestReportSummaries trs4 
+                     WHERE trs4.tags_json LIKE CONCAT('%', #{reportId}, '%') 
+                     AND trs4.is_deleted = 0) AS trend_count
+            ) counts
+        ) dependency_counts
+        WHERE analysis_count > 0 OR comparison_count > 0 OR trend_count > 0
+    </select>
+
+    <!-- 软删除报告（更新is_deleted字段） -->
+    <update id="softDeleteReport">
+        UPDATE TestReportSummaries
+        SET 
+            is_deleted = TRUE,
+            deleted_at = NOW(),
+            deleted_by = #{deletedBy},
+            updated_at = NOW()
+        WHERE report_id = #{reportId}
+        AND is_deleted = FALSE
+    </update>
+
+    <!-- 硬删除报告（物理删除） -->
+    <delete id="hardDeleteReport" parameterType="java.lang.Long">
+        DELETE FROM TestReportSummaries
+        WHERE report_id = #{reportId}
+    </delete>
+
+    <!-- 删除报告相关的测试结果 -->
+    <update id="deleteReportTestResults" parameterType="java.lang.Long">
+        UPDATE TestCaseResults
+        SET 
+            is_deleted = TRUE,
+            deleted_at = NOW(),
+            deleted_by = 1
+        WHERE report_id = #{reportId}
+        AND is_deleted = FALSE
+    </update>
+
+    <!-- 获取删除报告的基本信息 -->
+    <select id="getDeleteReportInfo" parameterType="java.lang.Long" resultMap="DeleteReportResponseResultMap">
+        SELECT 
+            report_id,
+            report_name,
+            FALSE AS deleted,
+            'soft_delete' AS deletion_type,
+            NOW() AS deleted_at,
+            0 AS affected_rows,
+            NULL AS deleted_by
+        FROM TestReportSummaries
+        WHERE report_id = #{reportId}
+        AND is_deleted = FALSE
+    </select>
+
 </mapper>

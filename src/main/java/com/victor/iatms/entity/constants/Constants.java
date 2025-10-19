@@ -1088,4 +1088,56 @@ public class Constants {
     public static final String EXPORT_ERROR_FILE_TOO_LARGE = "FILE_TOO_LARGE";
     public static final String EXPORT_ERROR_TIMEOUT = "EXPORT_TIMEOUT";
 
+    // ==================== 报告删除相关常量 ====================
+
+    /**
+     * 删除类型常量
+     */
+    public static final String DELETE_TYPE_SOFT = "soft_delete";
+    public static final String DELETE_TYPE_HARD = "hard_delete";
+
+    /**
+     * 默认删除类型
+     */
+    public static final String DEFAULT_DELETE_TYPE = DELETE_TYPE_SOFT;
+
+    /**
+     * 删除权限级别
+     */
+    public static final String DELETE_PERMISSION_OWNER = "owner";
+    public static final String DELETE_PERMISSION_ADMIN = "admin";
+    public static final String DELETE_PERMISSION_MANAGER = "manager";
+
+    /**
+     * 删除错误码
+     */
+    public static final String DELETE_ERROR_REPORT_NOT_FOUND = "REPORT_NOT_FOUND";
+    public static final String DELETE_ERROR_REPORT_DELETED = "REPORT_DELETED";
+    public static final String DELETE_ERROR_DEPENDENCY_EXISTS = "DEPENDENCY_EXISTS";
+    public static final String DELETE_ERROR_INVALID_PARAMETER = "INVALID_PARAMETER";
+
+    /**
+     * 依赖类型常量
+     */
+    public static final String DEPENDENCY_TYPE_ANALYSIS = "analysis";
+    public static final String DEPENDENCY_TYPE_COMPARISON = "comparison";
+    public static final String DEPENDENCY_TYPE_TREND = "trend";
+    public static final String DEPENDENCY_TYPE_EXECUTION = "execution";
+
+    /**
+     * 删除确认超时时间（秒）
+     */
+    public static final int DELETE_CONFIRMATION_TIMEOUT = 30;
+
+    /**
+     * 批量删除最大数量
+     */
+    public static final int MAX_BATCH_DELETE_COUNT = 100;
+
+    /**
+     * 删除操作审计日志类型
+     */
+    public static final String AUDIT_LOG_TYPE_DELETE = "DELETE_REPORT";
+    public static final String AUDIT_LOG_TYPE_FORCE_DELETE = "FORCE_DELETE_REPORT";
+
 }

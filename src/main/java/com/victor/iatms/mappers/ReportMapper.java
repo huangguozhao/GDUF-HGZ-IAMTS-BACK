@@ -4,6 +4,8 @@ import com.victor.iatms.entity.dto.ReportListQueryDTO;
 import com.victor.iatms.entity.dto.ReportListResponseDTO;
 import com.victor.iatms.entity.dto.ReportSummaryDTO;
 import com.victor.iatms.entity.dto.ReportExportResponseDTO;
+import com.victor.iatms.entity.dto.DeleteReportResponseDTO;
+import com.victor.iatms.entity.dto.ReportDependencyCheckDTO;
 import com.victor.iatms.entity.po.TestReportSummary;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -169,4 +171,55 @@ public interface ReportMapper {
      * @return 统计信息
      */
     ReportExportResponseDTO.ReportStatisticsDTO selectReportStatistics(@Param("reportId") Long reportId);
+    
+    // ==================== 报告删除相关方法 ====================
+    
+    /**
+     * 检查报告是否存在且未被删除
+     * 
+     * @param reportId 报告ID
+     * @return 报告信息
+     */
+    TestReportSummary selectByIdForDelete(@Param("reportId") Long reportId);
+    
+    /**
+     * 检查报告依赖关系
+     * 
+     * @param reportId 报告ID
+     * @return 依赖检查结果
+     */
+    ReportDependencyCheckDTO checkReportDependencies(@Param("reportId") Long reportId);
+    
+    /**
+     * 软删除报告（更新is_deleted字段）
+     * 
+     * @param reportId 报告ID
+     * @param deletedBy 删除人ID
+     * @return 影响行数
+     */
+    int softDeleteReport(@Param("reportId") Long reportId, @Param("deletedBy") Integer deletedBy);
+    
+    /**
+     * 硬删除报告（物理删除）
+     * 
+     * @param reportId 报告ID
+     * @return 影响行数
+     */
+    int hardDeleteReport(@Param("reportId") Long reportId);
+    
+    /**
+     * 删除报告相关的测试结果
+     * 
+     * @param reportId 报告ID
+     * @return 影响行数
+     */
+    int deleteReportTestResults(@Param("reportId") Long reportId);
+    
+    /**
+     * 获取删除报告的基本信息
+     * 
+     * @param reportId 报告ID
+     * @return 删除响应信息
+     */
+    DeleteReportResponseDTO getDeleteReportInfo(@Param("reportId") Long reportId);
 }

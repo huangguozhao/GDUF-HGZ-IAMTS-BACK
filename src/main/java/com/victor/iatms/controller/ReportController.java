@@ -5,6 +5,7 @@ import com.victor.iatms.entity.constants.Constants;
 import com.victor.iatms.entity.dto.ReportListQueryDTO;
 import com.victor.iatms.entity.dto.ReportPageResultDTO;
 import com.victor.iatms.entity.dto.ReportExportQueryDTO;
+import com.victor.iatms.entity.dto.DeleteReportResponseDTO;
 import com.victor.iatms.entity.enums.ReportExportFormatEnum;
 import com.victor.iatms.entity.po.TestReportSummary;
 import com.victor.iatms.entity.vo.ResponseVO;
@@ -230,33 +231,6 @@ public class ReportController {
     }
     
     /**
-     * 删除报告
-     * 
-     * @param reportId 报告ID
-     * @return 删除结果
-     */
-    @DeleteMapping("/{reportId}")
-    @GlobalInterceptor(checkLogin = true)
-    public ResponseVO<Boolean> deleteReport(@PathVariable("reportId") Long reportId) {
-        try {
-            // TODO: 从当前用户上下文获取用户ID
-            Integer deletedBy = 1; // 临时硬编码，实际应该从JWT token中获取
-            boolean result = reportService.deleteReport(reportId, deletedBy);
-            return ResponseVO.success("删除报告成功", result);
-        } catch (IllegalArgumentException e) {
-            if (e.getMessage().contains("不存在")) {
-                return ResponseVO.notFound(e.getMessage());
-            } else if (e.getMessage().contains("已被删除")) {
-                return ResponseVO.businessError(e.getMessage());
-            } else {
-                return ResponseVO.paramError(e.getMessage());
-            }
-        } catch (Exception e) {
-            return ResponseVO.serverError("删除报告失败：" + e.getMessage());
-        }
-    }
-    
-    /**
      * 批量删除报告
      * 
      * @param reportIds 报告ID列表
@@ -417,6 +391,51 @@ public class ReportController {
             }
         } catch (Exception e) {
             return ResponseEntity.internalServerError().build();
+        }
+    }
+    
+    /**
+     * 删除测试报告
+     * 
+     * @param reportId 报告ID
+     * @param force 是否强制删除（物理删除）
+     * @return 删除结果
+     */
+    @DeleteMapping("/{reportId}")
+    @GlobalInterceptor(checkLogin = true)
+    public ResponseVO<DeleteReportResponseDTO> deleteReport(@PathVariable("reportId") Long reportId,
+                                                           @RequestParam(value = "force", required = false) Boolean force) {
+        try {
+            // TODO: 从当前用户上下文获取用户ID
+            Integer currentUserId = 1; // 临时硬编码，实际应该从认证上下文获取
+            
+            // 执行删除操作
+            DeleteReportResponseDTO result = reportService.deleteTestReport(reportId, force, currentUserId);
+            
+            // 根据删除类型返回不同的成功消息
+            String message = "hard_delete".equals(result.getDeletionType()) ? "报告已永久删除" : "报告删除成功";
+            
+            return ResponseVO.success(message, result);
+            
+        } catch (IllegalArgumentException e) {
+            // 根据不同的错误类型返回不同的错误响应
+            if (e.getMessage().contains("报告不存在")) {
+                return ResponseVO.notFound(e.getMessage());
+            } else if (e.getMessage().contains("报告已被删除")) {
+                return ResponseVO.businessError(e.getMessage());
+            } else if (e.getMessage().contains("被其他数据引用")) {
+                return ResponseVO.businessError(e.getMessage());
+            } else if (e.getMessage().contains("权限不足")) {
+                return ResponseVO.forbidden(e.getMessage());
+            } else if (e.getMessage().contains("参数验证失败") || 
+                      e.getMessage().contains("不能为空") || 
+                      e.getMessage().contains("小于等于0")) {
+                return ResponseVO.paramError(e.getMessage());
+            } else {
+                return ResponseVO.businessError(e.getMessage());
+            }
+        } catch (Exception e) {
+            return ResponseVO.serverError("删除报告失败：" + e.getMessage());
         }
     }
 }

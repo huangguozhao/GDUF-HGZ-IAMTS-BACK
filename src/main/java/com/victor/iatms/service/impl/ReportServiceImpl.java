@@ -4,6 +4,8 @@ import com.victor.iatms.entity.constants.Constants;
 import com.victor.iatms.entity.dto.ReportListQueryDTO;
 import com.victor.iatms.entity.dto.ReportPageResultDTO;
 import com.victor.iatms.entity.dto.ReportSummaryDTO;
+import com.victor.iatms.entity.dto.DeleteReportResponseDTO;
+import com.victor.iatms.entity.dto.ReportDependencyCheckDTO;
 import com.victor.iatms.entity.enums.ReportSortFieldEnum;
 import com.victor.iatms.entity.enums.SortOrderEnum;
 import com.victor.iatms.entity.po.TestReportSummary;
@@ -389,5 +391,110 @@ public class ReportServiceImpl implements ReportService {
         if (report.getFileSize() == null) {
             report.setFileSize(0L);
         }
+    }
+    
+    // ==================== 报告删除相关方法实现 ====================
+    
+    @Override
+    public DeleteReportResponseDTO deleteTestReport(Long reportId, Boolean force, Integer currentUserId) {
+        // 参数校验
+        if (reportId == null || reportId <= 0) {
+            throw new IllegalArgumentException("报告ID不能为空或小于等于0");
+        }
+        if (currentUserId == null || currentUserId <= 0) {
+            throw new IllegalArgumentException("用户ID不能为空或小于等于0");
+        }
+        
+        // 检查报告是否存在
+        TestReportSummary report = checkReportExists(reportId);
+        if (report == null) {
+            throw new IllegalArgumentException("报告不存在");
+        }
+        
+        // 检查报告是否已被删除
+        if (report.getIsDeleted()) {
+            throw new IllegalArgumentException("报告已被删除，无法重复删除");
+        }
+        
+        // 检查依赖关系（仅在非强制删除时检查）
+        if (force == null || !force) {
+            ReportDependencyCheckDTO dependencies = checkReportDependencies(reportId);
+            if (dependencies != null && dependencies.getDependencies() != null && !dependencies.getDependencies().isEmpty()) {
+                throw new IllegalArgumentException("报告被其他数据引用，无法删除");
+            }
+        }
+        
+        // 执行删除操作
+        DeleteReportResponseDTO result;
+        if (force != null && force) {
+            result = hardDeleteReport(reportId);
+        } else {
+            result = softDeleteReport(reportId, currentUserId);
+        }
+        
+        return result;
+    }
+    
+    @Override
+    public TestReportSummary checkReportExists(Long reportId) {
+        if (reportId == null || reportId <= 0) {
+            return null;
+        }
+        return reportMapper.selectByIdForDelete(reportId);
+    }
+    
+    @Override
+    public ReportDependencyCheckDTO checkReportDependencies(Long reportId) {
+        if (reportId == null || reportId <= 0) {
+            return null;
+        }
+        return reportMapper.checkReportDependencies(reportId);
+    }
+    
+    @Override
+    public DeleteReportResponseDTO softDeleteReport(Long reportId, Integer deletedBy) {
+        // 执行软删除
+        int affectedRows = reportMapper.softDeleteReport(reportId, deletedBy);
+        
+        // 构建响应结果
+        DeleteReportResponseDTO result = new DeleteReportResponseDTO();
+        result.setReportId(reportId);
+        result.setDeleted(affectedRows > 0);
+        result.setDeletionType("soft_delete");
+        result.setDeletedAt(LocalDateTime.now());
+        result.setAffectedRows(affectedRows);
+        result.setDeletedBy(deletedBy);
+        
+        // 获取报告名称
+        TestReportSummary report = reportMapper.selectById(reportId);
+        if (report != null) {
+            result.setReportName(report.getReportName());
+        }
+        
+        return result;
+    }
+    
+    @Override
+    public DeleteReportResponseDTO hardDeleteReport(Long reportId) {
+        // 获取报告信息（在删除前）
+        TestReportSummary report = reportMapper.selectById(reportId);
+        String reportName = report != null ? report.getReportName() : "未知报告";
+        
+        // 先删除相关的测试结果
+        reportMapper.deleteReportTestResults(reportId);
+        
+        // 执行硬删除
+        int affectedRows = reportMapper.hardDeleteReport(reportId);
+        
+        // 构建响应结果
+        DeleteReportResponseDTO result = new DeleteReportResponseDTO();
+        result.setReportId(reportId);
+        result.setReportName(reportName);
+        result.setDeleted(affectedRows > 0);
+        result.setDeletionType("hard_delete");
+        result.setDeletedAt(LocalDateTime.now());
+        result.setAffectedRows(affectedRows);
+        
+        return result;
     }
 }

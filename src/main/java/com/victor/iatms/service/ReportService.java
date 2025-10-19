@@ -2,6 +2,8 @@ package com.victor.iatms.service;
 
 import com.victor.iatms.entity.dto.ReportListQueryDTO;
 import com.victor.iatms.entity.dto.ReportPageResultDTO;
+import com.victor.iatms.entity.dto.DeleteReportResponseDTO;
+import com.victor.iatms.entity.dto.ReportDependencyCheckDTO;
 import com.victor.iatms.entity.po.TestReportSummary;
 
 import java.util.List;
@@ -105,4 +107,49 @@ public interface ReportService {
      * @return 是否更新成功
      */
     boolean updateReportFileInfo(Long reportId, String filePath, Long fileSize, String downloadUrl);
+    
+    // ==================== 报告删除相关方法 ====================
+    
+    /**
+     * 删除测试报告（支持软删除和硬删除）
+     * 
+     * @param reportId 报告ID
+     * @param force 是否强制删除（物理删除）
+     * @param currentUserId 当前用户ID
+     * @return 删除结果
+     */
+    DeleteReportResponseDTO deleteTestReport(Long reportId, Boolean force, Integer currentUserId);
+    
+    /**
+     * 检查报告是否存在且未被删除
+     * 
+     * @param reportId 报告ID
+     * @return 报告信息
+     */
+    TestReportSummary checkReportExists(Long reportId);
+    
+    /**
+     * 检查报告依赖关系
+     * 
+     * @param reportId 报告ID
+     * @return 依赖检查结果
+     */
+    ReportDependencyCheckDTO checkReportDependencies(Long reportId);
+    
+    /**
+     * 软删除报告
+     * 
+     * @param reportId 报告ID
+     * @param deletedBy 删除人ID
+     * @return 删除结果
+     */
+    DeleteReportResponseDTO softDeleteReport(Long reportId, Integer deletedBy);
+    
+    /**
+     * 硬删除报告
+     * 
+     * @param reportId 报告ID
+     * @return 删除结果
+     */
+    DeleteReportResponseDTO hardDeleteReport(Long reportId);
 }
