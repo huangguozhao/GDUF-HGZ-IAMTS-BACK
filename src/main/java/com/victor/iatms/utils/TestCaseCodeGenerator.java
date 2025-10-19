@@ -21,7 +21,7 @@ public class TestCaseCodeGenerator {
      */
     public String generateTestCaseCode(Integer apiId) {
         // 查询该接口下已存在的用例数量
-        Long count = testCaseMapper.countByApiId(apiId);
+        Long count = (long) testCaseMapper.countByApiId(apiId);
         
         // 生成序列号（从1开始）
         int sequenceNumber = (count != null ? count.intValue() : 0) + 1;
@@ -37,6 +37,6 @@ public class TestCaseCodeGenerator {
      * @return 是否唯一
      */
     public boolean isTestCaseCodeUnique(Integer apiId, String caseCode) {
-        return testCaseMapper.countByApiIdAndCaseCode(apiId, caseCode) == 0;
+        return testCaseMapper.checkCaseCodeExists(caseCode, apiId) == 0;
     }
 }

@@ -6,13 +6,18 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 修改测试用例请求DTO
+ * 添加测试用例请求DTO
  */
 @Data
-public class UpdateTestCaseDTO {
+public class AddTestCaseDTO {
 
     /**
-     * 用例编码
+     * 接口ID
+     */
+    private Integer apiId;
+
+    /**
+     * 用例编码，如不提供则自动生成
      */
     private String caseCode;
 
@@ -27,12 +32,12 @@ public class UpdateTestCaseDTO {
     private String description;
 
     /**
-     * 优先级。可选: P0, P1, P2, P3
+     * 优先级，默认: P2。可选: P0, P1, P2, P3
      */
     private String priority;
 
     /**
-     * 严重程度。可选: critical, high, medium, low
+     * 严重程度，默认: medium。可选: critical, high, medium, low
      */
     private String severity;
 
@@ -87,12 +92,12 @@ public class UpdateTestCaseDTO {
     private List<Map<String, Object>> validators;
 
     /**
-     * 是否启用
+     * 是否启用，默认: true
      */
     private Boolean isEnabled;
 
     /**
-     * 是否为模板用例
+     * 是否为模板用例，默认: false
      */
     private Boolean isTemplate;
 
@@ -100,9 +105,4 @@ public class UpdateTestCaseDTO {
      * 模板用例ID
      */
     private Integer templateId;
-
-    /**
-     * 版本号
-     */
-    private String version;
 }

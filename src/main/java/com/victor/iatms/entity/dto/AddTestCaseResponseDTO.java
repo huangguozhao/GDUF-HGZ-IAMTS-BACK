@@ -5,10 +5,10 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 /**
- * 修改测试用例响应DTO
+ * 添加测试用例响应DTO
  */
 @Data
-public class UpdateTestCaseResponseDTO {
+public class AddTestCaseResponseDTO {
 
     /**
      * 用例ID
@@ -31,19 +31,9 @@ public class UpdateTestCaseResponseDTO {
     private String name;
 
     /**
-     * 优先级
+     * 创建时间
      */
-    private String priority;
-
-    /**
-     * 严重程度
-     */
-    private String severity;
-
-    /**
-     * 是否启用
-     */
-    private Boolean isEnabled;
+    private LocalDateTime createdAt;
 
     /**
      * 更新时间

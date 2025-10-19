@@ -801,14 +801,8 @@ public class Constants {
     public static final String DEFAULT_TEST_CASE_SEVERITY = "medium";
     public static final Boolean DEFAULT_TEST_CASE_ENABLED = true;
     public static final Boolean DEFAULT_TEST_CASE_TEMPLATE = false;
-    public static final String DEFAULT_VERSION = "1.0";
     
-    /**
-     * 测试用例编码相关常量
-     */
-    public static final Integer TEST_CASE_CODE_MAX_LENGTH = 50;
-    public static final Integer TEST_CASE_NAME_MAX_LENGTH = 255;
-    public static final Integer TEST_CASE_DESCRIPTION_MAX_LENGTH = 1000;
+
     
     /**
      * 测试用例编码格式验证
@@ -824,5 +818,88 @@ public class Constants {
     public static final String TEST_CASE_CREATE_ERROR_TEMPLATE_NOT_FOUND = "TEMPLATE_NOT_FOUND";
     public static final String TEST_CASE_CREATE_ERROR_PERMISSION_DENIED = "PERMISSION_DENIED";
     public static final String TEST_CASE_CREATE_ERROR_CREATE_FAILED = "CREATE_FAILED";
+    
+    /**
+     * 测试用例更新相关常量
+     */
+    public static final String TEST_CASE_UPDATE_ERROR_CASE_NOT_FOUND = "CASE_NOT_FOUND";
+    public static final String TEST_CASE_UPDATE_ERROR_CASE_ALREADY_DELETED = "CASE_ALREADY_DELETED";
+    public static final String TEST_CASE_UPDATE_ERROR_CASE_CODE_EXISTS = "CASE_CODE_EXISTS";
+    public static final String TEST_CASE_UPDATE_ERROR_TEMPLATE_NOT_FOUND = "TEMPLATE_NOT_FOUND";
+    public static final String TEST_CASE_UPDATE_ERROR_PERMISSION_DENIED = "PERMISSION_DENIED";
+    public static final String TEST_CASE_UPDATE_ERROR_UPDATE_FAILED = "UPDATE_FAILED";
+    
+    /**
+     * 接口删除相关常量
+     */
+    public static final String API_DELETE_ERROR_API_NOT_FOUND = "API_NOT_FOUND";
+    public static final String API_DELETE_ERROR_API_ALREADY_DELETED = "API_ALREADY_DELETED";
+    public static final String API_DELETE_ERROR_PERMISSION_DENIED = "PERMISSION_DENIED";
+    public static final String API_DELETE_ERROR_SYSTEM_API = "SYSTEM_API";
+    public static final String API_DELETE_ERROR_HAS_TEST_CASES = "HAS_TEST_CASES";
+    public static final String API_DELETE_ERROR_HAS_PRECONDITIONS = "HAS_PRECONDITIONS";
+    public static final String API_DELETE_ERROR_IN_USE = "IN_USE";
+    public static final String API_DELETE_ERROR_DELETE_FAILED = "DELETE_FAILED";
+    
+    /**
+     * 系统接口相关常量
+     */
+    public static final String SYSTEM_API_CODE_PREFIX = "SYS_";
+    public static final String SYSTEM_API_NAME_KEYWORD = "系统";
+    
+    /**
+     * 添加测试用例相关常量
+     */
+    public static final String ADD_TEST_CASE_ERROR_API_NOT_FOUND = "API_NOT_FOUND";
+    public static final String ADD_TEST_CASE_ERROR_API_DISABLED = "API_DISABLED";
+    public static final String ADD_TEST_CASE_ERROR_CASE_CODE_EXISTS = "CASE_CODE_EXISTS";
+    public static final String ADD_TEST_CASE_ERROR_TEMPLATE_NOT_FOUND = "TEMPLATE_NOT_FOUND";
+    public static final String ADD_TEST_CASE_ERROR_PERMISSION_DENIED = "PERMISSION_DENIED";
+    public static final String ADD_TEST_CASE_ERROR_CREATE_FAILED = "CREATE_FAILED";
+    
+    /**
+     * 修改测试用例相关常量
+     */
+    public static final String UPDATE_TEST_CASE_ERROR_CASE_NOT_FOUND = "CASE_NOT_FOUND";
+    public static final String UPDATE_TEST_CASE_ERROR_CASE_ALREADY_DELETED = "CASE_ALREADY_DELETED";
+    public static final String UPDATE_TEST_CASE_ERROR_CASE_CODE_EXISTS = "CASE_CODE_EXISTS";
+    public static final String UPDATE_TEST_CASE_ERROR_TEMPLATE_NOT_FOUND = "TEMPLATE_NOT_FOUND";
+    public static final String UPDATE_TEST_CASE_ERROR_PERMISSION_DENIED = "PERMISSION_DENIED";
+    public static final String UPDATE_TEST_CASE_ERROR_UPDATE_FAILED = "UPDATE_FAILED";
+    public static final String UPDATE_TEST_CASE_ERROR_INVALID_PRIORITY = "INVALID_PRIORITY";
+    public static final String UPDATE_TEST_CASE_ERROR_INVALID_SEVERITY = "INVALID_SEVERITY";
+    
+    /**
+     * 删除测试用例相关常量
+     */
+    public static final String DELETE_TEST_CASE_ERROR_CASE_NOT_FOUND = "CASE_NOT_FOUND";
+    public static final String DELETE_TEST_CASE_ERROR_CASE_ALREADY_DELETED = "CASE_ALREADY_DELETED";
+    public static final String DELETE_TEST_CASE_ERROR_PERMISSION_DENIED = "PERMISSION_DENIED";
+    public static final String DELETE_TEST_CASE_ERROR_TEMPLATE_CASE = "TEMPLATE_CASE";
+    public static final String DELETE_TEST_CASE_ERROR_SYSTEM_CASE = "SYSTEM_CASE";
+    public static final String DELETE_TEST_CASE_ERROR_CASE_IN_USE = "CASE_IN_USE";
+    public static final String DELETE_TEST_CASE_ERROR_DELETE_FAILED = "DELETE_FAILED";
+    
+    /**
+     * 系统测试用例相关常量
+     */
+    public static final String SYSTEM_TEST_CASE_CODE_PREFIX = "SYS_";
+    public static final String SYSTEM_TEST_CASE_NAME_KEYWORD = "系统";
+    
+    /**
+     * 分页获取测试用例列表相关常量
+     */
+    public static final String DEFAULT_TEST_CASE_SORT_BY = "created_at";
+    public static final String DEFAULT_SORT_ORDER = "desc";
+    public static final Integer DEFAULT_PAGE = 1;
+    public static final Integer DEFAULT_PAGE_SIZE = 20;
+    public static final Integer MAX_PAGE_SIZE = 100;
+    
+    /**
+     * 测试用例列表查询相关常量
+     */
+    public static final String TEST_CASE_LIST_ERROR_PERMISSION_DENIED = "PERMISSION_DENIED";
+    public static final String TEST_CASE_LIST_ERROR_PARAM_INVALID = "PARAM_INVALID";
+    public static final String TEST_CASE_LIST_ERROR_QUERY_FAILED = "QUERY_FAILED";
 
 }

@@ -16,4 +16,19 @@ public interface ApiMapper {
      * @return 接口信息
      */
     Api selectById(@Param("apiId") Integer apiId);
+    
+    /**
+     * 软删除接口
+     * @param apiId 接口ID
+     * @param deletedBy 删除人ID
+     * @return 影响行数
+     */
+    int deleteById(@Param("apiId") Integer apiId, @Param("deletedBy") Integer deletedBy);
+    
+    /**
+     * 统计接口下的前置条件数量
+     * @param apiId 接口ID
+     * @return 前置条件数量
+     */
+    int countPreconditionsByApiId(@Param("apiId") Integer apiId);
 }

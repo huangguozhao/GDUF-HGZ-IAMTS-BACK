@@ -34,6 +34,18 @@
         <result column="deleted_by" property="deletedBy"/>
     </resultMap>
 
+    <!-- 更新测试用例响应结果映射 -->
+    <resultMap id="UpdateTestCaseResponseMap" type="com.victor.iatms.entity.dto.UpdateTestCaseResponseDTO">
+        <id column="case_id" property="caseId"/>
+        <result column="case_code" property="caseCode"/>
+        <result column="api_id" property="apiId"/>
+        <result column="name" property="name"/>
+        <result column="priority" property="priority"/>
+        <result column="severity" property="severity"/>
+        <result column="is_enabled" property="isEnabled"/>
+        <result column="updated_at" property="updatedAt"/>
+    </resultMap>
+
     <!-- 创建测试用例响应结果映射 -->
     <resultMap id="CreateTestCaseResponseMap" type="com.victor.iatms.entity.dto.CreateTestCaseResponseDTO">
         <id column="case_id" property="caseId"/>
@@ -165,6 +177,353 @@
         FROM TestCases
         WHERE case_id = #{caseId}
           AND is_deleted = FALSE
+    </select>
+
+    <!-- 更新测试用例信息 -->
+    <update id="updateById" parameterType="com.victor.iatms.entity.po.TestCase">
+        UPDATE TestCases
+        <set>
+            <if test="caseCode != null">case_code = #{caseCode},</if>
+            <if test="name != null">name = #{name},</if>
+            <if test="description != null">description = #{description},</if>
+            <if test="priority != null">priority = #{priority},</if>
+            <if test="severity != null">severity = #{severity},</if>
+            <if test="tags != null">tags = #{tags},</if>
+            <if test="preConditions != null">pre_conditions = #{preConditions},</if>
+            <if test="testSteps != null">test_steps = #{testSteps},</if>
+            <if test="requestOverride != null">request_override = #{requestOverride},</if>
+            <if test="expectedHttpStatus != null">expected_http_status = #{expectedHttpStatus},</if>
+            <if test="expectedResponseSchema != null">expected_response_schema = #{expectedResponseSchema},</if>
+            <if test="expectedResponseBody != null">expected_response_body = #{expectedResponseBody},</if>
+            <if test="assertions != null">assertions = #{assertions},</if>
+            <if test="extractors != null">extractors = #{extractors},</if>
+            <if test="validators != null">validators = #{validators},</if>
+            <if test="isEnabled != null">is_enabled = #{isEnabled},</if>
+            <if test="isTemplate != null">is_template = #{isTemplate},</if>
+            <if test="templateId != null">template_id = #{templateId},</if>
+            <if test="version != null">version = #{version},</if>
+            <if test="updatedBy != null">updated_by = #{updatedBy},</if>
+            <if test="updatedAt != null">updated_at = #{updatedAt},</if>
+        </set>
+        WHERE case_id = #{caseId}
+          AND is_deleted = FALSE
+    </update>
+
+    <!-- 检查用例编码在指定接口下是否存在（排除指定用例） -->
+    <select id="checkCaseCodeExistsExcludeSelf" resultType="int">
+        SELECT COUNT(*)
+        FROM TestCases
+        WHERE case_code = #{caseCode}
+          AND api_id = #{apiId}
+          AND case_id != #{excludeCaseId}
+          AND is_deleted = FALSE
+    </select>
+
+    <!-- 根据测试用例ID获取更新后的测试用例详情 -->
+    <select id="selectUpdateTestCaseDetailById" resultMap="UpdateTestCaseResponseMap">
+        SELECT 
+            case_id,
+            case_code,
+            api_id,
+            name,
+            priority,
+            severity,
+            is_enabled,
+            updated_at
+        FROM TestCases
+        WHERE case_id = #{caseId}
+          AND is_deleted = FALSE
+    </select>
+
+    <!-- 统计指定接口下的测试用例数量（未删除） -->
+    <select id="countTestCasesByApiId" resultType="int">
+        SELECT COUNT(*)
+        FROM TestCases
+        WHERE api_id = #{apiId}
+          AND is_deleted = FALSE
+    </select>
+
+    <!-- 软删除测试用例 -->
+    <update id="deleteById">
+        UPDATE TestCases
+        SET is_deleted = TRUE,
+            deleted_at = NOW(),
+            deleted_by = #{deletedBy},
+            is_enabled = FALSE
+        WHERE case_id = #{caseId}
+          AND is_deleted = FALSE
+    </update>
+
+    <!-- 分页查询测试用例列表 -->
+    <select id="selectTestCaseList" resultMap="TestCaseItemMap">
+        SELECT 
+            tc.case_id,
+            tc.case_code,
+            tc.api_id,
+            a.name AS api_name,
+            a.method AS api_method,
+            a.path AS api_path,
+            a.module_id,
+            m.name AS module_name,
+            m.project_id,
+            p.name AS project_name,
+            tc.name,
+            tc.description,
+            tc.priority,
+            tc.severity,
+            tc.tags,
+            tc.is_enabled,
+            tc.is_template,
+            tc.version,
+            u.user_id AS creator_user_id,
+            u.name AS creator_name,
+            u.avatar_url AS creator_avatar_url,
+            tc.created_at,
+            tc.updated_at,
+            tc.is_deleted
+        FROM TestCases tc
+        LEFT JOIN Apis a ON tc.api_id = a.api_id AND a.is_deleted = FALSE
+        LEFT JOIN Modules m ON a.module_id = m.module_id AND m.is_deleted = FALSE
+        LEFT JOIN Projects p ON m.project_id = p.project_id AND p.is_deleted = FALSE
+        LEFT JOIN Users u ON tc.created_by = u.user_id AND u.is_deleted = FALSE
+        <where>
+            <if test="queryDTO.includeDeleted == null or queryDTO.includeDeleted == false">
+                AND tc.is_deleted = FALSE
+            </if>
+            <if test="queryDTO.apiId != null">
+                AND tc.api_id = #{queryDTO.apiId}
+            </if>
+            <if test="queryDTO.moduleId != null">
+                AND a.module_id = #{queryDTO.moduleId}
+            </if>
+            <if test="queryDTO.projectId != null">
+                AND m.project_id = #{queryDTO.projectId}
+            </if>
+            <if test="queryDTO.name != null and queryDTO.name != ''">
+                AND tc.name LIKE CONCAT('%', #{queryDTO.name}, '%')
+            </if>
+            <if test="queryDTO.caseCode != null and queryDTO.caseCode != ''">
+                AND tc.case_code = #{queryDTO.caseCode}
+            </if>
+            <if test="queryDTO.priority != null and queryDTO.priority != ''">
+                AND tc.priority = #{queryDTO.priority}
+            </if>
+            <if test="queryDTO.severity != null and queryDTO.severity != ''">
+                AND tc.severity = #{queryDTO.severity}
+            </if>
+            <if test="queryDTO.status != null and queryDTO.status != ''">
+                <choose>
+                    <when test="queryDTO.status == 'active'">
+                        AND tc.is_enabled = TRUE
+                    </when>
+                    <when test="queryDTO.status == 'inactive'">
+                        AND tc.is_enabled = FALSE
+                    </when>
+                </choose>
+            </if>
+            <if test="queryDTO.isTemplate != null">
+                AND tc.is_template = #{queryDTO.isTemplate}
+            </if>
+            <if test="queryDTO.createdBy != null">
+                AND tc.created_by = #{queryDTO.createdBy}
+            </if>
+            <if test="queryDTO.searchKeyword != null and queryDTO.searchKeyword != ''">
+                AND (tc.name LIKE CONCAT('%', #{queryDTO.searchKeyword}, '%') 
+                     OR tc.description LIKE CONCAT('%', #{queryDTO.searchKeyword}, '%'))
+            </if>
+            <!-- TODO: 标签过滤需要特殊处理JSON字段 -->
+        </where>
+        ORDER BY 
+        <choose>
+            <when test="queryDTO.sortBy == 'name'">
+                tc.name
+            </when>
+            <when test="queryDTO.sortBy == 'case_code'">
+                tc.case_code
+            </when>
+            <when test="queryDTO.sortBy == 'priority'">
+                tc.priority
+            </when>
+            <when test="queryDTO.sortBy == 'severity'">
+                tc.severity
+            </when>
+            <when test="queryDTO.sortBy == 'updated_at'">
+                tc.updated_at
+            </when>
+            <otherwise>
+                tc.created_at
+            </otherwise>
+        </choose>
+        <choose>
+            <when test="queryDTO.sortOrder == 'asc'">
+                ASC
+            </when>
+            <otherwise>
+                DESC
+            </otherwise>
+        </choose>
+        LIMIT #{queryDTO.pageSize} OFFSET #{queryDTO.pageSize} * (#{queryDTO.page} - 1)
+    </select>
+
+    <!-- 统计测试用例总数 -->
+    <select id="countTestCaseList" resultType="long">
+        SELECT COUNT(*)
+        FROM TestCases tc
+        LEFT JOIN Apis a ON tc.api_id = a.api_id AND a.is_deleted = FALSE
+        LEFT JOIN Modules m ON a.module_id = m.module_id AND m.is_deleted = FALSE
+        LEFT JOIN Projects p ON m.project_id = p.project_id AND p.is_deleted = FALSE
+        <where>
+            <if test="queryDTO.includeDeleted == null or queryDTO.includeDeleted == false">
+                AND tc.is_deleted = FALSE
+            </if>
+            <if test="queryDTO.apiId != null">
+                AND tc.api_id = #{queryDTO.apiId}
+            </if>
+            <if test="queryDTO.moduleId != null">
+                AND a.module_id = #{queryDTO.moduleId}
+            </if>
+            <if test="queryDTO.projectId != null">
+                AND m.project_id = #{queryDTO.projectId}
+            </if>
+            <if test="queryDTO.name != null and queryDTO.name != ''">
+                AND tc.name LIKE CONCAT('%', #{queryDTO.name}, '%')
+            </if>
+            <if test="queryDTO.caseCode != null and queryDTO.caseCode != ''">
+                AND tc.case_code = #{queryDTO.caseCode}
+            </if>
+            <if test="queryDTO.priority != null and queryDTO.priority != ''">
+                AND tc.priority = #{queryDTO.priority}
+            </if>
+            <if test="queryDTO.severity != null and queryDTO.severity != ''">
+                AND tc.severity = #{queryDTO.severity}
+            </if>
+            <if test="queryDTO.status != null and queryDTO.status != ''">
+                <choose>
+                    <when test="queryDTO.status == 'active'">
+                        AND tc.is_enabled = TRUE
+                    </when>
+                    <when test="queryDTO.status == 'inactive'">
+                        AND tc.is_enabled = FALSE
+                    </when>
+                </choose>
+            </if>
+            <if test="queryDTO.isTemplate != null">
+                AND tc.is_template = #{queryDTO.isTemplate}
+            </if>
+            <if test="queryDTO.createdBy != null">
+                AND tc.created_by = #{queryDTO.createdBy}
+            </if>
+            <if test="queryDTO.searchKeyword != null and queryDTO.searchKeyword != ''">
+                AND (tc.name LIKE CONCAT('%', #{queryDTO.searchKeyword}, '%') 
+                     OR tc.description LIKE CONCAT('%', #{queryDTO.searchKeyword}, '%'))
+            </if>
+            <!-- TODO: 标签过滤需要特殊处理JSON字段 -->
+        </where>
+    </select>
+
+    <!-- 测试用例项结果映射 -->
+    <resultMap id="TestCaseItemMap" type="com.victor.iatms.entity.dto.TestCaseItemDTO">
+        <id column="case_id" property="caseId"/>
+        <result column="case_code" property="caseCode"/>
+        <result column="api_id" property="apiId"/>
+        <result column="api_name" property="apiName"/>
+        <result column="api_method" property="apiMethod"/>
+        <result column="api_path" property="apiPath"/>
+        <result column="module_id" property="moduleId"/>
+        <result column="module_name" property="moduleName"/>
+        <result column="project_id" property="projectId"/>
+        <result column="project_name" property="projectName"/>
+        <result column="name" property="name"/>
+        <result column="description" property="description"/>
+        <result column="priority" property="priority"/>
+        <result column="severity" property="severity"/>
+        <result column="tags" property="tags" typeHandler="com.victor.iatms.utils.JsonTypeHandler"/>
+        <result column="is_enabled" property="isEnabled"/>
+        <result column="is_template" property="isTemplate"/>
+        <result column="version" property="version"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+        <result column="is_deleted" property="isDeleted"/>
+        <association property="creatorInfo" javaType="com.victor.iatms.entity.dto.CreatorInfoDTO">
+            <id column="creator_user_id" property="userId"/>
+            <result column="creator_name" property="name"/>
+            <result column="creator_avatar_url" property="avatarUrl"/>
+        </association>
+    </resultMap>
+
+    <!-- 测试用例统计摘要结果映射 -->
+    <resultMap id="TestCaseSummaryMap" type="com.victor.iatms.entity.dto.TestCaseSummaryDTO">
+        <result column="total_cases" property="totalCases"/>
+        <result column="by_priority" property="byPriority" typeHandler="com.victor.iatms.utils.JsonTypeHandler"/>
+        <result column="by_severity" property="bySeverity" typeHandler="com.victor.iatms.utils.JsonTypeHandler"/>
+        <result column="by_status" property="byStatus" typeHandler="com.victor.iatms.utils.JsonTypeHandler"/>
+    </resultMap>
+
+    <!-- 查询测试用例统计摘要 -->
+    <select id="selectTestCaseSummary" resultMap="TestCaseSummaryMap">
+        SELECT 
+            COUNT(*) AS total_cases,
+            SUM(CASE WHEN tc.priority = 'P0' THEN 1 ELSE 0 END) AS p0_count,
+            SUM(CASE WHEN tc.priority = 'P1' THEN 1 ELSE 0 END) AS p1_count,
+            SUM(CASE WHEN tc.priority = 'P2' THEN 1 ELSE 0 END) AS p2_count,
+            SUM(CASE WHEN tc.priority = 'P3' THEN 1 ELSE 0 END) AS p3_count,
+            SUM(CASE WHEN tc.severity = 'critical' THEN 1 ELSE 0 END) AS critical_count,
+            SUM(CASE WHEN tc.severity = 'high' THEN 1 ELSE 0 END) AS high_count,
+            SUM(CASE WHEN tc.severity = 'medium' THEN 1 ELSE 0 END) AS medium_count,
+            SUM(CASE WHEN tc.severity = 'low' THEN 1 ELSE 0 END) AS low_count,
+            SUM(CASE WHEN tc.is_enabled = TRUE THEN 1 ELSE 0 END) AS active_count,
+            SUM(CASE WHEN tc.is_enabled = FALSE THEN 1 ELSE 0 END) AS inactive_count
+        FROM TestCases tc
+        LEFT JOIN Apis a ON tc.api_id = a.api_id AND a.is_deleted = FALSE
+        LEFT JOIN Modules m ON a.module_id = m.module_id AND m.is_deleted = FALSE
+        LEFT JOIN Projects p ON m.project_id = p.project_id AND p.is_deleted = FALSE
+        <where>
+            <if test="queryDTO.includeDeleted == null or queryDTO.includeDeleted == false">
+                AND tc.is_deleted = FALSE
+            </if>
+            <if test="queryDTO.apiId != null">
+                AND tc.api_id = #{queryDTO.apiId}
+            </if>
+            <if test="queryDTO.moduleId != null">
+                AND a.module_id = #{queryDTO.moduleId}
+            </if>
+            <if test="queryDTO.projectId != null">
+                AND m.project_id = #{queryDTO.projectId}
+            </if>
+            <if test="queryDTO.name != null and queryDTO.name != ''">
+                AND tc.name LIKE CONCAT('%', #{queryDTO.name}, '%')
+            </if>
+            <if test="queryDTO.caseCode != null and queryDTO.caseCode != ''">
+                AND tc.case_code = #{queryDTO.caseCode}
+            </if>
+            <if test="queryDTO.priority != null and queryDTO.priority != ''">
+                AND tc.priority = #{queryDTO.priority}
+            </if>
+            <if test="queryDTO.severity != null and queryDTO.severity != ''">
+                AND tc.severity = #{queryDTO.severity}
+            </if>
+            <if test="queryDTO.status != null and queryDTO.status != ''">
+                <choose>
+                    <when test="queryDTO.status == 'active'">
+                        AND tc.is_enabled = TRUE
+                    </when>
+                    <when test="queryDTO.status == 'inactive'">
+                        AND tc.is_enabled = FALSE
+                    </when>
+                </choose>
+            </if>
+            <if test="queryDTO.isTemplate != null">
+                AND tc.is_template = #{queryDTO.isTemplate}
+            </if>
+            <if test="queryDTO.createdBy != null">
+                AND tc.created_by = #{queryDTO.createdBy}
+            </if>
+            <if test="queryDTO.searchKeyword != null and queryDTO.searchKeyword != ''">
+                AND (tc.name LIKE CONCAT('%', #{queryDTO.searchKeyword}, '%') 
+                     OR tc.description LIKE CONCAT('%', #{queryDTO.searchKeyword}, '%'))
+            </if>
+            <!-- TODO: 标签过滤需要特殊处理JSON字段 -->
+        </where>
     </select>
 
 </mapper>
