@@ -94,4 +94,9 @@ public class TestCaseListQueryDTO {
      * 分页查询的每页记录数，默认为 20，最大 100
      */
     private Integer pageSize;
+    
+    /**
+     * 分页偏移量
+     */
+    private Integer offset;
 }

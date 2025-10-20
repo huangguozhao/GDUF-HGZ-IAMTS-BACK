@@ -30,3 +30,4 @@ public class QualityTrendDTO {
     private Boolean improvement;
 }
 
+

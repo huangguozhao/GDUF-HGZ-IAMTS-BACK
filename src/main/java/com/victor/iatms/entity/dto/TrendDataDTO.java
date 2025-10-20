@@ -60,3 +60,4 @@ public class TrendDataDTO {
     private Long avgDuration;
 }
 
+

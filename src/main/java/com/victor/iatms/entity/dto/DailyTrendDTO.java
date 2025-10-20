@@ -60,3 +60,4 @@ public class DailyTrendDTO {
     private Long avgDuration;
 }
 
+

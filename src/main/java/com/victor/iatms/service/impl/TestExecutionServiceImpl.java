@@ -938,10 +938,7 @@ public class TestExecutionServiceImpl implements TestExecutionService {
         if (project == null) {
             throw new RuntimeException("项目不存在");
         }
-        
-        if (!"active".equals(project.getStatus())) {
-            throw new RuntimeException("项目已禁用，无法执行测试");
-        }
+
         
         return project;
     }
@@ -2334,6 +2331,10 @@ public class TestExecutionServiceImpl implements TestExecutionService {
         if (query.getPageSize() > 100) {
             query.setPageSize(100);
         }
+        
+        // 计算分页偏移量
+        int offset = (query.getPage() - 1) * query.getPageSize();
+        query.setOffset(offset);
 
         // 校验任务类型
         if (query.getTaskType() != null && !query.getTaskType().isEmpty()) {

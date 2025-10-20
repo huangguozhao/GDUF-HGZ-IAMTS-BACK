@@ -84,12 +84,10 @@ public class TestResultQuery {
      * 每页条数，默认为20，最大100
      */
     private Integer pageSize = 20;
-
+    
     /**
-     * 计算分页偏移量
+     * 分页偏移量
      */
-    public Integer getOffset() {
-        return (page - 1) * pageSize;
-    }
+    private Integer offset;
 }
 

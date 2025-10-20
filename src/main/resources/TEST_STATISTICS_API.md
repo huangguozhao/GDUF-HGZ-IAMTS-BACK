@@ -246,3 +246,4 @@ curl "http://localhost:8080/api/test-results/statistics?project_id=1&group_by=da
 - `checkLogin = true` - 需要登录
 - `checkPermission = {"testcase:view"}` - 需要测试用例查看权限
 
+

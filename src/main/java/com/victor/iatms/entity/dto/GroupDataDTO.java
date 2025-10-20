@@ -61,3 +61,4 @@ public class GroupDataDTO {
     private Long avgDuration;
 }
 
+

@@ -59,3 +59,4 @@ public class WeeklyExecutionDTO {
     private QualityTrendDTO qualityTrend;
 }
 
+

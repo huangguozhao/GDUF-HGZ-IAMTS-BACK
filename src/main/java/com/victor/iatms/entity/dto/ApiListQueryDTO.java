@@ -69,4 +69,9 @@ public class ApiListQueryDTO {
      * 每页条数
      */
     private Integer pageSize;
+    
+    /**
+     * 分页偏移量
+     */
+    private Integer offset;
 }

@@ -45,3 +45,4 @@ public class ProjectAccessLog {
      */
     private String userAgent;
 }
+

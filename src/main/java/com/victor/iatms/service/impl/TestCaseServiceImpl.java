@@ -721,6 +721,11 @@ public class TestCaseServiceImpl implements TestCaseService {
         if (queryDTO.getPageSize() == null || queryDTO.getPageSize() < 1) {
             queryDTO.setPageSize(Constants.DEFAULT_PAGE_SIZE);
         }
+        
+        // 计算分页偏移量
+        int offset = (queryDTO.getPage() - 1) * queryDTO.getPageSize();
+        queryDTO.setOffset(offset);
+        
         if (!StringUtils.hasText(queryDTO.getSortBy())) {
             queryDTO.setSortBy(Constants.DEFAULT_TEST_CASE_SORT_BY);
         }

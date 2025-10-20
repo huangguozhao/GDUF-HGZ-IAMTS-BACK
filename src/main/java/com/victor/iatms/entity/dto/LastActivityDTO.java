@@ -35,3 +35,4 @@ public class LastActivityDTO {
      */
     private String userName;
 }
+

@@ -10,13 +10,9 @@ import java.time.LocalDateTime;
 @Data
 public class Project {
     private Integer projectId;
-    private String projectCode;
     private String name;
     private String description;
-    private String status; // active, inactive, archived
-    private String version;
-    private Integer createdBy;
-    private Integer updatedBy;
+    private Integer creatorId;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private Boolean isDeleted;

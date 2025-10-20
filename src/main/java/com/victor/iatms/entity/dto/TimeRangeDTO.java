@@ -25,3 +25,4 @@ public class TimeRangeDTO {
      */
     private Integer days;
 }
+

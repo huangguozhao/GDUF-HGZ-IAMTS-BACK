@@ -38,3 +38,4 @@ public class HealthScoreDTO {
     private String trend;
 }
 
+

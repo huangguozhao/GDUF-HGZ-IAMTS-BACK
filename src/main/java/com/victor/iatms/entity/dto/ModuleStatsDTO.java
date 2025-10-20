@@ -41,3 +41,4 @@ public class ModuleStatsDTO {
     private Long avgDuration;
 }
 
+

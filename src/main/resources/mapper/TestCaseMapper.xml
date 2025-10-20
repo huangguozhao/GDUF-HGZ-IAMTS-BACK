@@ -362,7 +362,7 @@
                 DESC
             </otherwise>
         </choose>
-        LIMIT #{queryDTO.pageSize} OFFSET #{queryDTO.pageSize} * (#{queryDTO.page} - 1)
+        LIMIT #{queryDTO.pageSize} OFFSET #{queryDTO.offset}
     </select>
 
     <!-- 统计测试用例总数 -->

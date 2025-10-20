@@ -347,6 +347,10 @@ public class ModuleServiceImpl implements ModuleService {
             queryDTO.setPageSize(Constants.MAX_PAGE_SIZE);
         }
         
+        // 计算分页偏移量
+        int offset = (queryDTO.getPage() - 1) * queryDTO.getPageSize();
+        queryDTO.setOffset(offset);
+        
         // 验证排序字段
         if (!isValidApiSortField(queryDTO.getSortBy())) {
             queryDTO.setSortBy(Constants.DEFAULT_API_SORT_BY);

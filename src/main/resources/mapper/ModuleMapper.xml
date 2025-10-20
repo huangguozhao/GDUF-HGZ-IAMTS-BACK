@@ -374,8 +374,8 @@
                 </choose>
             </if>
         </if>
-        <if test="page != null and pageSize != null">
-            LIMIT #{pageSize} OFFSET #{pageSize} * (#{page} - 1)
+        <if test="pageSize != null and offset != null">
+            LIMIT #{pageSize} OFFSET #{offset}
         </if>
     </select>
 

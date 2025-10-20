@@ -167,21 +167,14 @@ public class ProjectServiceImpl implements ProjectService {
     
     @Override
     public Project getProjectByCode(String projectCode) {
-        if (!StringUtils.hasText(projectCode)) {
-            throw new IllegalArgumentException("项目编码不能为空");
-        }
-        return projectMapper.selectByCode(projectCode);
+        // 由于数据库表中没有project_code字段，此方法暂时不支持
+        throw new UnsupportedOperationException("项目编码查询功能暂不支持");
     }
     
     @Override
     public Integer createProject(Project project) {
         // 参数校验
         validateProject(project);
-        
-        // 检查项目编码是否已存在
-        if (checkProjectCodeExists(project.getProjectCode(), null)) {
-            throw new IllegalArgumentException("项目编码已存在");
-        }
         
         // 设置默认值
         setProjectDefaults(project);
@@ -216,7 +209,7 @@ public class ProjectServiceImpl implements ProjectService {
         }
         
         // 检查权限（只能编辑自己创建的项目）
-        if (!existingProject.getCreatedBy().equals(updatedBy)) {
+        if (!existingProject.getCreatorId().equals(updatedBy)) {
             throw new IllegalArgumentException("只能编辑自己创建的项目");
         }
         
@@ -239,8 +232,6 @@ public class ProjectServiceImpl implements ProjectService {
         if (updateProjectDTO.getDescription() != null) {
             projectToUpdate.setDescription(updateProjectDTO.getDescription());
         }
-        
-        projectToUpdate.setUpdatedBy(updatedBy);
         
         // 执行更新
         int result = projectMapper.updateById(projectToUpdate);
@@ -269,13 +260,7 @@ public class ProjectServiceImpl implements ProjectService {
             throw new IllegalArgumentException("项目不存在");
         }
         
-        // 如果更新了项目编码，检查是否重复
-        if (StringUtils.hasText(project.getProjectCode()) && 
-            !project.getProjectCode().equals(existingProject.getProjectCode())) {
-            if (checkProjectCodeExists(project.getProjectCode(), project.getProjectId())) {
-                throw new IllegalArgumentException("项目编码已存在");
-            }
-        }
+        // 由于数据库表中没有project_code字段，跳过项目编码检查
         
         // 更新项目
         int result = projectMapper.updateById(project);
@@ -338,7 +323,7 @@ public class ProjectServiceImpl implements ProjectService {
             }
             
             // 检查权限（只能删除自己创建的项目）
-            if (!existingProject.getCreatedBy().equals(deletedBy)) {
+            if (!existingProject.getCreatorId().equals(deletedBy)) {
                 result.setSuccess(false);
                 result.setMessage("只能删除自己创建的项目");
                 result.setErrorCode("PERMISSION_DENIED");
@@ -446,10 +431,9 @@ public class ProjectServiceImpl implements ProjectService {
      * 检查是否为系统项目
      */
     private boolean isSystemProject(Project project) {
-        // 可以根据项目名称、编码或其他标识来判断是否为系统项目
-        // 这里简单示例：项目名称包含"系统"或编码以"SYS"开头
-        return project.getName().contains("系统") || 
-               (project.getProjectCode() != null && project.getProjectCode().startsWith("SYS"));
+        // 可以根据项目名称或其他标识来判断是否为系统项目
+        // 这里简单示例：项目名称包含"系统"
+        return project.getName().contains("系统");
     }
     
     @Override
@@ -466,7 +450,7 @@ public class ProjectServiceImpl implements ProjectService {
         Project project = new Project();
         project.setName(addProjectDTO.getName());
         project.setDescription(addProjectDTO.getDescription());
-        project.setCreatedBy(creatorId);
+        project.setCreatorId(creatorId);
         
         // 设置默认值
         setProjectDefaults(project);
@@ -488,11 +472,8 @@ public class ProjectServiceImpl implements ProjectService {
     
     @Override
     public Boolean checkProjectCodeExists(String projectCode, Integer excludeId) {
-        if (!StringUtils.hasText(projectCode)) {
-            return false;
-        }
-        int count = projectMapper.checkProjectCodeExists(projectCode, excludeId);
-        return count > 0;
+        // 由于数据库表中没有project_code字段，此方法暂时不支持
+        throw new UnsupportedOperationException("项目编码检查功能暂不支持");
     }
     
     /**
@@ -778,10 +759,7 @@ public class ProjectServiceImpl implements ProjectService {
         if (!StringUtils.hasText(project.getName())) {
             throw new IllegalArgumentException("项目名称不能为空");
         }
-        if (!StringUtils.hasText(project.getProjectCode())) {
-            throw new IllegalArgumentException("项目编码不能为空");
-        }
-        if (project.getCreatedBy() == null) {
+        if (project.getCreatorId() == null) {
             throw new IllegalArgumentException("创建人ID不能为空");
         }
     }
@@ -790,12 +768,6 @@ public class ProjectServiceImpl implements ProjectService {
      * 设置项目默认值
      */
     private void setProjectDefaults(Project project) {
-        if (!StringUtils.hasText(project.getStatus())) {
-            project.setStatus(Constants.PROJECT_STATUS_ACTIVE);
-        }
-        if (!StringUtils.hasText(project.getVersion())) {
-            project.setVersion(Constants.DEFAULT_VERSION);
-        }
         if (project.getIsDeleted() == null) {
             project.setIsDeleted(false);
         }

@@ -264,3 +264,4 @@ curl "http://localhost:8080/api/dashboard/summary?include_recent_activity=false"
 使用 `@GlobalInterceptor` 注解：
 - `checkLogin = true` - 需要登录
 - `checkPermission = {"testcase:view"}` - 需要测试用例查看权限
+
