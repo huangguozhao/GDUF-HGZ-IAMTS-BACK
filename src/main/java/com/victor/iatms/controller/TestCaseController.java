@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
  * 测试用例控制器
  */
 @RestController
-@RequestMapping("/apis")
+@RequestMapping("/testcases")
 public class TestCaseController {
 
     @Autowired
