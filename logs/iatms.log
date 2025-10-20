@@ -1957,3 +1957,111 @@
 2025-10-20 11:17:31.975 [http-nio-8080-exec-4] INFO  com.victor.iatms.aspect.WebLogAspect - Execution Time: 34 ms
 2025-10-20 11:17:31.976 [http-nio-8080-exec-4] INFO  com.victor.iatms.aspect.WebLogAspect - Response      : {"code":1,"msg":"查询成功","data":{"total":20,"items":[{"projectId":1,"name":"PAMC Exchange Platform","description":"PAMC加密货币交易平台，提供现货交易、模拟交易等功能","creatorInfo":{"userId":1,"name":"系统管理员","avatarUrl":"https://avatar.example.com/admin.jpg"},"createdAt":"2025-10-19T10:38:36","updatedAt":"2025-10-19T10:38:36","isDeleted":false},{"projectId":2,"name":"API Test Automation Framework","description":"API自动化测试框架项目","creatorInfo":{"userId":7,"name":"赵敏","avatarUrl":"https://avatar.example.com/zhao.jpg"},"createdAt":"2025-10-19T10:38:36","updatedAt":"2025-10-19T10:38:36","isDeleted":false},{"projectId":3,"name":"Mobile App Testing","description":"移动端应用测试项目","creatorInfo":{"userId":7,"name":"赵敏","avatarUrl":"https://avatar.example.com/zhao.jpg"},"createdAt":"2025-10-19T10:38:36","updatedAt":"2025-10-19T10:38:36","isDeleted":false},{"projectId":4,"name":"用户中心升级","description":"用户认证、授权、个人信息管理系统的升级改造","creatorInfo":{"userId":4,"name":"王芳","avatarUrl":"https://avatar.example.com/wang.jpg"},"createdAt":"202 ... (truncated, total 4952 chars)
 2025-10-20 11:17:31.977 [http-nio-8080-exec-4] INFO  com.victor.iatms.aspect.WebLogAspect - ====================================================
+2025-10-20 11:18:07.343 [http-nio-8080-exec-5] INFO  com.victor.iatms.aspect.WebLogAspect - ================ HTTP Request Start ================
+2025-10-20 11:18:07.344 [http-nio-8080-exec-5] INFO  com.victor.iatms.aspect.WebLogAspect - Request ID    : b420390da4744c0a
+2025-10-20 11:18:07.344 [http-nio-8080-exec-5] INFO  com.victor.iatms.aspect.WebLogAspect - URL           : http://localhost:8080/api/projects
+2025-10-20 11:18:07.344 [http-nio-8080-exec-5] INFO  com.victor.iatms.aspect.WebLogAspect - URI           : /api/projects
+2025-10-20 11:18:07.344 [http-nio-8080-exec-5] INFO  com.victor.iatms.aspect.WebLogAspect - HTTP Method   : GET
+2025-10-20 11:18:07.344 [http-nio-8080-exec-5] INFO  com.victor.iatms.aspect.WebLogAspect - IP Address    : 0:0:0:0:0:0:0:1
+2025-10-20 11:18:07.344 [http-nio-8080-exec-5] INFO  com.victor.iatms.aspect.WebLogAspect - Class Method  : com.victor.iatms.controller.ProjectController.getProjectList
+2025-10-20 11:18:07.344 [http-nio-8080-exec-5] INFO  com.victor.iatms.aspect.WebLogAspect - Content-Type  : null
+2025-10-20 11:18:07.344 [http-nio-8080-exec-5] INFO  com.victor.iatms.aspect.WebLogAspect - Request Headers:
+2025-10-20 11:18:07.344 [http-nio-8080-exec-5] INFO  com.victor.iatms.aspect.WebLogAspect -   Authorization : Bearer eyJhbGciOi...GTInBEcl8w
+2025-10-20 11:18:07.344 [http-nio-8080-exec-5] INFO  com.victor.iatms.aspect.WebLogAspect -   Accept : application/json, text/plain, */*
+2025-10-20 11:18:07.345 [http-nio-8080-exec-5] INFO  com.victor.iatms.aspect.WebLogAspect -   Referer : http://localhost:5173/cases
+2025-10-20 11:18:07.345 [http-nio-8080-exec-5] INFO  com.victor.iatms.aspect.WebLogAspect - Query Parameters:
+2025-10-20 11:18:07.345 [http-nio-8080-exec-5] INFO  com.victor.iatms.aspect.WebLogAspect -   page : 1
+2025-10-20 11:18:07.345 [http-nio-8080-exec-5] INFO  com.victor.iatms.aspect.WebLogAspect -   page_size : 100
+2025-10-20 11:18:07.345 [http-nio-8080-exec-5] INFO  com.victor.iatms.aspect.WebLogAspect - Method Arguments:
+2025-10-20 11:18:07.345 [http-nio-8080-exec-5] INFO  com.victor.iatms.aspect.WebLogAspect -   name : null
+2025-10-20 11:18:07.345 [http-nio-8080-exec-5] INFO  com.victor.iatms.aspect.WebLogAspect -   creatorId : null
+2025-10-20 11:18:07.345 [http-nio-8080-exec-5] INFO  com.victor.iatms.aspect.WebLogAspect -   includeDeleted : false
+2025-10-20 11:18:07.345 [http-nio-8080-exec-5] INFO  com.victor.iatms.aspect.WebLogAspect -   sortBy : "created_at"
+2025-10-20 11:18:07.345 [http-nio-8080-exec-5] INFO  com.victor.iatms.aspect.WebLogAspect -   sortOrder : "desc"
+2025-10-20 11:18:07.345 [http-nio-8080-exec-5] INFO  com.victor.iatms.aspect.WebLogAspect -   page : 1
+2025-10-20 11:18:07.345 [http-nio-8080-exec-5] INFO  com.victor.iatms.aspect.WebLogAspect -   pageSize : 100
+2025-10-20 11:18:07.345 [http-nio-8080-exec-5] INFO  com.victor.iatms.aspect.WebLogAspect - User-Agent    : Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36 Edg/141.0.0.0
+2025-10-20 11:18:07.345 [http-nio-8080-exec-5] INFO  com.victor.iatms.aspect.WebLogAspect - ====================================================
+2025-10-20 11:18:07.349 [http-nio-8080-exec-5] DEBUG o.springframework.jdbc.datasource.DataSourceUtils - Fetching JDBC Connection from DataSource
+2025-10-20 11:18:07.373 [http-nio-8080-exec-5] DEBUG o.springframework.jdbc.datasource.DataSourceUtils - Fetching JDBC Connection from DataSource
+2025-10-20 11:18:07.377 [http-nio-8080-exec-5] INFO  com.victor.iatms.aspect.WebLogAspect - ================ HTTP Response Start ===============
+2025-10-20 11:18:07.377 [http-nio-8080-exec-5] INFO  com.victor.iatms.aspect.WebLogAspect - Request ID    : b420390da4744c0a
+2025-10-20 11:18:07.377 [http-nio-8080-exec-5] INFO  com.victor.iatms.aspect.WebLogAspect - Success       : true
+2025-10-20 11:18:07.377 [http-nio-8080-exec-5] INFO  com.victor.iatms.aspect.WebLogAspect - Execution Time: 36 ms
+2025-10-20 11:18:07.378 [http-nio-8080-exec-5] INFO  com.victor.iatms.aspect.WebLogAspect - Response      : {"code":1,"msg":"查询成功","data":{"total":20,"items":[{"projectId":1,"name":"PAMC Exchange Platform","description":"PAMC加密货币交易平台，提供现货交易、模拟交易等功能","creatorInfo":{"userId":1,"name":"系统管理员","avatarUrl":"https://avatar.example.com/admin.jpg"},"createdAt":"2025-10-19T10:38:36","updatedAt":"2025-10-19T10:38:36","isDeleted":false},{"projectId":2,"name":"API Test Automation Framework","description":"API自动化测试框架项目","creatorInfo":{"userId":7,"name":"赵敏","avatarUrl":"https://avatar.example.com/zhao.jpg"},"createdAt":"2025-10-19T10:38:36","updatedAt":"2025-10-19T10:38:36","isDeleted":false},{"projectId":3,"name":"Mobile App Testing","description":"移动端应用测试项目","creatorInfo":{"userId":7,"name":"赵敏","avatarUrl":"https://avatar.example.com/zhao.jpg"},"createdAt":"2025-10-19T10:38:36","updatedAt":"2025-10-19T10:38:36","isDeleted":false},{"projectId":4,"name":"用户中心升级","description":"用户认证、授权、个人信息管理系统的升级改造","creatorInfo":{"userId":4,"name":"王芳","avatarUrl":"https://avatar.example.com/wang.jpg"},"createdAt":"202 ... (truncated, total 4952 chars)
+2025-10-20 11:18:07.378 [http-nio-8080-exec-5] INFO  com.victor.iatms.aspect.WebLogAspect - ====================================================
+2025-10-20 11:18:17.701 [http-nio-8080-exec-6] INFO  com.victor.iatms.aspect.WebLogAspect - ================ HTTP Request Start ================
+2025-10-20 11:18:17.701 [http-nio-8080-exec-6] INFO  com.victor.iatms.aspect.WebLogAspect - Request ID    : d7be917244234049
+2025-10-20 11:18:17.701 [http-nio-8080-exec-6] INFO  com.victor.iatms.aspect.WebLogAspect - URL           : http://localhost:8080/api/projects/1/modules
+2025-10-20 11:18:17.701 [http-nio-8080-exec-6] INFO  com.victor.iatms.aspect.WebLogAspect - URI           : /api/projects/1/modules
+2025-10-20 11:18:17.701 [http-nio-8080-exec-6] INFO  com.victor.iatms.aspect.WebLogAspect - HTTP Method   : GET
+2025-10-20 11:18:17.701 [http-nio-8080-exec-6] INFO  com.victor.iatms.aspect.WebLogAspect - IP Address    : 0:0:0:0:0:0:0:1
+2025-10-20 11:18:17.701 [http-nio-8080-exec-6] INFO  com.victor.iatms.aspect.WebLogAspect - Class Method  : com.victor.iatms.controller.ProjectController.getModuleList
+2025-10-20 11:18:17.701 [http-nio-8080-exec-6] INFO  com.victor.iatms.aspect.WebLogAspect - Content-Type  : null
+2025-10-20 11:18:17.702 [http-nio-8080-exec-6] INFO  com.victor.iatms.aspect.WebLogAspect - Request Headers:
+2025-10-20 11:18:17.702 [http-nio-8080-exec-6] INFO  com.victor.iatms.aspect.WebLogAspect -   Authorization : Bearer eyJhbGciOi...GTInBEcl8w
+2025-10-20 11:18:17.702 [http-nio-8080-exec-6] INFO  com.victor.iatms.aspect.WebLogAspect -   Accept : application/json, text/plain, */*
+2025-10-20 11:18:17.702 [http-nio-8080-exec-6] INFO  com.victor.iatms.aspect.WebLogAspect -   Referer : http://localhost:5173/cases
+2025-10-20 11:18:17.702 [http-nio-8080-exec-6] INFO  com.victor.iatms.aspect.WebLogAspect - Query Parameters:
+2025-10-20 11:18:17.702 [http-nio-8080-exec-6] INFO  com.victor.iatms.aspect.WebLogAspect -   structure : tree
+2025-10-20 11:18:17.702 [http-nio-8080-exec-6] INFO  com.victor.iatms.aspect.WebLogAspect -   status : active
+2025-10-20 11:18:17.702 [http-nio-8080-exec-6] INFO  com.victor.iatms.aspect.WebLogAspect -   include_deleted : false
+2025-10-20 11:18:17.702 [http-nio-8080-exec-6] INFO  com.victor.iatms.aspect.WebLogAspect -   include_statistics : true
+2025-10-20 11:18:17.702 [http-nio-8080-exec-6] INFO  com.victor.iatms.aspect.WebLogAspect -   sort_by : sort_order
+2025-10-20 11:18:17.702 [http-nio-8080-exec-6] INFO  com.victor.iatms.aspect.WebLogAspect -   sort_order : asc
+2025-10-20 11:18:17.702 [http-nio-8080-exec-6] INFO  com.victor.iatms.aspect.WebLogAspect - Method Arguments:
+2025-10-20 11:18:17.702 [http-nio-8080-exec-6] INFO  com.victor.iatms.aspect.WebLogAspect -   projectId : 1
+2025-10-20 11:18:17.702 [http-nio-8080-exec-6] INFO  com.victor.iatms.aspect.WebLogAspect -   structure : "tree"
+2025-10-20 11:18:17.702 [http-nio-8080-exec-6] INFO  com.victor.iatms.aspect.WebLogAspect -   status : "active"
+2025-10-20 11:18:17.702 [http-nio-8080-exec-6] INFO  com.victor.iatms.aspect.WebLogAspect -   includeDeleted : false
+2025-10-20 11:18:17.702 [http-nio-8080-exec-6] INFO  com.victor.iatms.aspect.WebLogAspect -   includeStatistics : true
+2025-10-20 11:18:17.702 [http-nio-8080-exec-6] INFO  com.victor.iatms.aspect.WebLogAspect -   searchKeyword : null
+2025-10-20 11:18:17.703 [http-nio-8080-exec-6] INFO  com.victor.iatms.aspect.WebLogAspect -   sortBy : "sort_order"
+2025-10-20 11:18:17.703 [http-nio-8080-exec-6] INFO  com.victor.iatms.aspect.WebLogAspect -   sortOrder : "asc"
+2025-10-20 11:18:17.703 [http-nio-8080-exec-6] INFO  com.victor.iatms.aspect.WebLogAspect - User-Agent    : Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36 Edg/141.0.0.0
+2025-10-20 11:18:17.703 [http-nio-8080-exec-6] INFO  com.victor.iatms.aspect.WebLogAspect - ====================================================
+2025-10-20 11:18:17.707 [http-nio-8080-exec-6] DEBUG o.springframework.jdbc.datasource.DataSourceUtils - Fetching JDBC Connection from DataSource
+2025-10-20 11:18:17.725 [http-nio-8080-exec-6] DEBUG o.springframework.jdbc.datasource.DataSourceUtils - Fetching JDBC Connection from DataSource
+2025-10-20 11:18:17.752 [http-nio-8080-exec-6] DEBUG o.springframework.jdbc.datasource.DataSourceUtils - Fetching JDBC Connection from DataSource
+2025-10-20 11:18:17.755 [http-nio-8080-exec-6] INFO  com.victor.iatms.aspect.WebLogAspect - ================ HTTP Response Start ===============
+2025-10-20 11:18:17.756 [http-nio-8080-exec-6] INFO  com.victor.iatms.aspect.WebLogAspect - Request ID    : d7be917244234049
+2025-10-20 11:18:17.756 [http-nio-8080-exec-6] INFO  com.victor.iatms.aspect.WebLogAspect - Success       : true
+2025-10-20 11:18:17.756 [http-nio-8080-exec-6] INFO  com.victor.iatms.aspect.WebLogAspect - Execution Time: 55 ms
+2025-10-20 11:18:17.767 [http-nio-8080-exec-6] INFO  com.victor.iatms.aspect.WebLogAspect - Response      : {"code":1,"msg":"查询模块列表成功","data":{"projectId":1,"projectName":"PAMC Exchange Platform","totalModules":14,"modules":[{"moduleId":1,"moduleCode":"AUTH","projectId":1,"name":"认证模块","description":"用户认证和授权相关接口","sortOrder":1,"status":"active","ownerInfo":{"userId":3,"name":"李明","avatarUrl":"https://avatar.example.com/li.jpg"},"creatorName":"系统管理员","createdAt":"2025-10-19T10:39:36","updatedAt":"2025-10-19T10:39:36","isDeleted":false,"apiCount":5,"caseCount":8,"children":[]},{"moduleId":2,"moduleCode":"USER","projectId":1,"name":"用户模块","description":"用户信息管理相关接口","sortOrder":2,"status":"active","ownerInfo":{"userId":3,"name":"李明","avatarUrl":"https://avatar.example.com/li.jpg"},"creatorName":"系统管理员","createdAt":"2025-10-19T10:39:36","updatedAt":"2025-10-19T10:39:36","isDeleted":false,"apiCount":5,"caseCount":2,"children":[]},{"moduleId":3,"moduleCode":"TRADING","projectId":1,"name":"交易模块","description":"交易相关接口","sortOrder":3,"status":"active","ownerInfo":{"userId":4,"name":"王芳","avatarUrl":"h ... (truncated, total 5174 chars)
+2025-10-20 11:18:17.768 [http-nio-8080-exec-6] INFO  com.victor.iatms.aspect.WebLogAspect - ====================================================
+2025-10-20 11:18:23.313 [http-nio-8080-exec-7] INFO  com.victor.iatms.aspect.WebLogAspect - ================ HTTP Request Start ================
+2025-10-20 11:18:23.314 [http-nio-8080-exec-7] INFO  com.victor.iatms.aspect.WebLogAspect - Request ID    : f29138813f8a43c0
+2025-10-20 11:18:23.314 [http-nio-8080-exec-7] INFO  com.victor.iatms.aspect.WebLogAspect - URL           : http://localhost:8080/api/modules/1/apis
+2025-10-20 11:18:23.314 [http-nio-8080-exec-7] INFO  com.victor.iatms.aspect.WebLogAspect - URI           : /api/modules/1/apis
+2025-10-20 11:18:23.314 [http-nio-8080-exec-7] INFO  com.victor.iatms.aspect.WebLogAspect - HTTP Method   : GET
+2025-10-20 11:18:23.314 [http-nio-8080-exec-7] INFO  com.victor.iatms.aspect.WebLogAspect - IP Address    : 0:0:0:0:0:0:0:1
+2025-10-20 11:18:23.314 [http-nio-8080-exec-7] INFO  com.victor.iatms.aspect.WebLogAspect - Class Method  : com.victor.iatms.controller.ModuleController.getApiList
+2025-10-20 11:18:23.314 [http-nio-8080-exec-7] INFO  com.victor.iatms.aspect.WebLogAspect - Content-Type  : null
+2025-10-20 11:18:23.314 [http-nio-8080-exec-7] INFO  com.victor.iatms.aspect.WebLogAspect - Request Headers:
+2025-10-20 11:18:23.314 [http-nio-8080-exec-7] INFO  com.victor.iatms.aspect.WebLogAspect -   Authorization : Bearer eyJhbGciOi...GTInBEcl8w
+2025-10-20 11:18:23.314 [http-nio-8080-exec-7] INFO  com.victor.iatms.aspect.WebLogAspect -   Accept : application/json, text/plain, */*
+2025-10-20 11:18:23.314 [http-nio-8080-exec-7] INFO  com.victor.iatms.aspect.WebLogAspect -   Referer : http://localhost:5173/cases
+2025-10-20 11:18:23.314 [http-nio-8080-exec-7] INFO  com.victor.iatms.aspect.WebLogAspect - Method Arguments:
+2025-10-20 11:18:23.314 [http-nio-8080-exec-7] INFO  com.victor.iatms.aspect.WebLogAspect -   moduleId : 1
+2025-10-20 11:18:23.314 [http-nio-8080-exec-7] INFO  com.victor.iatms.aspect.WebLogAspect -   method : null
+2025-10-20 11:18:23.314 [http-nio-8080-exec-7] INFO  com.victor.iatms.aspect.WebLogAspect -   status : null
+2025-10-20 11:18:23.314 [http-nio-8080-exec-7] INFO  com.victor.iatms.aspect.WebLogAspect -   tags : null
+2025-10-20 11:18:23.314 [http-nio-8080-exec-7] INFO  com.victor.iatms.aspect.WebLogAspect -   authType : null
+2025-10-20 11:18:23.314 [http-nio-8080-exec-7] INFO  com.victor.iatms.aspect.WebLogAspect -   searchKeyword : null
+2025-10-20 11:18:23.314 [http-nio-8080-exec-7] INFO  com.victor.iatms.aspect.WebLogAspect -   includeDeleted : null
+2025-10-20 11:18:23.314 [http-nio-8080-exec-7] INFO  com.victor.iatms.aspect.WebLogAspect -   includeStatistics : null
+2025-10-20 11:18:23.316 [http-nio-8080-exec-7] INFO  com.victor.iatms.aspect.WebLogAspect -   sortBy : null
+2025-10-20 11:18:23.316 [http-nio-8080-exec-7] INFO  com.victor.iatms.aspect.WebLogAspect -   sortOrder : null
+2025-10-20 11:18:23.316 [http-nio-8080-exec-7] INFO  com.victor.iatms.aspect.WebLogAspect -   page : null
+2025-10-20 11:18:23.316 [http-nio-8080-exec-7] INFO  com.victor.iatms.aspect.WebLogAspect -   pageSize : null
+2025-10-20 11:18:23.316 [http-nio-8080-exec-7] INFO  com.victor.iatms.aspect.WebLogAspect - User-Agent    : Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36 Edg/141.0.0.0
+2025-10-20 11:18:23.316 [http-nio-8080-exec-7] INFO  com.victor.iatms.aspect.WebLogAspect - ====================================================
+2025-10-20 11:18:23.318 [http-nio-8080-exec-7] DEBUG o.springframework.jdbc.datasource.DataSourceUtils - Fetching JDBC Connection from DataSource
+2025-10-20 11:18:23.330 [http-nio-8080-exec-7] DEBUG o.springframework.jdbc.datasource.DataSourceUtils - Fetching JDBC Connection from DataSource
+2025-10-20 11:18:23.337 [http-nio-8080-exec-7] DEBUG o.springframework.jdbc.datasource.DataSourceUtils - Fetching JDBC Connection from DataSource
+2025-10-20 11:18:23.341 [http-nio-8080-exec-7] INFO  com.victor.iatms.aspect.WebLogAspect - ================ HTTP Response Start ===============
+2025-10-20 11:18:23.341 [http-nio-8080-exec-7] INFO  com.victor.iatms.aspect.WebLogAspect - Request ID    : f29138813f8a43c0
+2025-10-20 11:18:23.341 [http-nio-8080-exec-7] INFO  com.victor.iatms.aspect.WebLogAspect - Success       : true
+2025-10-20 11:18:23.341 [http-nio-8080-exec-7] INFO  com.victor.iatms.aspect.WebLogAspect - Execution Time: 29 ms
+2025-10-20 11:18:23.342 [http-nio-8080-exec-7] INFO  com.victor.iatms.aspect.WebLogAspect - Response      : {"code":1,"msg":"查询接口列表成功","data":{"total":5,"items":[{"apiId":1,"apiCode":"AUTH001","moduleId":1,"name":"用户登录","method":"POST","path":"/api/auth/login","fullUrl":"http://localhost:8080/api/auth/login","description":"用户使用用户名和密码登录系统","status":"active","version":"1.0","authType":"none","requestBodyType":"json","responseBodyType":"json","timeoutSeconds":30,"creatorInfo":{"userId":8,"name":"孙磊","avatarUrl":"https://avatar.example.com/sun.jpg"},"createdAt":"2025-10-19T10:40:06","updatedAt":"2025-10-19T10:40:06"},{"apiId":2,"apiCode":"AUTH002","moduleId":1,"name":"用户注册","method":"POST","path":"/api/auth/register","fullUrl":"http://localhost:8080/api/auth/register","description":"新用户注册账号","status":"active","version":"1.0","authType":"none","requestBodyType":"json","responseBodyType":"json","timeoutSeconds":30,"creatorInfo":{"userId":8,"name":"孙磊","avatarUrl":"https://avatar.example.com/sun.jpg"},"createdAt":"2025-10-19T10:40:06","updatedAt":"2025-10-19T10:40:06"},{"apiId":3,"apiCode":"AUTH003 ... (truncated, total 2342 chars)
+2025-10-20 11:18:23.342 [http-nio-8080-exec-7] INFO  com.victor.iatms.aspect.WebLogAspect - ====================================================
