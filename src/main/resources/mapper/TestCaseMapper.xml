@@ -272,8 +272,18 @@
             tc.priority,
             tc.severity,
             tc.tags,
+            tc.pre_conditions,
+            tc.test_steps,
+            tc.request_override,
+            tc.expected_http_status,
+            tc.expected_response_schema,
+            tc.expected_response_body,
+            tc.assertions,
+            tc.extractors,
+            tc.validators,
             tc.is_enabled,
             tc.is_template,
+            tc.template_id,
             tc.version,
             u.user_id AS creator_user_id,
             u.name AS creator_name,
@@ -438,8 +448,18 @@
         <result column="priority" property="priority"/>
         <result column="severity" property="severity"/>
         <result column="tags" property="tags" typeHandler="com.victor.iatms.utils.JsonTypeHandler"/>
+        <result column="pre_conditions" property="preConditions" typeHandler="com.victor.iatms.utils.JsonTypeHandler"/>
+        <result column="test_steps" property="testSteps" typeHandler="com.victor.iatms.utils.JsonTypeHandler"/>
+        <result column="request_override" property="requestOverride" typeHandler="com.victor.iatms.utils.JsonTypeHandler"/>
+        <result column="expected_http_status" property="expectedHttpStatus"/>
+        <result column="expected_response_schema" property="expectedResponseSchema" typeHandler="com.victor.iatms.utils.JsonTypeHandler"/>
+        <result column="expected_response_body" property="expectedResponseBody"/>
+        <result column="assertions" property="assertions" typeHandler="com.victor.iatms.utils.JsonTypeHandler"/>
+        <result column="extractors" property="extractors" typeHandler="com.victor.iatms.utils.JsonTypeHandler"/>
+        <result column="validators" property="validators" typeHandler="com.victor.iatms.utils.JsonTypeHandler"/>
         <result column="is_enabled" property="isEnabled"/>
         <result column="is_template" property="isTemplate"/>
+        <result column="template_id" property="templateId"/>
         <result column="version" property="version"/>
         <result column="created_at" property="createdAt"/>
         <result column="updated_at" property="updatedAt"/>

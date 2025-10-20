@@ -85,6 +85,51 @@ public class TestCaseItemDTO {
      * 标签数组
      */
     private List<String> tags;
+    
+    /**
+     * 前置条件
+     */
+    private Object preConditions;
+    
+    /**
+     * 测试步骤
+     */
+    private Object testSteps;
+    
+    /**
+     * 请求参数覆盖
+     */
+    private Object requestOverride;
+    
+    /**
+     * 预期HTTP状态码
+     */
+    private Integer expectedHttpStatus;
+    
+    /**
+     * 预期响应Schema
+     */
+    private Object expectedResponseSchema;
+    
+    /**
+     * 预期响应体
+     */
+    private String expectedResponseBody;
+    
+    /**
+     * 断言规则
+     */
+    private Object assertions;
+    
+    /**
+     * 响应提取规则
+     */
+    private Object extractors;
+    
+    /**
+     * 验证器配置
+     */
+    private Object validators;
 
     /**
      * 是否启用
@@ -95,6 +140,11 @@ public class TestCaseItemDTO {
      * 是否为模板用例
      */
     private Boolean isTemplate;
+    
+    /**
+     * 模板用例ID
+     */
+    private Integer templateId;
 
     /**
      * 版本号
