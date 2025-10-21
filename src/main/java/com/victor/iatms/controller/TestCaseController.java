@@ -1,6 +1,8 @@
 package com.victor.iatms.controller;
 
 import com.victor.iatms.annotation.GlobalInterceptor;
+import com.victor.iatms.entity.dto.CopyTestCaseRequestDTO;
+import com.victor.iatms.entity.dto.CopyTestCaseResponseDTO;
 import com.victor.iatms.entity.dto.CreateTestCaseDTO;
 import com.victor.iatms.entity.dto.CreateTestCaseResponseDTO;
 import com.victor.iatms.entity.dto.TestCaseListQueryDTO;
@@ -162,6 +164,47 @@ public class TestCaseController {
             }
         } catch (Exception e) {
             return ResponseVO.serverError("查询测试用例列表失败：" + e.getMessage());
+        }
+    }
+    
+    /**
+     * 复制测试用例
+     * 
+     * @param caseId 源测试用例ID
+     * @param requestDTO 复制测试用例请求
+     * @return 复制后的测试用例信息
+     */
+    @PostMapping("/{caseId}/copy")
+    @GlobalInterceptor(checkLogin = true)
+    public ResponseVO<CopyTestCaseResponseDTO> copyTestCase(
+            @PathVariable("caseId") Integer caseId,
+            @RequestBody CopyTestCaseRequestDTO requestDTO) {
+        try {
+            // TODO: 从当前用户上下文获取用户ID
+            Integer currentUserId = 1; // 临时硬编码，实际应该从认证上下文获取
+            
+            CopyTestCaseResponseDTO result = testCaseService.copyTestCase(caseId, requestDTO, currentUserId);
+            return ResponseVO.success("测试用例复制成功", result);
+            
+        } catch (IllegalArgumentException e) {
+            // 根据不同的错误类型返回不同的错误响应
+            if (e.getMessage().contains("测试用例不存在")) {
+                return ResponseVO.notFound(e.getMessage());
+            } else if (e.getMessage().contains("用例编码已存在") ||
+                     e.getMessage().contains("用例编码不能为空") ||
+                     e.getMessage().contains("用例名称不能为空") ||
+                     e.getMessage().contains("用例编码只能包含") ||
+                     e.getMessage().contains("用例编码长度") ||
+                     e.getMessage().contains("用例名称长度") ||
+                     e.getMessage().contains("描述不能超过")) {
+                return ResponseVO.paramError(e.getMessage());
+            } else if (e.getMessage().contains("权限不足")) {
+                return ResponseVO.forbidden(e.getMessage());
+            } else {
+                return ResponseVO.businessError(e.getMessage());
+            }
+        } catch (Exception e) {
+            return ResponseVO.serverError("复制测试用例失败：" + e.getMessage());
         }
     }
 }

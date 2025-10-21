@@ -3,6 +3,8 @@ package com.victor.iatms.service.impl;
 import com.victor.iatms.entity.constants.Constants;
 import com.victor.iatms.entity.dto.AddTestCaseDTO;
 import com.victor.iatms.entity.dto.AddTestCaseResponseDTO;
+import com.victor.iatms.entity.dto.CopyTestCaseRequestDTO;
+import com.victor.iatms.entity.dto.CopyTestCaseResponseDTO;
 import com.victor.iatms.entity.dto.CreateTestCaseDTO;
 import com.victor.iatms.entity.dto.CreateTestCaseResponseDTO;
 import com.victor.iatms.entity.dto.TestCaseItemDTO;
@@ -19,6 +21,8 @@ import com.victor.iatms.mappers.ApiMapper;
 import com.victor.iatms.mappers.TestCaseMapper;
 import com.victor.iatms.service.TestCaseService;
 import com.victor.iatms.utils.JsonUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -32,6 +36,8 @@ import java.util.regex.Pattern;
  */
 @Service
 public class TestCaseServiceImpl implements TestCaseService {
+
+    private static final Logger logger = LoggerFactory.getLogger(TestCaseServiceImpl.class);
 
     @Autowired
     private TestCaseMapper testCaseMapper;
@@ -756,5 +762,198 @@ public class TestCaseServiceImpl implements TestCaseService {
                "severity".equalsIgnoreCase(sortField) ||
                "created_at".equalsIgnoreCase(sortField) ||
                "updated_at".equalsIgnoreCase(sortField);
+    }
+    
+    @Override
+    public CopyTestCaseResponseDTO copyTestCase(Integer sourceCaseId, CopyTestCaseRequestDTO requestDTO, Integer currentUserId) {
+        // 参数校验
+        validateCopyTestCaseRequest(sourceCaseId, requestDTO);
+        
+        // 1. 验证源用例是否存在
+        TestCase sourceCase = testCaseMapper.selectById(sourceCaseId);
+        if (sourceCase == null) {
+            throw new IllegalArgumentException("测试用例不存在");
+        }
+        
+        // 检查源用例是否已被删除
+        if (sourceCase.getIsDeleted()) {
+            throw new IllegalArgumentException("测试用例不存在");
+        }
+        
+        // 2. 验证新编码是否唯一
+        if (testCaseMapper.checkCaseCodeExists(requestDTO.getCaseCode(), sourceCase.getApiId()) > 0) {
+            throw new IllegalArgumentException("用例编码已存在，请使用其他编码");
+        }
+        
+        // 3. 检查权限（需要用例管理权限）
+        if (!hasTestCaseManagePermission(sourceCase, currentUserId)) {
+            throw new IllegalArgumentException("权限不足，无法复制测试用例");
+        }
+        
+        // 4. 构建新用例数据
+        TestCase newCase = new TestCase();
+        newCase.setCaseCode(requestDTO.getCaseCode());
+        newCase.setName(requestDTO.getName());
+        newCase.setDescription(requestDTO.getDescription());
+        
+        // 复制源用例的字段
+        newCase.setApiId(sourceCase.getApiId());
+        newCase.setPriority(sourceCase.getPriority());
+        newCase.setSeverity(sourceCase.getSeverity());
+        newCase.setTags(sourceCase.getTags());
+        newCase.setPreConditions(sourceCase.getPreConditions());
+        newCase.setTestSteps(sourceCase.getTestSteps());
+        newCase.setRequestOverride(sourceCase.getRequestOverride());
+        newCase.setExpectedHttpStatus(sourceCase.getExpectedHttpStatus());
+        newCase.setExpectedResponseSchema(sourceCase.getExpectedResponseSchema());
+        newCase.setExpectedResponseBody(sourceCase.getExpectedResponseBody());
+        newCase.setAssertions(sourceCase.getAssertions());
+        newCase.setExtractors(sourceCase.getExtractors());
+        newCase.setValidators(sourceCase.getValidators());
+        newCase.setIsEnabled(sourceCase.getIsEnabled());
+        newCase.setVersion(sourceCase.getVersion());
+        
+        // 重置字段
+        newCase.setIsTemplate(false);
+        newCase.setTemplateId(sourceCaseId);
+        newCase.setCreatedBy(currentUserId);
+        newCase.setUpdatedBy(currentUserId);
+        newCase.setCreatedAt(LocalDateTime.now());
+        newCase.setUpdatedAt(LocalDateTime.now());
+        newCase.setIsDeleted(false);
+        
+        // 5. 保存新用例
+        int result = testCaseMapper.insert(newCase);
+        if (result <= 0 || newCase.getCaseId() == null) {
+            throw new RuntimeException("复制测试用例失败");
+        }
+        
+        // 6. 查询并返回新用例信息
+        CopyTestCaseResponseDTO responseDTO = buildCopyTestCaseResponse(newCase);
+        
+        // TODO: 记录审计日志
+        // auditLogService.logTestCaseCopy(sourceCaseId, newCase.getCaseId(), currentUserId);
+        
+        return responseDTO;
+    }
+    
+    /**
+     * 验证复制测试用例请求参数
+     */
+    private void validateCopyTestCaseRequest(Integer sourceCaseId, CopyTestCaseRequestDTO requestDTO) {
+        if (sourceCaseId == null) {
+            throw new IllegalArgumentException("源测试用例ID不能为空");
+        }
+        if (requestDTO == null) {
+            throw new IllegalArgumentException("请求参数不能为空");
+        }
+        if (!StringUtils.hasText(requestDTO.getCaseCode())) {
+            throw new IllegalArgumentException("用例编码不能为空");
+        }
+        if (!Pattern.matches(Constants.TEST_CASE_CODE_PATTERN, requestDTO.getCaseCode())) {
+            throw new IllegalArgumentException("用例编码只能包含大写字母、数字、下划线和连字符");
+        }
+        if (requestDTO.getCaseCode().length() < 2 || requestDTO.getCaseCode().length() > 50) {
+            throw new IllegalArgumentException("用例编码长度在2到50个字符");
+        }
+        if (!StringUtils.hasText(requestDTO.getName())) {
+            throw new IllegalArgumentException("用例名称不能为空");
+        }
+        if (requestDTO.getName().length() < 2 || requestDTO.getName().length() > 100) {
+            throw new IllegalArgumentException("用例名称长度在2到100个字符");
+        }
+        if (requestDTO.getDescription() != null && requestDTO.getDescription().length() > 500) {
+            throw new IllegalArgumentException("描述不能超过500个字符");
+        }
+    }
+    
+    /**
+     * 构建复制测试用例响应DTO
+     */
+    private CopyTestCaseResponseDTO buildCopyTestCaseResponse(TestCase testCase) {
+        CopyTestCaseResponseDTO responseDTO = new CopyTestCaseResponseDTO();
+        
+        responseDTO.setCaseId(testCase.getCaseId());
+        responseDTO.setCaseCode(testCase.getCaseCode());
+        responseDTO.setName(testCase.getName());
+        responseDTO.setDescription(testCase.getDescription());
+        responseDTO.setApiId(testCase.getApiId());
+        responseDTO.setPriority(testCase.getPriority());
+        responseDTO.setSeverity(testCase.getSeverity());
+        responseDTO.setExpectedHttpStatus(testCase.getExpectedHttpStatus());
+        responseDTO.setExpectedResponseBody(testCase.getExpectedResponseBody());
+        responseDTO.setIsEnabled(testCase.getIsEnabled());
+        responseDTO.setIsTemplate(testCase.getIsTemplate());
+        responseDTO.setTemplateId(testCase.getTemplateId());
+        responseDTO.setVersion(testCase.getVersion());
+        responseDTO.setCreatedAt(testCase.getCreatedAt());
+        responseDTO.setUpdatedAt(testCase.getUpdatedAt());
+        
+        // 解析JSON字段 - 使用灵活的方式解析，支持对象和数组
+        try {
+            if (testCase.getTags() != null && !testCase.getTags().isEmpty()) {
+                responseDTO.setTags(JsonUtils.convertJsonArray2List(testCase.getTags(), String.class));
+            }
+            if (testCase.getPreConditions() != null && !testCase.getPreConditions().isEmpty()) {
+                responseDTO.setPreConditions(parseJsonToListOrKeepAsIs(testCase.getPreConditions()));
+            }
+            if (testCase.getTestSteps() != null && !testCase.getTestSteps().isEmpty()) {
+                responseDTO.setTestSteps(parseJsonToListOrKeepAsIs(testCase.getTestSteps()));
+            }
+            if (testCase.getRequestOverride() != null && !testCase.getRequestOverride().isEmpty()) {
+                @SuppressWarnings("unchecked")
+                java.util.Map<String, Object> requestOverride = JsonUtils.convertJson2Obj(testCase.getRequestOverride(), java.util.Map.class);
+                responseDTO.setRequestOverride(requestOverride);
+            }
+            if (testCase.getExpectedResponseSchema() != null && !testCase.getExpectedResponseSchema().isEmpty()) {
+                @SuppressWarnings("unchecked")
+                java.util.Map<String, Object> expectedResponseSchema = JsonUtils.convertJson2Obj(testCase.getExpectedResponseSchema(), java.util.Map.class);
+                responseDTO.setExpectedResponseSchema(expectedResponseSchema);
+            }
+            if (testCase.getAssertions() != null && !testCase.getAssertions().isEmpty()) {
+                responseDTO.setAssertions(parseJsonToListOrKeepAsIs(testCase.getAssertions()));
+            }
+            if (testCase.getExtractors() != null && !testCase.getExtractors().isEmpty()) {
+                responseDTO.setExtractors(parseJsonToListOrKeepAsIs(testCase.getExtractors()));
+            }
+            if (testCase.getValidators() != null && !testCase.getValidators().isEmpty()) {
+                responseDTO.setValidators(parseJsonToListOrKeepAsIs(testCase.getValidators()));
+            }
+        } catch (Exception e) {
+            // 如果解析失败，记录日志但不抛出异常，返回已有的基本信息
+            logger.error("解析测试用例JSON字段失败: caseId={}, error={}", testCase.getCaseId(), e.getMessage());
+        }
+        
+        // TODO: 填充创建者信息
+        // responseDTO.setCreatorInfo(buildCreatorInfo(testCase.getCreatedBy()));
+        
+        return responseDTO;
+    }
+    
+    /**
+     * 灵活解析JSON字符串，如果是数组则返回List，如果是对象则包装为List返回
+     */
+    @SuppressWarnings("unchecked")
+    private List<java.util.Map<String, Object>> parseJsonToListOrKeepAsIs(String json) {
+        if (json == null || json.trim().isEmpty() || "[]".equals(json.trim())) {
+            return new java.util.ArrayList<>();
+        }
+        
+        try {
+            // 尝试作为数组解析
+            return JsonUtils.convertJson2Obj(json, List.class);
+        } catch (Exception e) {
+            // 如果不是数组，尝试作为对象解析并包装为List
+            try {
+                java.util.Map<String, Object> obj = JsonUtils.convertJson2Obj(json, java.util.Map.class);
+                java.util.List<java.util.Map<String, Object>> list = new java.util.ArrayList<>();
+                list.add(obj);
+                return list;
+            } catch (Exception ex) {
+                // 如果都失败了，返回空列表
+                logger.error("解析JSON失败: {}", json);
+                return new java.util.ArrayList<>();
+            }
+        }
     }
 }

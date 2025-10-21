@@ -2,6 +2,8 @@ package com.victor.iatms.service;
 
 import com.victor.iatms.entity.dto.AddTestCaseDTO;
 import com.victor.iatms.entity.dto.AddTestCaseResponseDTO;
+import com.victor.iatms.entity.dto.CopyTestCaseRequestDTO;
+import com.victor.iatms.entity.dto.CopyTestCaseResponseDTO;
 import com.victor.iatms.entity.dto.CreateTestCaseDTO;
 import com.victor.iatms.entity.dto.CreateTestCaseResponseDTO;
 import com.victor.iatms.entity.dto.TestCaseListQueryDTO;
@@ -53,4 +55,13 @@ public interface TestCaseService {
      * @return 分页的测试用例列表
      */
     TestCaseListResponseDTO getTestCaseList(TestCaseListQueryDTO queryDTO, Integer currentUserId);
+    
+    /**
+     * 复制测试用例
+     * @param sourceCaseId 源测试用例ID
+     * @param requestDTO 复制测试用例请求DTO
+     * @param currentUserId 当前操作用户ID
+     * @return 复制后的测试用例信息
+     */
+    CopyTestCaseResponseDTO copyTestCase(Integer sourceCaseId, CopyTestCaseRequestDTO requestDTO, Integer currentUserId);
 }
