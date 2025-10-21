@@ -24,7 +24,7 @@ import jakarta.servlet.http.HttpServletRequest;
  * 测试执行控制器
  */
 @RestController
-@RequestMapping("/api")
+@RequestMapping("")
 @Validated
 public class TestExecutionController {
 
@@ -38,13 +38,13 @@ public class TestExecutionController {
      * 执行单个测试用例
      */
     @PostMapping("/test-cases/{case_id}/execute")
-//    @GlobalInterceptor(
-//        checkLogin = true,
-//        checkPermission = {"testcase:execute"},
-//        checkResourceAccess = true,
-//        resourceType = "testcase",
-//        resourceIdParam = "case_id"
-//    )
+    @GlobalInterceptor(
+        checkLogin = true,
+        checkPermission = {"testcase:execute"},
+        checkResourceAccess = true,
+        resourceType = "testcase",
+        resourceIdParam = "case_id"
+    )
     public ResponseVO<ExecutionResultDTO> executeTestCase(
             @PathVariable("case_id") Integer caseId,
             @RequestBody ExecuteTestCaseDTO executeDTO,

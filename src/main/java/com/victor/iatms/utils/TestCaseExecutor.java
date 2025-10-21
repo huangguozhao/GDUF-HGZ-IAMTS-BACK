@@ -64,16 +64,34 @@ public class TestCaseExecutor {
             executionDTO.setHttpResponseHeaders(response.getHeaders());
 
             // 5. 执行断言
-            List<AssertionUtils.AssertionResult> assertionResults = assertionUtils.executeAssertions(
-                executionDTO.getAssertions(),
+            List<AssertionUtils.AssertionResult> assertionResults;
+            
+            // 5.1 如果没有明确的断言规则，自动生成基础断言
+            String assertions = executionDTO.getAssertions();
+            if (assertions == null || assertions.trim().isEmpty() || "null".equals(assertions)) {
+                log.info("未定义断言规则，自动生成基础断言");
+                assertions = generateDefaultAssertions(executionDTO);
+                log.info("自动生成的断言: {}", assertions);
+            }
+            
+            // 5.2 执行断言
+            assertionResults = assertionUtils.executeAssertions(
+                assertions,
                 response.getBody(),
                 response.getStatusCode(),
                 response.getHeaders()
             );
             
-            // 转换断言结果
+            // 5.3 转换断言结果并生成详细日志
             List<TestCaseExecutionDTO.AssertionResultDTO> convertedResults = new ArrayList<>();
-            for (AssertionUtils.AssertionResult result : assertionResults) {
+            StringBuilder assertionLog = new StringBuilder();
+            assertionLog.append("\n========== 断言执行详情 ==========\n");
+            
+            int passedCount = 0;
+            int failedCount = 0;
+            
+            for (int i = 0; i < assertionResults.size(); i++) {
+                AssertionUtils.AssertionResult result = assertionResults.get(i);
                 TestCaseExecutionDTO.AssertionResultDTO dto = new TestCaseExecutionDTO.AssertionResultDTO();
                 dto.setAssertionType(result.getAssertionType());
                 dto.setExpectedValue(result.getExpectedValue());
@@ -81,8 +99,48 @@ public class TestCaseExecutor {
                 dto.setPassed(result.isPassed());
                 dto.setErrorMessage(result.getErrorMessage());
                 convertedResults.add(dto);
+                
+                // 生成详细的断言日志
+                assertionLog.append(String.format("断言 #%d [%s]\n", i + 1, result.getAssertionType()));
+                assertionLog.append(String.format("  期望值: %s\n", result.getExpectedValue()));
+                assertionLog.append(String.format("  实际值: %s\n", result.getActualValue()));
+                assertionLog.append(String.format("  结果: %s\n", result.isPassed() ? "✓ 通过" : "✗ 失败"));
+                
+                if (!result.isPassed()) {
+                    assertionLog.append(String.format("  错误: %s\n", result.getErrorMessage()));
+                    failedCount++;
+                } else {
+                    passedCount++;
+                }
+                assertionLog.append("\n");
             }
+            
+            assertionLog.append(String.format("总计: %d 个断言，通过 %d，失败 %d\n", 
+                assertionResults.size(), passedCount, failedCount));
+            assertionLog.append("=====================================\n");
+            
+            // 打印详细日志
+            log.info(assertionLog.toString());
+            
             executionDTO.setAssertionResults(convertedResults);
+            
+            // 如果有失败的断言，设置失败信息
+            if (failedCount > 0) {
+                StringBuilder failureMsg = new StringBuilder();
+                failureMsg.append(String.format("断言失败：%d/%d 个断言未通过\n", failedCount, assertionResults.size()));
+                
+                for (TestCaseExecutionDTO.AssertionResultDTO dto : convertedResults) {
+                    if (!dto.getPassed()) {
+                        failureMsg.append(String.format("  - [%s] %s\n", dto.getAssertionType(), dto.getErrorMessage()));
+                    }
+                }
+                
+                // 将失败信息保存到执行结果中
+                if (executionDTO.getFailureMessage() == null || executionDTO.getFailureMessage().isEmpty()) {
+                    executionDTO.setFailureMessage(failureMsg.toString());
+                    executionDTO.setFailureType("ASSERTION_FAILED");
+                }
+            }
 
             // 6. 应用提取规则
             Map<String, Object> extractedValues = applyExtractors(executionDTO, response);
@@ -112,6 +170,101 @@ public class TestCaseExecutor {
     }
 
     /**
+     * 自动生成默认断言规则
+     */
+    private String generateDefaultAssertions(TestCaseExecutionDTO executionDTO) {
+        List<Map<String, Object>> assertions = new ArrayList<>();
+        
+        try {
+            // 1. HTTP状态码断言
+            if (executionDTO.getExpectedHttpStatus() != null) {
+                Map<String, Object> statusAssertion = new HashMap<>();
+                statusAssertion.put("type", "status_code");
+                statusAssertion.put("expected", executionDTO.getExpectedHttpStatus());
+                assertions.add(statusAssertion);
+                log.info("添加状态码断言: {}", executionDTO.getExpectedHttpStatus());
+            }
+            
+            // 2. 响应体断言（基于expected_response_body）
+            String expectedBody = executionDTO.getExpectedResponseBody();
+            if (expectedBody != null && !expectedBody.trim().isEmpty() && !"null".equals(expectedBody)) {
+                try {
+                    JsonNode expectedNode = objectMapper.readTree(expectedBody);
+                    
+                    // 遍历期待响应的字段，为每个字段生成断言
+                    generateAssertionsFromExpectedBody(expectedNode, "$", assertions);
+                    
+                } catch (Exception e) {
+                    log.warn("解析expected_response_body失败: {}", e.getMessage());
+                }
+            }
+            
+            // 3. 如果没有任何断言，至少验证响应成功
+            if (assertions.isEmpty()) {
+                Map<String, Object> defaultAssertion = new HashMap<>();
+                defaultAssertion.put("type", "status_code");
+                defaultAssertion.put("expected", 200);
+                assertions.add(defaultAssertion);
+            }
+            
+            return objectMapper.writeValueAsString(assertions);
+            
+        } catch (Exception e) {
+            log.error("生成默认断言失败: {}", e.getMessage(), e);
+            return "[]";
+        }
+    }
+    
+    /**
+     * 从期待响应体生成断言
+     */
+    private void generateAssertionsFromExpectedBody(JsonNode node, String path, List<Map<String, Object>> assertions) {
+        if (node.isObject()) {
+            node.fields().forEachRemaining(entry -> {
+                String fieldName = entry.getKey();
+                JsonNode fieldValue = entry.getValue();
+                String fieldPath = path.equals("$") ? "$." + fieldName : path + "." + fieldName;
+                
+                if (fieldValue.isTextual()) {
+                    String value = fieldValue.asText();
+                    if (!"*".equals(value)) {  // * 表示只验证存在，不验证值
+                        Map<String, Object> assertion = new HashMap<>();
+                        assertion.put("type", "json_path");
+                        assertion.put("path", fieldPath);
+                        assertion.put("expected", value);
+                        assertions.add(assertion);
+                        log.info("添加字段断言: {} = {}", fieldPath, value);
+                    } else {
+                        // * 表示只验证字段存在
+                        Map<String, Object> assertion = new HashMap<>();
+                        assertion.put("type", "json_path_exists");
+                        assertion.put("path", fieldPath);
+                        assertions.add(assertion);
+                        log.info("添加字段存在断言: {}", fieldPath);
+                    }
+                } else if (fieldValue.isNumber()) {
+                    Map<String, Object> assertion = new HashMap<>();
+                    assertion.put("type", "json_path");
+                    assertion.put("path", fieldPath);
+                    assertion.put("expected", fieldValue.asText());
+                    assertions.add(assertion);
+                } else if (fieldValue.isBoolean()) {
+                    Map<String, Object> assertion = new HashMap<>();
+                    assertion.put("type", "json_path");
+                    assertion.put("path", fieldPath);
+                    assertion.put("expected", String.valueOf(fieldValue.asBoolean()));
+                    assertions.add(assertion);
+                } else if (fieldValue.isObject()) {
+                    // 递归处理嵌套对象
+                    if (!fieldValue.toString().equals("{\"*\"}")) {
+                        generateAssertionsFromExpectedBody(fieldValue, fieldPath, assertions);
+                    }
+                }
+            });
+        }
+    }
+
+    /**
      * 验证前置条件
      */
     private boolean validatePreConditions(TestCaseExecutionDTO executionDTO) {
@@ -137,42 +290,97 @@ public class TestCaseExecutor {
     private HttpRequestInfo buildHttpRequest(TestCaseExecutionDTO executionDTO) {
         TestCaseExecutionDTO.ApiInfoDTO apiInfo = executionDTO.getApiInfo();
         
-        // 构建URL
-//        String baseUrl = executionDTO.getEnvironment() != null ?
-//            getEnvironmentBaseUrl(executionDTO.getEnvironment()) : apiInfo.getBaseUrl();
-        String  baseUrl = executionDTO.getApiInfo().getBaseUrl();
+        // 1. 构建URL
+        String baseUrl = executionDTO.getApiInfo().getBaseUrl();
         String fullUrl = baseUrl + apiInfo.getPath();
         
         // 应用变量替换
         fullUrl = applyVariables(fullUrl, executionDTO.getVariables());
 
-        // 构建请求头
+        // 2. 构建请求头（接口默认 + 用例覆盖）
         Map<String, String> headers = new HashMap<>();
-        if (apiInfo.getRequestHeaders() != null) {
+        
+        // 2.1 加载接口默认请求头
+        if (apiInfo.getRequestHeaders() != null && !apiInfo.getRequestHeaders().trim().isEmpty()) {
             try {
-                Map<String, String> apiHeaders = objectMapper.readValue(
-                    apiInfo.getRequestHeaders(), 
-                    objectMapper.getTypeFactory().constructMapType(Map.class, String.class, String.class)
-                );
-                headers.putAll(apiHeaders);
+                JsonNode headersNode = objectMapper.readTree(apiInfo.getRequestHeaders());
+                if (headersNode.isObject()) {
+                    headersNode.fields().forEachRemaining(entry -> {
+                        headers.put(entry.getKey(), entry.getValue().asText());
+                    });
+                }
             } catch (Exception e) {
-                log.warn("解析请求头失败: {}", e.getMessage());
+                log.warn("解析接口默认请求头失败: {}", e.getMessage());
             }
         }
 
-        // 应用请求覆盖
-        if (executionDTO.getRequestOverride() != null) {
-            applyRequestOverride(headers, executionDTO.getRequestOverride());
+        // 2.2 应用用例的 request_override 中的 headers
+        if (executionDTO.getRequestOverride() != null && !executionDTO.getRequestOverride().trim().isEmpty()) {
+            try {
+                JsonNode overrideNode = objectMapper.readTree(executionDTO.getRequestOverride());
+                if (overrideNode.has("headers")) {
+                    JsonNode headersOverride = overrideNode.get("headers");
+                    headersOverride.fields().forEachRemaining(entry -> {
+                        headers.put(entry.getKey(), entry.getValue().asText());
+                    });
+                }
+            } catch (Exception e) {
+                log.warn("应用请求头覆盖失败: {}", e.getMessage());
+            }
         }
 
-        // 构建请求体
-        String body = apiInfo.getRequestBody();
+        // 3. 构建请求体
+        String body = null;
+        
+        // 3.1 优先使用 preConditions 作为请求体数据
+        String preConditions = executionDTO.getPreConditions();
+        log.info("preConditions原始值: {}", preConditions);
+        
+        if (preConditions != null && !preConditions.trim().isEmpty() && !"null".equals(preConditions)) {
+            // preConditions 直接作为请求体
+            body = preConditions;
+            log.info("✓ 使用preConditions作为请求体: {}", body);
+        }
+        
+        // 3.2 如果有 request_override，用它覆盖请求体
+        String requestOverride = executionDTO.getRequestOverride();
+        if (requestOverride != null && !requestOverride.trim().isEmpty() && !"null".equals(requestOverride)) {
+            try {
+                JsonNode overrideNode = objectMapper.readTree(requestOverride);
+                
+                if (overrideNode.has("body")) {
+                    // request_override.body 会完全替换 preConditions
+                    JsonNode bodyNode = overrideNode.get("body");
+                    body = objectMapper.writeValueAsString(bodyNode);
+                    log.info("✓ request_override.body 覆盖了preConditions: {}", body);
+                }
+            } catch (Exception e) {
+                log.warn("解析request_override失败: {}", e.getMessage());
+            }
+        }
+        
+        // 3.3 如果都没有，使用接口默认请求体
+        if (body == null) {
+            String apiBody = apiInfo.getRequestBody();
+            if (apiBody != null && !apiBody.trim().isEmpty() && !"null".equals(apiBody)) {
+                body = apiBody;
+                log.info("✓ 使用接口默认请求体: {}", body);
+            }
+        }
+        
+        // 3.4 应用变量替换
         if (body != null) {
             body = applyVariables(body, executionDTO.getVariables());
+        } else {
+            log.warn("⚠️ 最终请求体为null（对于GET请求这是正常的）");
         }
 
-        // 设置超时时间
+        // 4. 设置超时时间
         int timeout = apiInfo.getTimeoutSeconds() != null ? apiInfo.getTimeoutSeconds() : 30;
+
+        log.info("最终请求URL: {}", fullUrl);
+        log.info("最终请求头: {}", headers);
+        log.info("最终请求体: {}", body);
 
         return new HttpRequestInfo(apiInfo.getMethod(), fullUrl, headers, body, timeout);
     }
@@ -208,26 +416,6 @@ public class TestCaseExecutor {
             result = result.replace(placeholder, String.valueOf(entry.getValue()));
         }
         return result;
-    }
-
-    /**
-     * 应用请求覆盖
-     */
-    private void applyRequestOverride(Map<String, String> headers, String requestOverride) {
-        try {
-            Map<String, Object> override = objectMapper.readValue(
-                requestOverride,
-                objectMapper.getTypeFactory().constructMapType(Map.class, String.class, Object.class)
-            );
-
-            if (override.containsKey("headers")) {
-                @SuppressWarnings("unchecked")
-                Map<String, String> overrideHeaders = (Map<String, String>) override.get("headers");
-                headers.putAll(overrideHeaders);
-            }
-        } catch (Exception e) {
-            log.warn("应用请求覆盖失败: {}", e.getMessage());
-        }
     }
 
     /**

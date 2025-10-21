@@ -72,20 +72,66 @@ public class AssertionUtils {
         
         try {
             String type = assertion.has("type") ? assertion.get("type").asText() : "equals";
-            String target = assertion.has("target") ? assertion.get("target").asText() : "status";
-            String expectedValue = assertion.has("expected") ? assertion.get("expected").asText() : "";
-            
             result.setAssertionType(type);
-            result.setExpectedValue(expectedValue);
             
-            String actualValue = getActualValue(target, responseBody, responseStatus, responseHeaders);
-            result.setActualValue(actualValue);
-            
-            boolean passed = evaluateAssertion(type, expectedValue, actualValue);
-            result.setPassed(passed);
-            
-            if (!passed) {
-                result.setErrorMessage(String.format("断言失败: 期望 %s，实际 %s", expectedValue, actualValue));
+            // 处理不同类型的断言
+            if ("status_code".equals(type)) {
+                // HTTP状态码断言
+                int expectedStatus = assertion.get("expected").asInt();
+                result.setExpectedValue(String.valueOf(expectedStatus));
+                result.setActualValue(String.valueOf(responseStatus));
+                result.setPassed(expectedStatus == responseStatus);
+                
+                if (!result.isPassed()) {
+                    result.setErrorMessage(String.format("状态码不匹配: 期望 %d，实际 %d", expectedStatus, responseStatus));
+                }
+                
+            } else if ("json_path".equals(type)) {
+                // JSON路径断言
+                String path = assertion.get("path").asText();
+                String expectedValue = assertion.get("expected").asText();
+                
+                String actualValue = extractJsonValueByPath(responseBody, path);
+                
+                result.setExpectedValue(expectedValue);
+                result.setActualValue(actualValue);
+                result.setPassed(expectedValue.equals(actualValue));
+                
+                if (!result.isPassed()) {
+                    result.setErrorMessage(String.format("字段 %s 值不匹配: 期望 %s，实际 %s", path, expectedValue, actualValue));
+                }
+                
+            } else if ("json_path_exists".equals(type)) {
+                // JSON路径存在性断言
+                String path = assertion.get("path").asText();
+                
+                String actualValue = extractJsonValueByPath(responseBody, path);
+                boolean exists = actualValue != null && !actualValue.isEmpty();
+                
+                result.setExpectedValue("字段存在");
+                result.setActualValue(exists ? "存在" : "不存在");
+                result.setPassed(exists);
+                
+                if (!result.isPassed()) {
+                    result.setErrorMessage(String.format("字段 %s 不存在", path));
+                }
+                
+            } else {
+                // 原有逻辑（兼容旧格式）
+                String target = assertion.has("target") ? assertion.get("target").asText() : "status";
+                String expectedValue = assertion.has("expected") ? assertion.get("expected").asText() : "";
+                
+                result.setExpectedValue(expectedValue);
+                
+                String actualValue = getActualValue(target, responseBody, responseStatus, responseHeaders);
+                result.setActualValue(actualValue);
+                
+                boolean passed = evaluateAssertion(type, expectedValue, actualValue);
+                result.setPassed(passed);
+                
+                if (!passed) {
+                    result.setErrorMessage(String.format("断言失败: 期望 %s，实际 %s", expectedValue, actualValue));
+                }
             }
             
         } catch (Exception e) {
@@ -95,6 +141,39 @@ public class AssertionUtils {
         }
         
         return result;
+    }
+    
+    /**
+     * 根据JSON路径提取值
+     */
+    private String extractJsonValueByPath(String jsonBody, String jsonPath) {
+        try {
+            JsonNode rootNode = objectMapper.readTree(jsonBody);
+            
+            // 转换简单的点路径为JsonPointer格式
+            // 例如：$.code -> /code,  $.data.token -> /data/token
+            String pointerPath = jsonPath.replace("$.", "/").replace(".", "/");
+            if (!pointerPath.startsWith("/")) {
+                pointerPath = "/" + pointerPath;
+            }
+            
+            JsonNode targetNode = rootNode.at(pointerPath);
+            
+            if (targetNode.isMissingNode()) {
+                return "";
+            } else if (targetNode.isTextual()) {
+                return targetNode.asText();
+            } else if (targetNode.isNumber()) {
+                return targetNode.asText();
+            } else if (targetNode.isBoolean()) {
+                return String.valueOf(targetNode.asBoolean());
+            } else {
+                return targetNode.toString();
+            }
+        } catch (Exception e) {
+            log.warn("提取JSON路径值失败: path={}, error={}", jsonPath, e.getMessage());
+            return "";
+        }
     }
 
     /**

@@ -375,25 +375,75 @@ public class TestExecutionServiceImpl implements TestExecutionService {
         result.setEndTime(executionDTO.getExecutionEndTime());
         result.setResponseStatus(executionDTO.getHttpResponseStatus());
         result.setFailureMessage(executionDTO.getFailureMessage());
+        result.setFailureType(executionDTO.getFailureType());
+        result.setFailureTrace(executionDTO.getFailureTrace());
         result.setLogsLink("/api/test-results/" + executionId + "/logs");
         result.setReportId(reportId);
+        
+        // 添加响应信息
+        result.setResponseBody(executionDTO.getHttpResponseBody());
+        result.setResponseHeaders(executionDTO.getHttpResponseHeaders());
+        
+        // 添加提取的变量
+        result.setExtractedVariables(executionDTO.getExtractedValues());
 
-        // 计算断言结果
+        // 转换断言结果为详细格式
         if (executionDTO.getAssertionResults() != null) {
             int passedCount = 0;
             int failedCount = 0;
+            List<ExecutionResultDTO.AssertionDetailDTO> assertionDetails = new java.util.ArrayList<>();
+            
+            int assertionId = 1;
             for (TestCaseExecutionDTO.AssertionResultDTO assertion : executionDTO.getAssertionResults()) {
+                ExecutionResultDTO.AssertionDetailDTO detail = new ExecutionResultDTO.AssertionDetailDTO();
+                detail.setAssertionId(assertionId++);
+                detail.setAssertionType(assertion.getAssertionType());
+                detail.setExpectedValue(assertion.getExpectedValue());
+                detail.setActualValue(assertion.getActualValue());
+                detail.setPassed(assertion.getPassed());
+                detail.setErrorMessage(assertion.getErrorMessage());
+                
+                // 生成描述
+                String description = generateAssertionDescription(assertion);
+                detail.setDescription(description);
+                
+                assertionDetails.add(detail);
+                
                 if (assertion.getPassed()) {
                     passedCount++;
                 } else {
                     failedCount++;
                 }
             }
+            
             result.setAssertionsPassed(passedCount);
             result.setAssertionsFailed(failedCount);
+            result.setAssertionDetails(assertionDetails);
+            
+            log.info("构建执行结果 - 断言统计: 通过={}, 失败={}", passedCount, failedCount);
         }
 
         return result;
+    }
+    
+    /**
+     * 生成断言描述
+     */
+    private String generateAssertionDescription(TestCaseExecutionDTO.AssertionResultDTO assertion) {
+        switch (assertion.getAssertionType()) {
+            case "status_code":
+                return "验证HTTP状态码";
+            case "json_path":
+                return "验证JSON字段值";
+            case "json_path_exists":
+                return "验证JSON字段存在";
+            case "response_time":
+                return "验证响应时间";
+            case "schema":
+                return "验证响应Schema";
+            default:
+                return "验证" + assertion.getAssertionType();
+        }
     }
 
     /**

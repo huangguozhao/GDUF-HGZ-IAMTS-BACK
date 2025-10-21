@@ -3,6 +3,8 @@ package com.victor.iatms.entity.dto;
 import lombok.Data;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
 
 /**
  * 执行结果响应DTO
@@ -94,4 +96,49 @@ public class ExecutionResultDTO {
      * 监控URL
      */
     private String monitorUrl;
+    
+    /**
+     * 详细的断言结果列表
+     */
+    private List<AssertionDetailDTO> assertionDetails;
+    
+    /**
+     * HTTP响应体
+     */
+    private String responseBody;
+    
+    /**
+     * HTTP响应头
+     */
+    private Map<String, String> responseHeaders;
+    
+    /**
+     * 提取的变量
+     */
+    private Map<String, Object> extractedVariables;
+    
+    /**
+     * 失败类型
+     */
+    private String failureType;
+    
+    /**
+     * 失败堆栈跟踪
+     */
+    private String failureTrace;
+    
+    /**
+     * 断言详情DTO
+     */
+    @Data
+    public static class AssertionDetailDTO {
+        private Integer assertionId;
+        private String assertionType;
+        private String description;
+        private String expectedValue;
+        private String actualValue;
+        private Boolean passed;
+        private String errorMessage;
+        private String jsonPath;  // JSON路径（如果适用）
+    }
 }
