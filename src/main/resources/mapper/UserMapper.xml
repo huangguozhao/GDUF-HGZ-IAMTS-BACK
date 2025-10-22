@@ -77,4 +77,12 @@
         AND is_deleted = FALSE
     </select>
     
+    <!-- 根据用户ID查询用户姓名 -->
+    <select id="findNameById" parameterType="int" resultType="string">
+        SELECT name
+        FROM Users 
+        WHERE user_id = #{userId}
+        AND is_deleted = FALSE
+    </select>
+    
 </mapper>

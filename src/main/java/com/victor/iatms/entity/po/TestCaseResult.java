@@ -16,6 +16,11 @@ public class TestCaseResult {
     private Long resultId;
 
     /**
+     * 测试执行记录ID，关联TestExecutionRecords表
+     */
+    private Long executionRecordId;
+
+    /**
      * 报告ID
      */
     private Long reportId;

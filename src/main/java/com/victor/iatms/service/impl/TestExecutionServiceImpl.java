@@ -26,7 +26,9 @@ import com.victor.iatms.entity.po.TestCase;
 import com.victor.iatms.entity.po.TestCaseResult;
 import com.victor.iatms.entity.po.TestReportSummary;
 import com.victor.iatms.entity.po.TestSuite;
+import com.victor.iatms.entity.po.TestExecutionRecord;
 import com.victor.iatms.mappers.TestExecutionMapper;
+import com.victor.iatms.mappers.TestExecutionRecordMapper;
 import com.victor.iatms.redis.RedisComponet;
 import com.victor.iatms.service.TestExecutionService;
 import com.victor.iatms.utils.DateUtil;
@@ -53,6 +55,9 @@ public class TestExecutionServiceImpl implements TestExecutionService {
 
     @Autowired
     private TestExecutionMapper testExecutionMapper;
+
+    @Autowired
+    private TestExecutionRecordMapper testExecutionRecordMapper;
 
     @Autowired
     private TestCaseExecutor testCaseExecutor;
@@ -84,6 +89,7 @@ public class TestExecutionServiceImpl implements TestExecutionService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public ExecutionResultDTO executeTestCase(Integer caseId, ExecuteTestCaseDTO executeDTO, Integer userId) {
+        TestExecutionRecord executionRecord = null;
         try {
             // 1. 查询用例执行信息
             TestCaseExecutionDTO executionDTO = testExecutionMapper.findTestCaseForExecution(caseId);
@@ -91,27 +97,41 @@ public class TestExecutionServiceImpl implements TestExecutionService {
                 throw new RuntimeException("测试用例不存在或未启用");
             }
 
-            // 2. 设置执行参数
+            // 2. 创建执行记录
+            executionRecord = createExecutionRecord("test_case", caseId, executionDTO.getName(), 
+                userId, executeDTO.getExecutionType(), executeDTO.getEnvironment());
+            testExecutionRecordMapper.insertExecutionRecord(executionRecord);
+
+            // 3. 设置执行参数
             setExecutionParameters(executionDTO, executeDTO);
 
-            // 3. 执行测试用例
+            // 4. 执行测试用例
             TestCaseExecutionDTO result = testCaseExecutor.executeTestCase(executionDTO);
 
-            // 4. 生成执行ID
+            // 5. 生成执行ID
             Long executionId = generateExecutionId();
 
-            // 5. 保存测试结果
-            TestCaseResult testCaseResult = buildTestCaseResult(result, executionId, userId);
+            // 6. 保存测试结果（关联执行记录ID）
+            TestCaseResult testCaseResult = buildTestCaseResult(result, executionId, executionRecord.getRecordId(), userId);
             testExecutionMapper.insertTestCaseResult(testCaseResult);
 
-            // 6. 生成测试报告
+            // 7. 生成测试报告
             Long reportId = generateTestReport(executionId, userId);
 
-            // 7. 构建返回结果
+            // 8. 更新执行记录为完成
+            updateExecutionRecordOnCompletion(executionRecord, result, reportId);
+            testExecutionRecordMapper.updateExecutionRecord(executionRecord);
+
+            // 9. 构建返回结果
             return buildExecutionResult(result, executionId, reportId);
 
         } catch (Exception e) {
             log.error("执行测试用例失败: {}", e.getMessage(), e);
+            // 更新执行记录为失败
+            if (executionRecord != null) {
+                updateExecutionRecordOnFailure(executionRecord, e.getMessage());
+                testExecutionRecordMapper.updateExecutionRecord(executionRecord);
+            }
             throw new RuntimeException("执行测试用例失败: " + e.getMessage());
         }
     }
@@ -286,8 +306,9 @@ public class TestExecutionServiceImpl implements TestExecutionService {
     /**
      * 构建测试结果
      */
-    private TestCaseResult buildTestCaseResult(TestCaseExecutionDTO executionDTO, Long executionId, Integer userId) {
+    private TestCaseResult buildTestCaseResult(TestCaseExecutionDTO executionDTO, Long executionId, Long executionRecordId, Integer userId) {
         TestCaseResult result = new TestCaseResult();
+        result.setExecutionRecordId(executionRecordId);
         result.setExecutionId(executionId);
         result.setTaskType(TaskTypeEnum.TEST_CASE.getCode());
         result.setRefId(executionDTO.getCaseId());
@@ -664,6 +685,12 @@ public class TestExecutionServiceImpl implements TestExecutionService {
                                                           ExecuteModuleDTO executeDTO, Integer userId) {
         LocalDateTime startTime = LocalDateTime.now();
         
+        // 创建执行记录
+        TestExecutionRecord executionRecord = createExecutionRecord("module", module.getModuleId(), 
+            module.getName(), userId, executeDTO.getExecutionType(), executeDTO.getEnvironment());
+        executionRecord.setTotalCases(testCases.size());
+        testExecutionRecordMapper.insertExecutionRecord(executionRecord);
+        
         // 创建测试报告汇总
         Long reportId = createModuleTestReportSummary(module, testCases.size(), userId);
         
@@ -696,6 +723,19 @@ public class TestExecutionServiceImpl implements TestExecutionService {
         CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
         
         LocalDateTime endTime = LocalDateTime.now();
+        
+        // 更新执行记录
+        executionRecord.setEndTime(endTime);
+        executionRecord.setDurationSeconds((int) java.time.Duration.between(startTime, endTime).toSeconds());
+        executionRecord.setExecutedCases(testCases.size());
+        executionRecord.setPassedCases(passed);
+        executionRecord.setFailedCases(failed);
+        executionRecord.setSkippedCases(skipped);
+        executionRecord.setSuccessRate(testCases.size() > 0 ? 
+            BigDecimal.valueOf((double) passed / testCases.size() * 100) : BigDecimal.ZERO);
+        executionRecord.setStatus("completed");
+        executionRecord.setReportUrl("/api/reports/" + reportId + "/summary");
+        testExecutionRecordMapper.updateExecutionRecord(executionRecord);
         
         // 统计结果
         ModuleExecutionResultDTO result = new ModuleExecutionResultDTO();
@@ -3326,5 +3366,111 @@ public class TestExecutionServiceImpl implements TestExecutionService {
         quickActions.add(statistics);
 
         return quickActions;
+    }
+
+    // ========== 测试执行记录相关辅助方法 ==========
+
+    /**
+     * 创建测试执行记录
+     */
+    private TestExecutionRecord createExecutionRecord(String executionScope, Integer refId, 
+            String scopeName, Integer userId, String executionType, String environment) {
+        TestExecutionRecord record = new TestExecutionRecord();
+        record.setExecutionScope(executionScope);
+        record.setRefId(refId);
+        record.setScopeName(scopeName);
+        record.setExecutedBy(userId);
+        record.setExecutionType(executionType != null ? executionType : "manual");
+        record.setEnvironment(environment != null ? environment : Constants.DEFAULT_ENVIRONMENT);
+        record.setStatus("running");
+        record.setStartTime(LocalDateTime.now());
+        record.setTotalCases(0);
+        record.setExecutedCases(0);
+        record.setPassedCases(0);
+        record.setFailedCases(0);
+        record.setSkippedCases(0);
+        record.setSuccessRate(BigDecimal.ZERO);
+        record.setIsDeleted(false);
+        
+        return record;
+    }
+
+    /**
+     * 更新执行记录为完成状态（单个测试用例）
+     */
+    private void updateExecutionRecordOnCompletion(TestExecutionRecord record, 
+            TestCaseExecutionDTO result, Long reportId) {
+        record.setEndTime(LocalDateTime.now());
+        record.setDurationSeconds((int) java.time.Duration.between(
+            record.getStartTime(), record.getEndTime()).toSeconds());
+        record.setTotalCases(1);
+        record.setExecutedCases(1);
+        
+        // 根据执行状态统计
+        String status = result.getExecutionStatus();
+        if (ExecutionStatusEnum.PASSED.getCode().equals(status)) {
+            record.setPassedCases(1);
+            record.setFailedCases(0);
+            record.setSkippedCases(0);
+            record.setSuccessRate(BigDecimal.valueOf(100.00));
+        } else if (ExecutionStatusEnum.FAILED.getCode().equals(status)) {
+            record.setPassedCases(0);
+            record.setFailedCases(1);
+            record.setSkippedCases(0);
+            record.setSuccessRate(BigDecimal.ZERO);
+        } else if (ExecutionStatusEnum.SKIPPED.getCode().equals(status)) {
+            record.setPassedCases(0);
+            record.setFailedCases(0);
+            record.setSkippedCases(1);
+            record.setSuccessRate(BigDecimal.ZERO);
+        }
+        
+        record.setStatus("completed");
+        
+        if (reportId != null) {
+            record.setReportUrl("/api/reports/" + reportId);
+        }
+    }
+
+    /**
+     * 更新执行记录为失败状态
+     */
+    private void updateExecutionRecordOnFailure(TestExecutionRecord record, String errorMessage) {
+        record.setEndTime(LocalDateTime.now());
+        record.setDurationSeconds((int) java.time.Duration.between(
+            record.getStartTime(), record.getEndTime()).toSeconds());
+        record.setStatus("failed");
+        record.setErrorMessage(errorMessage != null && errorMessage.length() > 500 ? 
+            errorMessage.substring(0, 500) : errorMessage);
+    }
+
+    /**
+     * 更新执行记录为取消状态
+     */
+    private void updateExecutionRecordOnCancellation(TestExecutionRecord record) {
+        record.setEndTime(LocalDateTime.now());
+        record.setDurationSeconds((int) java.time.Duration.between(
+            record.getStartTime(), record.getEndTime()).toSeconds());
+        record.setStatus("cancelled");
+    }
+
+    /**
+     * 批量更新执行记录统计信息
+     */
+    private void updateExecutionRecordStats(TestExecutionRecord record, 
+            int totalCases, int executedCases, int passedCases, 
+            int failedCases, int skippedCases) {
+        record.setTotalCases(totalCases);
+        record.setExecutedCases(executedCases);
+        record.setPassedCases(passedCases);
+        record.setFailedCases(failedCases);
+        record.setSkippedCases(skippedCases);
+        
+        if (executedCases > 0) {
+            double successRate = (double) passedCases / executedCases * 100;
+            record.setSuccessRate(BigDecimal.valueOf(successRate).setScale(2, java.math.RoundingMode.HALF_UP));
+        } else {
+            record.setSuccessRate(BigDecimal.ZERO);
+        }
     }
 }

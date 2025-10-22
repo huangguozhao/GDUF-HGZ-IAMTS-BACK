@@ -46,4 +46,11 @@ public interface UserMapper {
      * @return 用户信息
      */
     User findById(@Param("userId") Integer userId);
+    
+    /**
+     * 根据用户ID查询用户姓名
+     * @param userId 用户ID
+     * @return 用户姓名
+     */
+    String findNameById(@Param("userId") Integer userId);
 }

@@ -12,6 +12,7 @@ import java.util.Map;
 @Data
 public class ExecuteProjectDTO {
     private String environment;
+    private String executionType = "manual"; // 执行类型：manual, scheduled, triggered
     private String baseUrl;
     private Integer timeout;
     private JsonNode authOverride; // 全局认证信息覆盖配置

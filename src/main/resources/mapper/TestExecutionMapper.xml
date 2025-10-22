@@ -56,13 +56,13 @@
     <!-- 插入测试结果 -->
     <insert id="insertTestCaseResult" parameterType="com.victor.iatms.entity.po.TestCaseResult" useGeneratedKeys="true" keyProperty="resultId">
         INSERT INTO TestCaseResults (
-            report_id, execution_id, task_type, ref_id, full_name, status, duration,
+            execution_record_id, report_id, execution_id, task_type, ref_id, full_name, status, duration,
             start_time, end_time, failure_message, failure_trace, failure_type, error_code,
             steps_json, parameters_json, attachments_json, logs_link, screenshot_link, video_link,
             environment, browser, os, device, tags_json, severity, priority, retry_count, flaky,
             created_at, is_deleted
         ) VALUES (
-            #{reportId}, #{executionId}, #{taskType}, #{refId}, #{fullName}, #{status}, #{duration},
+            #{executionRecordId}, #{reportId}, #{executionId}, #{taskType}, #{refId}, #{fullName}, #{status}, #{duration},
             #{startTime}, #{endTime}, #{failureMessage}, #{failureTrace}, #{failureType}, #{errorCode},
             #{stepsJson}, #{parametersJson}, #{attachmentsJson}, #{logsLink}, #{screenshotLink}, #{videoLink},
             #{environment}, #{browser}, #{os}, #{device}, #{tagsJson}, #{severity}, #{priority}, #{retryCount}, #{flaky},

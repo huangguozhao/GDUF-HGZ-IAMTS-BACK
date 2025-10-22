@@ -17,6 +17,11 @@ public class ExecuteModuleDTO {
     private String environment;
     
     /**
+     * 执行类型：manual（手动）, scheduled（定时）, triggered（触发）
+     */
+    private String executionType = "manual";
+    
+    /**
      * 覆盖所有接口的基础URL
      */
     private String baseUrl;

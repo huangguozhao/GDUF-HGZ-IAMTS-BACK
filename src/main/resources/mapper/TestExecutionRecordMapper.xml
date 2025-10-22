@@ -1,0 +1,310 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.victor.iatms.mappers.TestExecutionRecordMapper">
+
+    <!-- ResultMap for TestExecutionRecord -->
+    <resultMap id="TestExecutionRecordMap" type="com.victor.iatms.entity.po.TestExecutionRecord">
+        <id property="recordId" column="record_id"/>
+        <result property="executionScope" column="execution_scope"/>
+        <result property="refId" column="ref_id"/>
+        <result property="scopeName" column="scope_name"/>
+        <result property="executedBy" column="executed_by"/>
+        <result property="executionType" column="execution_type"/>
+        <result property="environment" column="environment"/>
+        <result property="status" column="status"/>
+        <result property="startTime" column="start_time"/>
+        <result property="endTime" column="end_time"/>
+        <result property="durationSeconds" column="duration_seconds"/>
+        <result property="totalCases" column="total_cases"/>
+        <result property="executedCases" column="executed_cases"/>
+        <result property="passedCases" column="passed_cases"/>
+        <result property="failedCases" column="failed_cases"/>
+        <result property="skippedCases" column="skipped_cases"/>
+        <result property="successRate" column="success_rate"/>
+        <result property="browser" column="browser"/>
+        <result property="appVersion" column="app_version"/>
+        <result property="executionConfig" column="execution_config"/>
+        <result property="reportUrl" column="report_url"/>
+        <result property="logFilePath" column="log_file_path"/>
+        <result property="errorMessage" column="error_message"/>
+        <result property="triggeredTaskId" column="triggered_task_id"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+        <result property="isDeleted" column="is_deleted"/>
+        <result property="deletedAt" column="deleted_at"/>
+        <result property="deletedBy" column="deleted_by"/>
+    </resultMap>
+
+    <!-- 插入测试执行记录 -->
+    <insert id="insertExecutionRecord" parameterType="com.victor.iatms.entity.po.TestExecutionRecord" 
+            useGeneratedKeys="true" keyProperty="recordId">
+        INSERT INTO TestExecutionRecords (
+            execution_scope,
+            ref_id,
+            scope_name,
+            executed_by,
+            execution_type,
+            environment,
+            status,
+            start_time,
+            end_time,
+            duration_seconds,
+            total_cases,
+            executed_cases,
+            passed_cases,
+            failed_cases,
+            skipped_cases,
+            success_rate,
+            browser,
+            app_version,
+            execution_config,
+            report_url,
+            log_file_path,
+            error_message,
+            triggered_task_id,
+            created_at,
+            updated_at,
+            is_deleted
+        ) VALUES (
+            #{executionScope},
+            #{refId},
+            #{scopeName},
+            #{executedBy},
+            #{executionType},
+            #{environment},
+            #{status},
+            #{startTime},
+            #{endTime},
+            #{durationSeconds},
+            #{totalCases},
+            #{executedCases},
+            #{passedCases},
+            #{failedCases},
+            #{skippedCases},
+            #{successRate},
+            #{browser},
+            #{appVersion},
+            #{executionConfig},
+            #{reportUrl},
+            #{logFilePath},
+            #{errorMessage},
+            #{triggeredTaskId},
+            NOW(),
+            NOW(),
+            FALSE
+        )
+    </insert>
+
+    <!-- 更新测试执行记录 -->
+    <update id="updateExecutionRecord" parameterType="com.victor.iatms.entity.po.TestExecutionRecord">
+        UPDATE TestExecutionRecords
+        <set>
+            <if test="status != null">
+                status = #{status},
+            </if>
+            <if test="endTime != null">
+                end_time = #{endTime},
+            </if>
+            <if test="durationSeconds != null">
+                duration_seconds = #{durationSeconds},
+            </if>
+            <if test="totalCases != null">
+                total_cases = #{totalCases},
+            </if>
+            <if test="executedCases != null">
+                executed_cases = #{executedCases},
+            </if>
+            <if test="passedCases != null">
+                passed_cases = #{passedCases},
+            </if>
+            <if test="failedCases != null">
+                failed_cases = #{failedCases},
+            </if>
+            <if test="skippedCases != null">
+                skipped_cases = #{skippedCases},
+            </if>
+            <if test="successRate != null">
+                success_rate = #{successRate},
+            </if>
+            <if test="reportUrl != null">
+                report_url = #{reportUrl},
+            </if>
+            <if test="logFilePath != null">
+                log_file_path = #{logFilePath},
+            </if>
+            <if test="errorMessage != null">
+                error_message = #{errorMessage},
+            </if>
+            updated_at = NOW()
+        </set>
+        WHERE record_id = #{recordId}
+        AND is_deleted = FALSE
+    </update>
+
+    <!-- 根据记录ID查询执行记录 -->
+    <select id="findExecutionRecordById" resultMap="TestExecutionRecordMap">
+        SELECT *
+        FROM TestExecutionRecords
+        WHERE record_id = #{recordId}
+        AND is_deleted = FALSE
+    </select>
+
+    <!-- 根据执行范围和引用ID查询最近的执行记录 -->
+    <select id="findExecutionRecordsByScope" resultMap="TestExecutionRecordMap">
+        SELECT *
+        FROM TestExecutionRecords
+        WHERE execution_scope = #{executionScope}
+        AND ref_id = #{refId}
+        AND is_deleted = FALSE
+        ORDER BY start_time DESC
+        <if test="limit != null">
+            LIMIT #{limit}
+        </if>
+    </select>
+
+    <!-- 根据执行人查询执行记录 -->
+    <select id="findExecutionRecordsByExecutor" resultMap="TestExecutionRecordMap">
+        SELECT *
+        FROM TestExecutionRecords
+        WHERE executed_by = #{executedBy}
+        AND is_deleted = FALSE
+        <if test="startTime != null">
+            AND start_time &gt;= #{startTime}
+        </if>
+        <if test="endTime != null">
+            AND start_time &lt;= #{endTime}
+        </if>
+        ORDER BY start_time DESC
+        <if test="limit != null">
+            LIMIT #{limit}
+        </if>
+    </select>
+
+    <!-- 统计执行记录数量 -->
+    <select id="countExecutionRecords" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM TestExecutionRecords
+        WHERE is_deleted = FALSE
+        <if test="executionScope != null and executionScope != ''">
+            AND execution_scope = #{executionScope}
+        </if>
+        <if test="refId != null">
+            AND ref_id = #{refId}
+        </if>
+        <if test="executedBy != null">
+            AND executed_by = #{executedBy}
+        </if>
+        <if test="status != null and status != ''">
+            AND status = #{status}
+        </if>
+        <if test="environment != null and environment != ''">
+            AND environment = #{environment}
+        </if>
+        <if test="startTime != null">
+            AND start_time &gt;= #{startTime}
+        </if>
+        <if test="endTime != null">
+            AND start_time &lt;= #{endTime}
+        </if>
+    </select>
+
+    <!-- 分页查询执行记录 -->
+    <select id="findExecutionRecordsWithPagination" resultMap="TestExecutionRecordMap">
+        SELECT *
+        FROM TestExecutionRecords
+        WHERE is_deleted = FALSE
+        <if test="executionScope != null and executionScope != ''">
+            AND execution_scope = #{executionScope}
+        </if>
+        <if test="refId != null">
+            AND ref_id = #{refId}
+        </if>
+        <if test="executedBy != null">
+            AND executed_by = #{executedBy}
+        </if>
+        <if test="status != null and status != ''">
+            AND status = #{status}
+        </if>
+        <if test="environment != null and environment != ''">
+            AND environment = #{environment}
+        </if>
+        <if test="startTime != null">
+            AND start_time &gt;= #{startTime}
+        </if>
+        <if test="endTime != null">
+            AND start_time &lt;= #{endTime}
+        </if>
+        ORDER BY start_time DESC
+        <if test="limit != null">
+            LIMIT #{offset}, #{limit}
+        </if>
+    </select>
+
+    <!-- 软删除执行记录 -->
+    <update id="softDeleteExecutionRecord">
+        UPDATE TestExecutionRecords
+        SET is_deleted = TRUE,
+            deleted_at = NOW(),
+            deleted_by = #{deletedBy},
+            updated_at = NOW()
+        WHERE record_id = #{recordId}
+        AND is_deleted = FALSE
+    </update>
+
+    <!-- 批量软删除执行记录 -->
+    <update id="batchSoftDeleteExecutionRecords">
+        UPDATE TestExecutionRecords
+        SET is_deleted = TRUE,
+            deleted_at = NOW(),
+            deleted_by = #{deletedBy},
+            updated_at = NOW()
+        WHERE record_id IN
+        <foreach collection="recordIds" item="recordId" open="(" separator="," close=")">
+            #{recordId}
+        </foreach>
+        AND is_deleted = FALSE
+    </update>
+
+    <!-- 获取执行记录统计信息 -->
+    <select id="getExecutionStatistics" resultType="com.victor.iatms.entity.dto.TestExecutionRecordStatisticsDTO">
+        SELECT
+            COUNT(*) as totalExecutions,
+            SUM(CASE WHEN status = 'running' THEN 1 ELSE 0 END) as runningExecutions,
+            SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completedExecutions,
+            SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END) as failedExecutions,
+            SUM(CASE WHEN status = 'cancelled' THEN 1 ELSE 0 END) as cancelledExecutions,
+            AVG(duration_seconds) as avgDurationSeconds,
+            MAX(duration_seconds) as maxDurationSeconds,
+            MIN(duration_seconds) as minDurationSeconds,
+            SUM(total_cases) as totalCases,
+            SUM(passed_cases) as totalPassedCases,
+            SUM(failed_cases) as totalFailedCases,
+            SUM(skipped_cases) as totalSkippedCases,
+            AVG(success_rate) as avgSuccessRate
+        FROM TestExecutionRecords
+        WHERE is_deleted = FALSE
+        <if test="executionScope != null and executionScope != ''">
+            AND execution_scope = #{executionScope}
+        </if>
+        <if test="refId != null">
+            AND ref_id = #{refId}
+        </if>
+        <if test="executedBy != null">
+            AND executed_by = #{executedBy}
+        </if>
+        <if test="status != null and status != ''">
+            AND status = #{status}
+        </if>
+        <if test="environment != null and environment != ''">
+            AND environment = #{environment}
+        </if>
+        <if test="startTimeBegin != null">
+            AND start_time &gt;= #{startTimeBegin}
+        </if>
+        <if test="startTimeEnd != null">
+            AND start_time &lt;= #{startTimeEnd}
+        </if>
+    </select>
+
+</mapper>
+
