@@ -68,17 +68,45 @@ public class HttpClientUtils {
             return new HttpResponseResult(responseCode, responseBody, responseHeaders, null);
             
         } catch (java.net.ConnectException e) {
-            log.error("连接失败: {}", e.getMessage(), e);
-            return new HttpResponseResult(-1, null, null, "连接失败: " + e.getMessage());
+            // 连接被拒绝 - 被测系统未启动或端口不可达
+            String errorMsg = String.format("连接被拒绝: 无法连接到 %s，请检查被测系统是否启动", url);
+            log.error(errorMsg, e);
+            return new HttpResponseResult(-1, null, null, errorMsg);
         } catch (java.net.SocketTimeoutException e) {
-            log.error("请求超时: {}", e.getMessage(), e);
-            return new HttpResponseResult(-1, null, null, "请求超时: " + e.getMessage());
+            // 请求超时 - 被测系统响应缓慢或网络延迟
+            String errorMsg = String.format("请求超时: 等待响应超过%d秒，请检查被测系统性能或网络状态", timeout);
+            log.error(errorMsg, e);
+            return new HttpResponseResult(-2, null, null, errorMsg);
         } catch (java.net.UnknownHostException e) {
-            log.error("未知主机: {}", e.getMessage(), e);
-            return new HttpResponseResult(-1, null, null, "未知主机: " + e.getMessage());
+            // 未知主机 - 域名无法解析或主机不存在
+            String errorMsg = String.format("未知主机: 无法解析主机名 '%s'，请检查URL配置", e.getMessage());
+            log.error(errorMsg, e);
+            return new HttpResponseResult(-3, null, null, errorMsg);
+        } catch (java.net.MalformedURLException e) {
+            // URL格式错误
+            String errorMsg = String.format("URL格式错误: %s", e.getMessage());
+            log.error(errorMsg, e);
+            return new HttpResponseResult(-4, null, null, errorMsg);
+        } catch (java.net.ProtocolException e) {
+            // 协议错误 - HTTP方法不支持等
+            String errorMsg = String.format("协议错误: %s", e.getMessage());
+            log.error(errorMsg, e);
+            return new HttpResponseResult(-5, null, null, errorMsg);
+        } catch (javax.net.ssl.SSLException e) {
+            // SSL证书错误
+            String errorMsg = String.format("SSL证书错误: %s，请检查HTTPS配置", e.getMessage());
+            log.error(errorMsg, e);
+            return new HttpResponseResult(-6, null, null, errorMsg);
         } catch (IOException e) {
-            log.error("HTTP请求失败: {}", e.getMessage(), e);
-            return new HttpResponseResult(-1, null, null, "网络错误: " + e.getMessage());
+            // 其他IO错误
+            String errorMsg = String.format("网络IO错误: %s", e.getMessage());
+            log.error(errorMsg, e);
+            return new HttpResponseResult(-7, null, null, errorMsg);
+        } catch (Exception e) {
+            // 其他未预期的错误
+            String errorMsg = String.format("未知错误: %s", e.getMessage());
+            log.error("发送HTTP请求时发生未预期的错误", e);
+            return new HttpResponseResult(-99, null, null, errorMsg);
         } finally {
             if (connection != null) {
                 connection.disconnect();

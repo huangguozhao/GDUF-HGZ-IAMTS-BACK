@@ -62,15 +62,22 @@ public class TestCaseExecutor {
             if (response.hasError()) {
                 // 网络错误或超时，作为测试失败处理
                 executionDTO.setExecutionStatus(ExecutionStatusEnum.FAILED.getCode());
-                executionDTO.setFailureMessage("网络请求失败: " + response.getErrorMessage());
-                executionDTO.setFailureType("NETWORK_ERROR");
-                executionDTO.setHttpResponseStatus(-1);
+                executionDTO.setFailureMessage(response.getErrorMessage());
+                
+                // 根据错误类型设置失败类型
+                String failureType = determineFailureType(response.getStatusCode());
+                executionDTO.setFailureType(failureType);
+                
+                executionDTO.setHttpResponseStatus(response.getStatusCode());
                 executionDTO.setHttpResponseBody(null);
                 executionDTO.setHttpResponseHeaders(null);
                 
                 // 记录网络错误日志
                 String networkErrorLog = generateNetworkErrorLog(executionDTO, requestInfo, response);
                 executionDTO.setExecutionLogs(networkErrorLog);
+                
+                log.warn("测试用例执行失败 - 网络错误: 用例ID={}, 用例名称={}, 错误类型={}, 错误信息={}", 
+                    executionDTO.getCaseId(), executionDTO.getName(), failureType, response.getErrorMessage());
                 
                 return executionDTO;
             }
@@ -524,6 +531,32 @@ public class TestCaseExecutor {
     }
 
     /**
+     * 根据错误码确定失败类型
+     */
+    private String determineFailureType(int statusCode) {
+        switch (statusCode) {
+            case -1:
+                return "CONNECTION_REFUSED";  // 连接被拒绝
+            case -2:
+                return "TIMEOUT";  // 请求超时
+            case -3:
+                return "UNKNOWN_HOST";  // 未知主机
+            case -4:
+                return "MALFORMED_URL";  // URL格式错误
+            case -5:
+                return "PROTOCOL_ERROR";  // 协议错误
+            case -6:
+                return "SSL_ERROR";  // SSL错误
+            case -7:
+                return "IO_ERROR";  // IO错误
+            case -99:
+                return "UNKNOWN_ERROR";  // 未知错误
+            default:
+                return "NETWORK_ERROR";  // 其他网络错误
+        }
+    }
+
+    /**
      * 生成网络错误日志
      */
     private String generateNetworkErrorLog(TestCaseExecutionDTO executionDTO, HttpRequestInfo requestInfo, 
@@ -533,15 +566,89 @@ public class TestCaseExecutor {
         logs.append("用例ID: ").append(executionDTO.getCaseId()).append("\n");
         logs.append("用例名称: ").append(executionDTO.getName()).append("\n");
         logs.append("执行时间: ").append(executionDTO.getExecutionStartTime()).append("\n");
+        logs.append("\n");
+        
+        logs.append("=== 请求信息 ===\n");
         logs.append("请求方法: ").append(requestInfo.getMethod()).append("\n");
         logs.append("请求URL: ").append(requestInfo.getUrl()).append("\n");
         logs.append("超时设置: ").append(requestInfo.getTimeout()).append("秒\n");
-        logs.append("错误类型: 网络连接失败\n");
+        if (requestInfo.getHeaders() != null && !requestInfo.getHeaders().isEmpty()) {
+            logs.append("请求头: \n");
+            requestInfo.getHeaders().forEach((key, value) -> 
+                logs.append("  ").append(key).append(": ").append(value).append("\n")
+            );
+        }
+        if (requestInfo.getBody() != null && !requestInfo.getBody().isEmpty()) {
+            logs.append("请求体: ").append(requestInfo.getBody()).append("\n");
+        }
+        logs.append("\n");
+        
+        logs.append("=== 错误信息 ===\n");
+        logs.append("错误类型: ").append(executionDTO.getFailureType()).append("\n");
+        logs.append("错误代码: ").append(response.getStatusCode()).append("\n");
         logs.append("错误信息: ").append(response.getErrorMessage()).append("\n");
-        logs.append("执行状态: ").append(executionDTO.getExecutionStatus()).append("\n");
-        logs.append("失败原因: 无法连接到目标服务器或请求超时\n");
+        logs.append("\n");
+        
+        logs.append("=== 失败说明 ===\n");
+        logs.append(getFailureExplanation(response.getStatusCode())).append("\n");
+        logs.append("\n");
+        
+        logs.append("=== 执行结果 ===\n");
+        logs.append("执行状态: FAILED\n");
+        logs.append("测试结论: 由于网络错误，此测试用例标记为失败\n");
         
         return logs.toString();
+    }
+
+    /**
+     * 获取失败原因的详细说明
+     */
+    private String getFailureExplanation(int statusCode) {
+        switch (statusCode) {
+            case -1:
+                return "连接被拒绝，可能原因：\n" +
+                       "  1. 被测系统未启动或已停止\n" +
+                       "  2. 被测系统端口不正确\n" +
+                       "  3. 防火墙阻止了连接\n" +
+                       "  建议：检查被测系统是否正在运行，确认URL和端口配置是否正确";
+            case -2:
+                return "请求超时，可能原因：\n" +
+                       "  1. 被测系统响应缓慢\n" +
+                       "  2. 网络延迟过高\n" +
+                       "  3. 超时时间设置过短\n" +
+                       "  建议：检查被测系统性能，确认网络连接状态，或增加超时时间";
+            case -3:
+                return "未知主机，可能原因：\n" +
+                       "  1. 主机名拼写错误\n" +
+                       "  2. DNS无法解析该主机名\n" +
+                       "  3. 主机不存在或已下线\n" +
+                       "  建议：检查URL中的主机名是否正确，确认主机可访问";
+            case -4:
+                return "URL格式错误，可能原因：\n" +
+                       "  1. URL格式不符合规范\n" +
+                       "  2. 缺少协议前缀（http://或https://）\n" +
+                       "  建议：检查并修正URL格式";
+            case -5:
+                return "协议错误，可能原因：\n" +
+                       "  1. HTTP方法不支持\n" +
+                       "  2. 协议版本不兼容\n" +
+                       "  建议：检查HTTP方法和协议配置";
+            case -6:
+                return "SSL证书错误，可能原因：\n" +
+                       "  1. SSL证书无效或已过期\n" +
+                       "  2. SSL证书不受信任\n" +
+                       "  3. 证书与域名不匹配\n" +
+                       "  建议：检查HTTPS配置和SSL证书";
+            case -7:
+                return "网络IO错误，可能原因：\n" +
+                       "  1. 网络连接中断\n" +
+                       "  2. 数据传输失败\n" +
+                       "  建议：检查网络连接稳定性";
+            case -99:
+                return "未知错误，建议查看详细错误日志";
+            default:
+                return "网络连接失败，无法完成HTTP请求";
+        }
     }
 
     /**
