@@ -280,15 +280,22 @@
         <result column="name" property="name"/>
         <result column="method" property="method"/>
         <result column="path" property="path"/>
+        <result column="base_url" property="baseUrl"/>
         <result column="full_url" property="fullUrl"/>
+        <result column="request_parameters" property="requestParameters" typeHandler="com.victor.iatms.utils.JsonTypeHandler"/>
+        <result column="path_parameters" property="pathParameters" typeHandler="com.victor.iatms.utils.JsonTypeHandler"/>
+        <result column="request_headers" property="requestHeaders" typeHandler="com.victor.iatms.utils.JsonTypeHandler"/>
+        <result column="request_body" property="requestBody"/>
+        <result column="request_body_type" property="requestBodyType"/>
+        <result column="response_body_type" property="responseBodyType"/>
         <result column="description" property="description"/>
         <result column="status" property="status"/>
         <result column="version" property="version"/>
-        <result column="auth_type" property="authType"/>
-        <result column="tags" property="tags" typeHandler="com.victor.iatms.utils.JsonTypeHandler"/>
-        <result column="request_body_type" property="requestBodyType"/>
-        <result column="response_body_type" property="responseBodyType"/>
         <result column="timeout_seconds" property="timeoutSeconds"/>
+        <result column="auth_type" property="authType"/>
+        <result column="auth_config" property="authConfig" typeHandler="com.victor.iatms.utils.JsonTypeHandler"/>
+        <result column="tags" property="tags" typeHandler="com.victor.iatms.utils.JsonTypeHandler"/>
+        <result column="examples" property="examples" typeHandler="com.victor.iatms.utils.JsonTypeHandler"/>
         <result column="precondition_count" property="preconditionCount"/>
         <result column="test_case_count" property="testCaseCount"/>
         <result column="created_at" property="createdAt"/>
@@ -309,24 +316,31 @@
             a.name,
             a.method,
             a.path,
+            a.base_url,
             a.full_url,
+            a.request_parameters,
+            a.path_parameters,
+            a.request_headers,
+            a.request_body,
+            a.request_body_type,
+            a.response_body_type,
             a.description,
             a.status,
             a.version,
-            a.auth_type,
-            a.tags,
-            a.request_body_type,
-            a.response_body_type,
             a.timeout_seconds,
-            <if test="includeStatistics">
-                (SELECT COUNT(*) FROM ApiPreconditions ap WHERE ap.api_id = a.api_id AND ap.is_deleted = FALSE) as precondition_count,
-                (SELECT COUNT(*) FROM TestCases tc WHERE tc.api_id = a.api_id AND tc.is_deleted = FALSE) as test_case_count,
-            </if>
+            a.auth_type,
+            a.auth_config,
+            a.tags,
+            a.examples,
             a.created_by as creator_id,
             creator.name as creator_name,
             creator.avatar_url as creator_avatar_url,
             a.created_at,
             a.updated_at
+            <if test="includeStatistics">
+                ,(SELECT COUNT(*) FROM ApiPreconditions ap WHERE ap.api_id = a.api_id AND ap.is_deleted = FALSE) as precondition_count,
+                (SELECT COUNT(*) FROM TestCases tc WHERE tc.api_id = a.api_id AND tc.is_deleted = FALSE) as test_case_count
+            </if>
         FROM Apis a
         LEFT JOIN Users creator ON a.created_by = creator.user_id
         <where>

@@ -366,12 +366,12 @@ public class TestExecutionServiceImpl implements TestExecutionService {
      */
     private TestReportSummary buildTestReportSummary(TestCaseResult testCaseResult, Integer userId) {
         TestReportSummary summary = new TestReportSummary();
-        summary.setReportName("测试报告_" + testCaseResult.getExecutionId());
+        summary.setReportName("接口测试报告 - " + (testCaseResult.getFullName() != null ? testCaseResult.getFullName() : "测试用例"));
         summary.setReportType(ReportTypeEnum.EXECUTION.getCode());
         summary.setExecutionId(testCaseResult.getExecutionId());
         summary.setProjectId(1); // 这里应该从用例关联的项目获取
-        summary.setEnvironment(testCaseResult.getEnvironment());
-        summary.setStartTime(testCaseResult.getStartTime());
+        summary.setEnvironment(testCaseResult.getEnvironment() != null ? testCaseResult.getEnvironment() : "test");
+        summary.setStartTime(testCaseResult.getStartTime() != null ? testCaseResult.getStartTime() : LocalDateTime.now());
         summary.setEndTime(testCaseResult.getEndTime() != null ? testCaseResult.getEndTime() : LocalDateTime.now());
         summary.setDuration(testCaseResult.getDuration() != null ? testCaseResult.getDuration() : 0L);
         summary.setTotalCases(1);
@@ -387,7 +387,7 @@ public class TestExecutionServiceImpl implements TestExecutionService {
         summary.setAvgDuration(duration);
         summary.setMaxDuration(duration);
         summary.setMinDuration(duration);
-        summary.setReportStatus(ReportStatusEnum.COMPLETED.getCode());
+        summary.setReportStatus(ReportStatusEnum.GENERATING.getCode());
         summary.setFileFormat(Constants.DEFAULT_REPORT_FORMAT);
         summary.setGeneratedBy(userId);
         summary.setCreatedAt(LocalDateTime.now());
@@ -1578,13 +1578,34 @@ public class TestExecutionServiceImpl implements TestExecutionService {
                                                          ExecuteApiDTO executeDTO, Integer userId) {
         LocalDateTime startTime = LocalDateTime.now();
         
-        // 创建测试报告汇总
+        // 1. 创建接口级别的TestExecutionRecord（总记录）
+        TestExecutionRecord apiExecutionRecord = new TestExecutionRecord();
+        apiExecutionRecord.setExecutionScope("api");
+        apiExecutionRecord.setRefId(api.getApiId());
+        apiExecutionRecord.setScopeName(api.getName());
+        apiExecutionRecord.setExecutedBy(userId);
+        apiExecutionRecord.setExecutionType(executeDTO.getExecutionType() != null ? executeDTO.getExecutionType() : "manual");
+        apiExecutionRecord.setEnvironment(executeDTO.getEnvironment() != null ? executeDTO.getEnvironment() : "test");
+        apiExecutionRecord.setStatus("running");
+        apiExecutionRecord.setStartTime(startTime);
+        apiExecutionRecord.setTotalCases(testCases.size());
+        apiExecutionRecord.setExecutedCases(0);
+        apiExecutionRecord.setPassedCases(0);
+        apiExecutionRecord.setFailedCases(0);
+        apiExecutionRecord.setSkippedCases(0);
+        apiExecutionRecord.setSuccessRate(BigDecimal.ZERO);
+        apiExecutionRecord.setIsDeleted(false);
+        
+        testExecutionRecordMapper.insertExecutionRecord(apiExecutionRecord);
+        Long executionRecordId = apiExecutionRecord.getRecordId();
+        
+        // 2. 创建测试报告汇总
         Long reportId = createApiTestReportSummary(api, testCases.size(), userId);
         
         int passed = 0, failed = 0, skipped = 0, broken = 0;
         List<ApiExecutionResultDTO.CaseResult> caseResults = new ArrayList<>();
         
-        // 并发执行测试用例
+        // 3. 并发执行测试用例
         List<CompletableFuture<Void>> futures = new ArrayList<>();
         
         for (TestCase testCase : testCases) {
@@ -1592,7 +1613,7 @@ public class TestExecutionServiceImpl implements TestExecutionService {
                 try {
                     ExecuteTestCaseDTO caseExecuteDTO = convertToTestCaseExecuteDTO(executeDTO);
                     ExecutionResultDTO result = executeTestCase(testCase.getCaseId(), caseExecuteDTO, userId);
-                    recordApiTestCaseResult(reportId, testCase, result, userId);
+                    recordApiTestCaseResult(reportId, executionRecordId, testCase, result, userId);
                     
                     // 添加到结果列表
                     ApiExecutionResultDTO.CaseResult caseResult = new ApiExecutionResultDTO.CaseResult();
@@ -1612,7 +1633,7 @@ public class TestExecutionServiceImpl implements TestExecutionService {
                     }
                     
                 } catch (Exception e) {
-                    recordApiTestCaseFailure(reportId, testCase, e.getMessage(), userId);
+                    recordApiTestCaseFailure(reportId, executionRecordId, testCase, e.getMessage(), userId);
                     
                     // 添加到结果列表
                     ApiExecutionResultDTO.CaseResult caseResult = new ApiExecutionResultDTO.CaseResult();
@@ -1636,7 +1657,7 @@ public class TestExecutionServiceImpl implements TestExecutionService {
         
         LocalDateTime endTime = LocalDateTime.now();
         
-        // 统计结果
+        // 4. 统计结果
         for (ApiExecutionResultDTO.CaseResult caseResult : caseResults) {
             switch (caseResult.getStatus()) {
                 case "passed":
@@ -1654,7 +1675,22 @@ public class TestExecutionServiceImpl implements TestExecutionService {
             }
         }
         
-        // 构建汇总统计
+        // 5. 更新接口级别的TestExecutionRecord统计信息
+        apiExecutionRecord.setEndTime(endTime);
+        apiExecutionRecord.setDurationSeconds((int)java.time.Duration.between(startTime, endTime).toSeconds());
+        apiExecutionRecord.setExecutedCases(caseResults.size());
+        apiExecutionRecord.setPassedCases(passed);
+        apiExecutionRecord.setFailedCases(failed + broken);
+        apiExecutionRecord.setSkippedCases(skipped);
+        apiExecutionRecord.setSuccessRate(testCases.size() > 0 ? 
+            BigDecimal.valueOf((double) passed / testCases.size() * 100).setScale(2, java.math.RoundingMode.HALF_UP) : 
+            BigDecimal.ZERO);
+        apiExecutionRecord.setStatus(failed + broken > 0 ? "failed" : "completed");
+        apiExecutionRecord.setReportUrl("/api/reports/" + reportId);
+        
+        testExecutionRecordMapper.updateExecutionRecord(apiExecutionRecord);
+        
+        // 6. 构建汇总统计
         Map<String, Object> summary = new HashMap<>();
         Map<String, Object> byPriority = new HashMap<>();
         Map<String, Object> byStatus = new HashMap<>();
@@ -1667,8 +1703,9 @@ public class TestExecutionServiceImpl implements TestExecutionService {
         summary.put("by_priority", byPriority);
         summary.put("by_status", byStatus);
         
+        // 7. 构建返回结果
         ApiExecutionResultDTO result = new ApiExecutionResultDTO();
-        result.setExecutionId(System.currentTimeMillis());
+        result.setExecutionId(executionRecordId);
         result.setApiId(api.getApiId());
         result.setApiName(api.getName());
         result.setApiMethod(api.getMethod());
@@ -1685,7 +1722,7 @@ public class TestExecutionServiceImpl implements TestExecutionService {
         result.setCaseResults(caseResults);
         result.setSummary(summary);
         result.setReportId(reportId);
-        result.setDetailUrl("/api/test-results/" + result.getExecutionId() + "/details");
+        result.setDetailUrl("/api/test-results/" + executionRecordId + "/details");
         
         return result;
     }
@@ -1699,12 +1736,33 @@ public class TestExecutionServiceImpl implements TestExecutionService {
         
         LocalDateTime startTime = LocalDateTime.now();
         
-        // 创建测试报告汇总
+        // 1. 创建接口级别的TestExecutionRecord（总记录）
+        TestExecutionRecord apiExecutionRecord = new TestExecutionRecord();
+        apiExecutionRecord.setExecutionScope("api");
+        apiExecutionRecord.setRefId(api.getApiId());
+        apiExecutionRecord.setScopeName(api.getName());
+        apiExecutionRecord.setExecutedBy(userId);
+        apiExecutionRecord.setExecutionType(executeDTO.getExecutionType() != null ? executeDTO.getExecutionType() : "manual");
+        apiExecutionRecord.setEnvironment(executeDTO.getEnvironment() != null ? executeDTO.getEnvironment() : "test");
+        apiExecutionRecord.setStatus("running");
+        apiExecutionRecord.setStartTime(startTime);
+        apiExecutionRecord.setTotalCases(testCases.size());
+        apiExecutionRecord.setExecutedCases(0);
+        apiExecutionRecord.setPassedCases(0);
+        apiExecutionRecord.setFailedCases(0);
+        apiExecutionRecord.setSkippedCases(0);
+        apiExecutionRecord.setSuccessRate(BigDecimal.ZERO);
+        apiExecutionRecord.setIsDeleted(false);
+        
+        testExecutionRecordMapper.insertExecutionRecord(apiExecutionRecord);
+        Long executionRecordId = apiExecutionRecord.getRecordId();
+        
+        // 2. 创建测试报告汇总
         Long reportId = createApiTestReportSummary(api, testCases.size(), userId);
         
         int passed = 0, failed = 0, skipped = 0, broken = 0;
         
-        // 并发执行测试用例
+        // 3. 并发执行测试用例
         List<CompletableFuture<Void>> futures = new ArrayList<>();
         
         for (TestCase testCase : testCases) {
@@ -1712,9 +1770,9 @@ public class TestExecutionServiceImpl implements TestExecutionService {
                 try {
                     ExecuteTestCaseDTO caseExecuteDTO = convertToTestCaseExecuteDTO(executeDTO);
                     ExecutionResultDTO result = executeTestCase(testCase.getCaseId(), caseExecuteDTO, userId);
-                    recordApiTestCaseResult(reportId, testCase, result, userId);
+                    recordApiTestCaseResult(reportId, executionRecordId, testCase, result, userId);
                 } catch (Exception e) {
-                    recordApiTestCaseFailure(reportId, testCase, e.getMessage(), userId);
+                    recordApiTestCaseFailure(reportId, executionRecordId, testCase, e.getMessage(), userId);
                 }
             }, executorService);
             futures.add(future);
@@ -1777,7 +1835,8 @@ public class TestExecutionServiceImpl implements TestExecutionService {
         TestReportSummary reportSummary = new TestReportSummary();
         reportSummary.setReportName("接口测试报告 - " + api.getName());
         reportSummary.setReportType(ReportTypeEnum.EXECUTION.getCode());
-        reportSummary.setProjectId(null); // 接口级别报告不关联项目
+        reportSummary.setExecutionId(System.currentTimeMillis()); // 使用时间戳作为执行ID
+        reportSummary.setProjectId(1); // 设置默认项目ID，避免null值
         reportSummary.setEnvironment("test");
         reportSummary.setStartTime(LocalDateTime.now());
         reportSummary.setEndTime(LocalDateTime.now());
@@ -1789,9 +1848,16 @@ public class TestExecutionServiceImpl implements TestExecutionService {
         reportSummary.setBrokenCases(0);
         reportSummary.setSkippedCases(0);
         reportSummary.setSuccessRate(BigDecimal.valueOf(0.0));
+        reportSummary.setTotalDuration(0L);
+        reportSummary.setAvgDuration(0L);
+        reportSummary.setMaxDuration(0L);
+        reportSummary.setMinDuration(0L);
         reportSummary.setReportStatus(ReportStatusEnum.GENERATING.getCode());
         reportSummary.setFileFormat("html");
         reportSummary.setGeneratedBy(userId);
+        reportSummary.setCreatedAt(LocalDateTime.now());
+        reportSummary.setUpdatedAt(LocalDateTime.now());
+        reportSummary.setIsDeleted(false);
         
         testExecutionMapper.insertTestReportSummary(reportSummary);
         return reportSummary.getReportId();
@@ -1800,20 +1866,24 @@ public class TestExecutionServiceImpl implements TestExecutionService {
     /**
      * 记录接口测试用例结果
      */
-    private void recordApiTestCaseResult(Long reportId, TestCase testCase, 
+    private void recordApiTestCaseResult(Long reportId, Long executionRecordId, TestCase testCase, 
                                        ExecutionResultDTO result, Integer userId) {
+        // 创建测试结果记录，关联接口级别的execution_record_id
         TestCaseResult testCaseResult = new TestCaseResult();
+        testCaseResult.setExecutionRecordId(executionRecordId);
         testCaseResult.setReportId(reportId);
         testCaseResult.setTaskType(TaskTypeEnum.TEST_CASE.getCode());
         testCaseResult.setRefId(testCase.getCaseId());
         testCaseResult.setFullName(testCase.getName());
         testCaseResult.setStatus(result.getStatus());
         testCaseResult.setDuration(result.getDuration());
-        testCaseResult.setStartTime(LocalDateTime.now());
-        testCaseResult.setEndTime(LocalDateTime.now());
+        testCaseResult.setStartTime(result.getStartTime() != null ? result.getStartTime() : LocalDateTime.now());
+        testCaseResult.setEndTime(result.getEndTime() != null ? result.getEndTime() : LocalDateTime.now());
+        testCaseResult.setFailureMessage(result.getFailureMessage());
         testCaseResult.setEnvironment("test");
         testCaseResult.setSeverity(testCase.getSeverity());
         testCaseResult.setPriority(testCase.getPriority());
+        testCaseResult.setIsDeleted(false);
         
         testExecutionMapper.insertTestCaseResult(testCaseResult);
     }
@@ -1821,8 +1891,10 @@ public class TestExecutionServiceImpl implements TestExecutionService {
     /**
      * 记录接口测试用例失败
      */
-    private void recordApiTestCaseFailure(Long reportId, TestCase testCase, String errorMessage, Integer userId) {
+    private void recordApiTestCaseFailure(Long reportId, Long executionRecordId, TestCase testCase, String errorMessage, Integer userId) {
+        // 创建测试结果记录，关联接口级别的execution_record_id
         TestCaseResult testCaseResult = new TestCaseResult();
+        testCaseResult.setExecutionRecordId(executionRecordId);
         testCaseResult.setReportId(reportId);
         testCaseResult.setTaskType(TaskTypeEnum.TEST_CASE.getCode());
         testCaseResult.setRefId(testCase.getCaseId());
@@ -1835,6 +1907,7 @@ public class TestExecutionServiceImpl implements TestExecutionService {
         testCaseResult.setEnvironment("test");
         testCaseResult.setSeverity(testCase.getSeverity());
         testCaseResult.setPriority(testCase.getPriority());
+        testCaseResult.setIsDeleted(false);
         
         testExecutionMapper.insertTestCaseResult(testCaseResult);
     }
@@ -2543,7 +2616,7 @@ public class TestExecutionServiceImpl implements TestExecutionService {
             
             dto.setPriority(result.getPriority());
             dto.setSeverity(result.getSeverity());
-            dto.setEnvironment(result.getEnvironment());
+            dto.setEnvironment(result.getEnvironment() != null ? result.getEnvironment() : "test");
             dto.setFailureMessage(result.getFailureMessage());
             dto.setFailureType(result.getFailureType());
             dto.setRetryCount(result.getRetryCount());
@@ -2689,7 +2762,7 @@ public class TestExecutionServiceImpl implements TestExecutionService {
         com.victor.iatms.entity.dto.ExecutionContextDTO context = 
             new com.victor.iatms.entity.dto.ExecutionContextDTO();
         
-        context.setEnvironment(result.getEnvironment());
+        context.setEnvironment(result.getEnvironment() != null ? result.getEnvironment() : "test");
         
         // 解析parameters_json获取请求信息
         if (result.getParametersJson() != null) {

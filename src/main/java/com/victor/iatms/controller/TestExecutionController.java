@@ -14,6 +14,7 @@ import com.victor.iatms.entity.dto.TestSuiteExecutionResultDTO;
 import com.victor.iatms.entity.vo.ResponseVO;
 import com.victor.iatms.service.TestExecutionService;
 import com.victor.iatms.utils.JwtUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -23,6 +24,7 @@ import jakarta.servlet.http.HttpServletRequest;
 /**
  * 测试执行控制器
  */
+@Slf4j
 @RestController
 @RequestMapping("")
 @Validated
@@ -624,6 +626,7 @@ public class TestExecutionController {
             return ResponseVO.success("接口测试执行完成", result);
 
         } catch (RuntimeException e) {
+            log.error("执行接口测试失败", e);
             String errorMsg = e.getMessage();
             if ("接口不存在".equals(errorMsg)) {
                 return ResponseVO.notFound(errorMsg);
@@ -634,9 +637,12 @@ public class TestExecutionController {
             } else if ("并发数不能超过10".equals(errorMsg)) {
                 return ResponseVO.paramError(errorMsg);
             } else {
+                // 记录详细错误信息，但只返回简化的错误消息给前端
+                log.error("接口测试执行失败，详细信息: {}", errorMsg);
                 return ResponseVO.serverError("执行接口测试失败，请稍后重试");
             }
         } catch (Exception e) {
+            log.error("系统异常", e);
             return ResponseVO.serverError("系统异常，请稍后重试");
         }
     }

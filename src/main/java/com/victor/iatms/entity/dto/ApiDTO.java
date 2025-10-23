@@ -42,9 +42,34 @@ public class ApiDTO {
     private String path;
 
     /**
+     * 基础URL
+     */
+    private String baseUrl;
+
+    /**
      * 完整URL
      */
     private String fullUrl;
+
+    /**
+     * 查询参数
+     */
+    private Object requestParameters;
+
+    /**
+     * 路径参数
+     */
+    private Object pathParameters;
+
+    /**
+     * 请求头信息
+     */
+    private Object requestHeaders;
+
+    /**
+     * 请求体内容
+     */
+    private String requestBody;
 
     /**
      * 接口描述
@@ -67,9 +92,19 @@ public class ApiDTO {
     private String authType;
 
     /**
+     * 认证配置
+     */
+    private Object authConfig;
+
+    /**
      * 标签数组
      */
     private List<String> tags;
+
+    /**
+     * 请求示例
+     */
+    private Object examples;
 
     /**
      * 请求体类型

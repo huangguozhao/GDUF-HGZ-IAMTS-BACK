@@ -493,24 +493,34 @@ public class TestCaseExecutor {
 
     /**
      * 判断执行状态
+     * 
+     * 重要：测试用例的通过/失败只看断言结果，不看业务结果或HTTP状态码
+     * - 如果所有断言都通过 → 测试状态 = passed（即使HTTP返回4xx/5xx或业务失败）
+     * - 如果有任何断言失败 → 测试状态 = failed
+     * - 如果没有断言 → 只要请求成功就是passed
      */
     private ExecutionStatusEnum determineExecutionStatus(HttpClientUtils.HttpResponseResult response, 
                                                         List<AssertionUtils.AssertionResult> assertionResults) {
-        // 检查HTTP状态码
-        if (!response.isSuccess()) {
-            return ExecutionStatusEnum.FAILED;
-        }
-
-        // 检查断言结果
+        // 1. 如果有断言，只看断言结果
         if (assertionResults != null && !assertionResults.isEmpty()) {
             for (AssertionUtils.AssertionResult result : assertionResults) {
                 if (!result.isPassed()) {
                     return ExecutionStatusEnum.FAILED;
                 }
             }
+            // 所有断言都通过
+            return ExecutionStatusEnum.PASSED;
+        }
+        
+        // 2. 如果没有断言，检查HTTP请求是否成功
+        // 注意：这里的success指的是请求成功发送并收到响应，不是业务成功
+        if (response.isSuccess() || response.getStatusCode() > 0) {
+            // 只要收到了HTTP响应（无论是2xx、4xx还是5xx），就认为测试通过
+            return ExecutionStatusEnum.PASSED;
         }
 
-        return ExecutionStatusEnum.PASSED;
+        // 3. 只有在网络错误、超时等情况下才算失败
+        return ExecutionStatusEnum.FAILED;
     }
 
     /**
