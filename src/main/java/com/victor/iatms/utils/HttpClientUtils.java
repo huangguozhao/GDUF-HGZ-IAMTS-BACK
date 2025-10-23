@@ -67,9 +67,18 @@ public class HttpClientUtils {
             
             return new HttpResponseResult(responseCode, responseBody, responseHeaders, null);
             
+        } catch (java.net.ConnectException e) {
+            log.error("连接失败: {}", e.getMessage(), e);
+            return new HttpResponseResult(-1, null, null, "连接失败: " + e.getMessage());
+        } catch (java.net.SocketTimeoutException e) {
+            log.error("请求超时: {}", e.getMessage(), e);
+            return new HttpResponseResult(-1, null, null, "请求超时: " + e.getMessage());
+        } catch (java.net.UnknownHostException e) {
+            log.error("未知主机: {}", e.getMessage(), e);
+            return new HttpResponseResult(-1, null, null, "未知主机: " + e.getMessage());
         } catch (IOException e) {
             log.error("HTTP请求失败: {}", e.getMessage(), e);
-            return new HttpResponseResult(-1, null, null, e.getMessage());
+            return new HttpResponseResult(-1, null, null, "网络错误: " + e.getMessage());
         } finally {
             if (connection != null) {
                 connection.disconnect();

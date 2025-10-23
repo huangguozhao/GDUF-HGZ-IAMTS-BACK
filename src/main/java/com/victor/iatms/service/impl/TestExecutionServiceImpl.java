@@ -132,7 +132,21 @@ public class TestExecutionServiceImpl implements TestExecutionService {
                 updateExecutionRecordOnFailure(executionRecord, e.getMessage());
                 testExecutionRecordMapper.updateExecutionRecord(executionRecord);
             }
-            throw new RuntimeException("执行测试用例失败: " + e.getMessage());
+            
+            // 构建失败的执行结果，而不是直接抛出异常
+            ExecutionResultDTO failureResult = new ExecutionResultDTO();
+            failureResult.setExecutionId(generateExecutionId());
+            failureResult.setCaseId(caseId);
+            failureResult.setCaseName("测试用例-" + caseId);
+            failureResult.setStatus(ExecutionStatusEnum.FAILED.getCode());
+            failureResult.setFailureMessage("执行失败: " + e.getMessage());
+            failureResult.setFailureType("EXECUTION_ERROR");
+            failureResult.setStartTime(LocalDateTime.now());
+            failureResult.setEndTime(LocalDateTime.now());
+            failureResult.setDuration(0L);
+            failureResult.setLogsLink("/api/test-results/" + failureResult.getExecutionId() + "/logs");
+            
+            return failureResult;
         }
     }
 
@@ -358,8 +372,8 @@ public class TestExecutionServiceImpl implements TestExecutionService {
         summary.setProjectId(1); // 这里应该从用例关联的项目获取
         summary.setEnvironment(testCaseResult.getEnvironment());
         summary.setStartTime(testCaseResult.getStartTime());
-        summary.setEndTime(testCaseResult.getEndTime());
-        summary.setDuration(testCaseResult.getDuration());
+        summary.setEndTime(testCaseResult.getEndTime() != null ? testCaseResult.getEndTime() : LocalDateTime.now());
+        summary.setDuration(testCaseResult.getDuration() != null ? testCaseResult.getDuration() : 0L);
         summary.setTotalCases(1);
         summary.setExecutedCases(1);
         summary.setPassedCases(ExecutionStatusEnum.PASSED.getCode().equals(testCaseResult.getStatus()) ? 1 : 0);
@@ -368,10 +382,11 @@ public class TestExecutionServiceImpl implements TestExecutionService {
         summary.setSkippedCases(ExecutionStatusEnum.SKIPPED.getCode().equals(testCaseResult.getStatus()) ? 1 : 0);
         summary.setSuccessRate(ExecutionStatusEnum.PASSED.getCode().equals(testCaseResult.getStatus()) ? 
             java.math.BigDecimal.valueOf(100.00) : java.math.BigDecimal.valueOf(0.00));
-        summary.setTotalDuration(testCaseResult.getDuration());
-        summary.setAvgDuration(testCaseResult.getDuration());
-        summary.setMaxDuration(testCaseResult.getDuration());
-        summary.setMinDuration(testCaseResult.getDuration());
+        Long duration = testCaseResult.getDuration() != null ? testCaseResult.getDuration() : 0L;
+        summary.setTotalDuration(duration);
+        summary.setAvgDuration(duration);
+        summary.setMaxDuration(duration);
+        summary.setMinDuration(duration);
         summary.setReportStatus(ReportStatusEnum.COMPLETED.getCode());
         summary.setFileFormat(Constants.DEFAULT_REPORT_FORMAT);
         summary.setGeneratedBy(userId);

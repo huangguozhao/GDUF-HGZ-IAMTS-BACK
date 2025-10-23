@@ -58,7 +58,24 @@ public class TestCaseExecutor {
                 requestInfo.getTimeout()
             );
 
-            // 4. 记录响应信息
+            // 4. 检查网络错误和超时情况
+            if (response.hasError()) {
+                // 网络错误或超时，作为测试失败处理
+                executionDTO.setExecutionStatus(ExecutionStatusEnum.FAILED.getCode());
+                executionDTO.setFailureMessage("网络请求失败: " + response.getErrorMessage());
+                executionDTO.setFailureType("NETWORK_ERROR");
+                executionDTO.setHttpResponseStatus(-1);
+                executionDTO.setHttpResponseBody(null);
+                executionDTO.setHttpResponseHeaders(null);
+                
+                // 记录网络错误日志
+                String networkErrorLog = generateNetworkErrorLog(executionDTO, requestInfo, response);
+                executionDTO.setExecutionLogs(networkErrorLog);
+                
+                return executionDTO;
+            }
+
+            // 5. 记录响应信息
             executionDTO.setHttpResponseStatus(response.getStatusCode());
             executionDTO.setHttpResponseBody(response.getBody());
             executionDTO.setHttpResponseHeaders(response.getHeaders());
@@ -494,6 +511,27 @@ public class TestCaseExecutor {
         }
 
         return ExecutionStatusEnum.PASSED;
+    }
+
+    /**
+     * 生成网络错误日志
+     */
+    private String generateNetworkErrorLog(TestCaseExecutionDTO executionDTO, HttpRequestInfo requestInfo, 
+                                         HttpClientUtils.HttpResponseResult response) {
+        StringBuilder logs = new StringBuilder();
+        logs.append("=== 网络错误执行日志 ===\n");
+        logs.append("用例ID: ").append(executionDTO.getCaseId()).append("\n");
+        logs.append("用例名称: ").append(executionDTO.getName()).append("\n");
+        logs.append("执行时间: ").append(executionDTO.getExecutionStartTime()).append("\n");
+        logs.append("请求方法: ").append(requestInfo.getMethod()).append("\n");
+        logs.append("请求URL: ").append(requestInfo.getUrl()).append("\n");
+        logs.append("超时设置: ").append(requestInfo.getTimeout()).append("秒\n");
+        logs.append("错误类型: 网络连接失败\n");
+        logs.append("错误信息: ").append(response.getErrorMessage()).append("\n");
+        logs.append("执行状态: ").append(executionDTO.getExecutionStatus()).append("\n");
+        logs.append("失败原因: 无法连接到目标服务器或请求超时\n");
+        
+        return logs.toString();
     }
 
     /**
