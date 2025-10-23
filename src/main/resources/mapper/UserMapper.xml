@@ -85,4 +85,23 @@
         AND is_deleted = FALSE
     </select>
     
+    <!-- 根据用户ID查询用户基本信息（用于执行记录） -->
+    <select id="findExecutorInfoById" parameterType="int" resultType="com.victor.iatms.entity.dto.ExecutorInfoDTO">
+        SELECT 
+            u.user_id as userId,
+            u.name,
+            u.email,
+            u.avatar_url as avatarUrl,
+            u.phone,
+            u.department_id as departmentId,
+            d.department_name as departmentName,
+            u.employee_id as employeeId,
+            u.position,
+            u.status
+        FROM Users u
+        LEFT JOIN Departments d ON u.department_id = d.department_id
+        WHERE u.user_id = #{userId}
+        AND u.is_deleted = FALSE
+    </select>
+    
 </mapper>

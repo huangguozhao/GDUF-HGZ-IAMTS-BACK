@@ -61,14 +61,15 @@ public class TestExecutionRecordServiceImpl implements TestExecutionRecordServic
                 query.getPageSize()
             );
             
-            // 转换为DTO并填充执行人姓名
+            // 转换为DTO并填充执行人信息
             List<TestExecutionRecordDetailDTO> items = records.stream()
                 .map(record -> {
                     TestExecutionRecordDetailDTO dto = TestExecutionRecordDetailDTO.fromEntity(record);
-                    // 填充执行人姓名
+                    // 填充执行人信息
                     if (record.getExecutedBy() != null) {
-                        String executorName = userMapper.findNameById(record.getExecutedBy());
-                        dto.setExecutorName(executorName);
+                        com.victor.iatms.entity.dto.ExecutorInfoDTO executorInfo = 
+                            userMapper.findExecutorInfoById(record.getExecutedBy());
+                        dto.setExecutorInfo(executorInfo);
                     }
                     return dto;
                 })
@@ -103,10 +104,11 @@ public class TestExecutionRecordServiceImpl implements TestExecutionRecordServic
             
             TestExecutionRecordDetailDTO dto = TestExecutionRecordDetailDTO.fromEntity(record);
             
-            // 填充执行人姓名
+            // 填充执行人信息
             if (record.getExecutedBy() != null) {
-                String executorName = userMapper.findNameById(record.getExecutedBy());
-                dto.setExecutorName(executorName);
+                com.victor.iatms.entity.dto.ExecutorInfoDTO executorInfo = 
+                    userMapper.findExecutorInfoById(record.getExecutedBy());
+                dto.setExecutorInfo(executorInfo);
             }
             
             return dto;
@@ -144,8 +146,9 @@ public class TestExecutionRecordServiceImpl implements TestExecutionRecordServic
                 .map(record -> {
                     TestExecutionRecordDetailDTO dto = TestExecutionRecordDetailDTO.fromEntity(record);
                     if (record.getExecutedBy() != null) {
-                        String executorName = userMapper.findNameById(record.getExecutedBy());
-                        dto.setExecutorName(executorName);
+                        com.victor.iatms.entity.dto.ExecutorInfoDTO executorInfo = 
+                            userMapper.findExecutorInfoById(record.getExecutedBy());
+                        dto.setExecutorInfo(executorInfo);
                     }
                     return dto;
                 })
@@ -332,8 +335,9 @@ public class TestExecutionRecordServiceImpl implements TestExecutionRecordServic
             return records.stream()
                 .map(record -> {
                     TestExecutionRecordDetailDTO dto = TestExecutionRecordDetailDTO.fromEntity(record);
-                    String executorName = userMapper.findNameById(executedBy);
-                    dto.setExecutorName(executorName);
+                    com.victor.iatms.entity.dto.ExecutorInfoDTO executorInfo = 
+                        userMapper.findExecutorInfoById(executedBy);
+                    dto.setExecutorInfo(executorInfo);
                     return dto;
                 })
                 .collect(Collectors.toList());

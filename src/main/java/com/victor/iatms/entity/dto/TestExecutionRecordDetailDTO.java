@@ -38,9 +38,9 @@ public class TestExecutionRecordDetailDTO {
     private Integer executedBy;
     
     /**
-     * 执行人姓名
+     * 执行人信息
      */
-    private String executorName;
+    private ExecutorInfoDTO executorInfo;
     
     /**
      * 执行类型

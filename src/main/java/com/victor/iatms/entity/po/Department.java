@@ -10,84 +10,94 @@ import java.time.LocalDateTime;
  */
 @Data
 public class Department {
-
+    
     /**
-     * 部门ID，自增主键
+     * 部门ID
      */
     private Integer departmentId;
-
-    /**
-     * 部门编码，唯一标识
-     */
-    private String departmentCode;
-
+    
     /**
      * 部门名称
      */
     private String departmentName;
-
-    /**
-     * 父部门ID，关联本表主键
-     */
-    private Integer parentId;
-
-    /**
-     * 部门负责人ID，关联Users表
-     */
-    private Integer managerId;
-
+    
     /**
      * 部门描述
      */
     private String description;
-
+    
     /**
-     * 排序顺序
+     * 父部门ID
      */
-    private Integer sortOrder;
-
+    private Integer parentId;
+    
     /**
-     * 部门层级（1为最高级）
+     * 部门负责人ID
      */
-    private Integer level;
-
-    /**
-     * 部门路径（存储所有上级部门ID）
-     */
-    private String path;
-
-    /**
-     * 是否为叶子部门（无子部门）
-     */
-    private Boolean isLeaf;
-
+    private Integer managerId;
+    
     /**
      * 部门状态
      */
     private String status;
-
+    
+    /**
+     * 排序顺序
+     */
+    private Integer sortOrder;
+    
+    /**
+     * 部门层级（1为最高级）
+     */
+    private Integer level;
+    
+    /**
+     * 部门路径（存储所有上级部门ID）
+     */
+    private String path;
+    
+    /**
+     * 是否为叶子部门（无子部门）
+     */
+    private Boolean isLeaf;
+    
     /**
      * 成立日期
      */
     private LocalDate establishedDate;
-
+    
     /**
-     * 创建人ID，关联Users表
+     * 创建人ID
      */
     private Integer createdBy;
-
+    
     /**
      * 更新人ID
      */
     private Integer updatedBy;
-
+    
     /**
      * 创建时间
      */
     private LocalDateTime createdAt;
-
+    
     /**
      * 更新时间
      */
     private LocalDateTime updatedAt;
+    
+    /**
+     * 是否删除
+     */
+    private Boolean isDeleted;
+    
+    /**
+     * 删除时间
+     */
+    private LocalDateTime deletedAt;
+    
+    /**
+     * 删除人ID
+     */
+    private Integer deletedBy;
 }

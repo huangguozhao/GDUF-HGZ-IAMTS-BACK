@@ -17,9 +17,15 @@
 #### 1.2 响应相关
 - **TestExecutionRecordDetailDTO** - 执行记录详情DTO
   - 包含完整的执行记录信息
-  - 包含执行人姓名（关联查询）
+  - 包含执行人详细信息（关联查询）
   - 提供静态方法 `fromEntity()` 用于实体转换
   - 文件位置：`src/main/java/com/victor/iatms/entity/dto/TestExecutionRecordDetailDTO.java`
+
+- **ExecutorInfoDTO** - 执行人信息DTO
+  - 包含用户基本信息（姓名、邮箱、头像、手机号）
+  - 包含部门信息（部门ID、部门名称）
+  - 包含职位信息（员工工号、职位、状态）
+  - 文件位置：`src/main/java/com/victor/iatms/entity/dto/ExecutorInfoDTO.java`
 
 - **TestExecutionRecordPageResultDTO** - 分页结果DTO
   - 符合统一分页规范
@@ -156,7 +162,18 @@ GET /execution-records?execution_scope=test_case&page=1&page_size=10
         "refId": 123,
         "scopeName": "测试用例名称",
         "executedBy": 1,
-        "executorName": "张三",
+        "executorInfo": {
+          "userId": 1,
+          "name": "张三",
+          "email": "zhangsan@example.com",
+          "avatarUrl": "https://example.com/avatar/1.jpg",
+          "phone": "13800138000",
+          "departmentId": 10,
+          "departmentName": "测试部",
+          "employeeId": "EMP001",
+          "position": "高级测试工程师",
+          "status": "active"
+        },
         "executionType": "manual",
         "environment": "test",
         "status": "completed",
@@ -381,7 +398,11 @@ GET /execution-records/executor/{executedBy}?limit=20
 - 必填参数验证
 
 ### 5. 关联查询
-自动填充执行人姓名，提供更友好的数据展示
+自动填充执行人详细信息，包括：
+- 用户基本信息（姓名、邮箱、头像、手机号）
+- 部门信息（部门ID、部门名称）
+- 职位信息（员工工号、职位、状态）
+- 提供更友好的数据展示
 
 ## 使用示例
 

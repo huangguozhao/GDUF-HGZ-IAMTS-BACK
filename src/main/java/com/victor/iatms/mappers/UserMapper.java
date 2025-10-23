@@ -53,4 +53,11 @@ public interface UserMapper {
      * @return 用户姓名
      */
     String findNameById(@Param("userId") Integer userId);
+    
+    /**
+     * 根据用户ID查询用户基本信息（用于执行记录）
+     * @param userId 用户ID
+     * @return 用户基本信息
+     */
+    com.victor.iatms.entity.dto.ExecutorInfoDTO findExecutorInfoById(@Param("userId") Integer userId);
 }
