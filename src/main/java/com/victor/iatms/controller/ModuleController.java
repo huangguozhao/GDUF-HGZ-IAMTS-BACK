@@ -197,4 +197,31 @@ public class ModuleController {
             return ResponseVO.serverError("查询接口列表失败：" + e.getMessage());
         }
     }
+    
+    /**
+     * 获取模块统计数据
+     * 
+     * @param moduleId 模块ID
+     * @return 模块统计信息
+     */
+    @GetMapping("/{moduleId}/statistics")
+    @GlobalInterceptor(checkLogin = true)
+    public ResponseVO<com.victor.iatms.entity.dto.ModuleStatisticsDTO> getModuleStatistics(
+            @PathVariable("moduleId") Integer moduleId) {
+        try {
+            com.victor.iatms.entity.dto.ModuleStatisticsDTO statistics = moduleService.getModuleStatistics(moduleId);
+            return ResponseVO.success("查询模块统计数据成功", statistics);
+            
+        } catch (IllegalArgumentException e) {
+            if (e.getMessage().contains("模块不存在")) {
+                return ResponseVO.notFound(e.getMessage());
+            } else if (e.getMessage().contains("已被删除")) {
+                return ResponseVO.businessError(e.getMessage());
+            } else {
+                return ResponseVO.paramError(e.getMessage());
+            }
+        } catch (Exception e) {
+            return ResponseVO.serverError("查询模块统计数据失败：" + e.getMessage());
+        }
+    }
 }

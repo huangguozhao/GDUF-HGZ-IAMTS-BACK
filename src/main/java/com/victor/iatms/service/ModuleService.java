@@ -42,4 +42,11 @@ public interface ModuleService {
      * @return 接口列表
      */
     ApiListResponseDTO getApiList(ApiListQueryDTO queryDTO);
+    
+    /**
+     * 获取模块统计数据
+     * @param moduleId 模块ID
+     * @return 模块统计信息
+     */
+    com.victor.iatms.entity.dto.ModuleStatisticsDTO getModuleStatistics(Integer moduleId);
 }

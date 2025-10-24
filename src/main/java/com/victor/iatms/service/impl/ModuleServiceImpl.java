@@ -1,6 +1,7 @@
 package com.victor.iatms.service.impl;
 
 import com.victor.iatms.entity.constants.Constants;
+import lombok.extern.slf4j.Slf4j;
 import com.victor.iatms.entity.dto.ApiListQueryDTO;
 import com.victor.iatms.entity.dto.ApiListResponseDTO;
 import com.victor.iatms.entity.dto.CreateModuleDTO;
@@ -12,6 +13,7 @@ import com.victor.iatms.entity.po.Project;
 import com.victor.iatms.entity.po.User;
 import com.victor.iatms.mappers.ModuleMapper;
 import com.victor.iatms.mappers.ProjectMapper;
+import com.victor.iatms.mappers.TestExecutionMapper;
 import com.victor.iatms.mappers.UserMapper;
 import com.victor.iatms.service.ModuleService;
 import com.victor.iatms.utils.JsonUtils;
@@ -20,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -28,6 +31,7 @@ import java.util.regex.Pattern;
 /**
  * 模块服务实现类
  */
+@Slf4j
 @Service
 public class ModuleServiceImpl implements ModuleService {
     
@@ -40,6 +44,9 @@ public class ModuleServiceImpl implements ModuleService {
     @Autowired
     private UserMapper userMapper;
     
+    @Autowired
+    private TestExecutionMapper testExecutionMapper;
+    
     // 模块编码格式验证正则表达式：大写字母、数字、下划线
     private static final Pattern MODULE_CODE_PATTERN = Pattern.compile("^[A-Z0-9_]+$");
     
@@ -47,6 +54,12 @@ public class ModuleServiceImpl implements ModuleService {
     public CreateModuleResponseDTO createModule(CreateModuleDTO createModuleDTO, Integer creatorId) {
         // 参数校验
         validateCreateModule(createModuleDTO, creatorId);
+        
+        // 如果没有提供 moduleCode，自动生成
+        if (!StringUtils.hasText(createModuleDTO.getModuleCode())) {
+            String generatedCode = generateModuleCode(createModuleDTO.getProjectId(), createModuleDTO.getName());
+            createModuleDTO.setModuleCode(generatedCode);
+        }
         
         // 检查项目是否存在
         Project project = projectMapper.selectById(createModuleDTO.getProjectId());
@@ -564,6 +577,43 @@ public class ModuleServiceImpl implements ModuleService {
     }
     
     /**
+     * 自动生成模块编码
+     */
+    private String generateModuleCode(Integer projectId, String moduleName) {
+        // 基于模块名称生成编码：转大写，提取首字母或拼音首字母
+        String baseCode = moduleName.replaceAll("[^A-Za-z0-9\\u4e00-\\u9fa5]", "").toUpperCase();
+        if (baseCode.isEmpty()) {
+            baseCode = "MODULE";
+        }
+        
+        // 如果是中文，取首字母拼音或使用MODULE前缀
+        if (baseCode.matches(".*[\\u4e00-\\u9fa5].*")) {
+            baseCode = "MODULE";
+        }
+        
+        // 限制长度
+        if (baseCode.length() > 10) {
+            baseCode = baseCode.substring(0, 10);
+        }
+        
+        // 添加时间戳后缀确保唯一性
+        String timestamp = String.valueOf(System.currentTimeMillis() % 100000);
+        String generatedCode = baseCode + "_" + timestamp;
+        
+        // 检查是否已存在，如果存在则递归生成新的
+        if (moduleMapper.checkModuleCodeExists(generatedCode, projectId) > 0) {
+            try {
+                Thread.sleep(1); // 确保时间戳不同
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+            return generateModuleCode(projectId, moduleName);
+        }
+        
+        return generatedCode;
+    }
+    
+    /**
      * 创建模块参数校验
      */
     private void validateCreateModule(CreateModuleDTO createModuleDTO, Integer creatorId) {
@@ -574,15 +624,14 @@ public class ModuleServiceImpl implements ModuleService {
             throw new IllegalArgumentException("创建人ID不能为空");
         }
         
-        // 验证模块编码
-        if (!StringUtils.hasText(createModuleDTO.getModuleCode())) {
-            throw new IllegalArgumentException("模块编码不能为空");
-        }
-        if (createModuleDTO.getModuleCode().length() > Constants.MODULE_CODE_MAX_LENGTH) {
-            throw new IllegalArgumentException("模块编码长度不能超过" + Constants.MODULE_CODE_MAX_LENGTH + "个字符");
-        }
-        if (!MODULE_CODE_PATTERN.matcher(createModuleDTO.getModuleCode()).matches()) {
-            throw new IllegalArgumentException("模块编码只能包含大写字母、数字和下划线");
+        // 验证模块编码（如果提供了）
+        if (StringUtils.hasText(createModuleDTO.getModuleCode())) {
+            if (createModuleDTO.getModuleCode().length() > Constants.MODULE_CODE_MAX_LENGTH) {
+                throw new IllegalArgumentException("模块编码长度不能超过" + Constants.MODULE_CODE_MAX_LENGTH + "个字符");
+            }
+            if (!MODULE_CODE_PATTERN.matcher(createModuleDTO.getModuleCode()).matches()) {
+                throw new IllegalArgumentException("模块编码只能包含大写字母、数字和下划线");
+            }
         }
         
         // 验证项目ID
@@ -616,5 +665,110 @@ public class ModuleServiceImpl implements ModuleService {
             !Constants.MODULE_STATUS_ARCHIVED.equals(createModuleDTO.getStatus())) {
             throw new IllegalArgumentException("模块状态只能是active、inactive或archived");
         }
+    }
+    
+    @Override
+    public com.victor.iatms.entity.dto.ModuleStatisticsDTO getModuleStatistics(Integer moduleId) {
+        // 参数校验
+        if (moduleId == null) {
+            throw new IllegalArgumentException("模块ID不能为空");
+        }
+        
+        // 检查模块是否存在
+        Module module = moduleMapper.selectById(moduleId);
+        if (module == null) {
+            throw new IllegalArgumentException("模块不存在");
+        }
+        if (module.getIsDeleted()) {
+            throw new IllegalArgumentException("模块已被删除");
+        }
+        
+        // 构建统计数据
+        com.victor.iatms.entity.dto.ModuleStatisticsDTO statistics = 
+            new com.victor.iatms.entity.dto.ModuleStatisticsDTO();
+        
+        // 基本信息
+        statistics.setModuleId(module.getModuleId());
+        statistics.setModuleName(module.getName());
+        statistics.setModuleCode(module.getModuleCode());
+        statistics.setStatus(module.getStatus());
+        
+        // 接口统计
+        int apiCount = moduleMapper.countModuleApis(moduleId);
+        statistics.setApiCount(apiCount);
+        
+        // 子模块统计
+        int childModuleCount = moduleMapper.countChildModules(moduleId);
+        statistics.setChildModuleCount(childModuleCount);
+        
+        // 测试用例统计（传递null表示不过滤优先级、标签和启用状态）
+        try {
+            log.debug("开始统计模块{}的测试用例数量", moduleId);
+            Integer testCaseCount = testExecutionMapper.countTestCasesByModuleId(moduleId, null, null, null);
+            statistics.setTestCaseCount(testCaseCount != null ? testCaseCount : 0);
+            log.debug("模块{}的测试用例总数: {}", moduleId, statistics.getTestCaseCount());
+        } catch (Exception e) {
+            log.error("统计模块{}的测试用例数量失败", moduleId, e);
+            throw new RuntimeException("统计测试用例数量失败: " + e.getMessage(), e);
+        }
+        
+        // 通过/失败统计（基于最近的测试结果）
+        try {
+            log.debug("开始统计模块{}的通过/失败用例数", moduleId);
+            Integer passedCount = testExecutionMapper.countPassedTestCasesByModuleId(moduleId);
+            Integer failedCount = testExecutionMapper.countFailedTestCasesByModuleId(moduleId);
+            statistics.setPassedCount(passedCount != null ? passedCount : 0);
+            statistics.setFailedCount(failedCount != null ? failedCount : 0);
+            log.debug("模块{}的通过数: {}, 失败数: {}", moduleId, statistics.getPassedCount(), statistics.getFailedCount());
+        } catch (Exception e) {
+            log.error("统计模块{}的通过/失败用例数失败", moduleId, e);
+            throw new RuntimeException("统计通过/失败用例数失败: " + e.getMessage(), e);
+        }
+        
+        // 未执行数 = 总用例数 - 通过数 - 失败数
+        int executedCount = statistics.getPassedCount() + statistics.getFailedCount();
+        int notExecutedCount = statistics.getTestCaseCount() - executedCount;
+        statistics.setNotExecutedCount(notExecutedCount > 0 ? notExecutedCount : 0);
+        
+        // 计算通过率
+        if (executedCount > 0) {
+            double passRate = (statistics.getPassedCount() * 100.0) / executedCount;
+            statistics.setPassRate(Math.round(passRate * 100.0) / 100.0); // 保留2位小数
+        } else {
+            statistics.setPassRate(0.0);
+        }
+        
+        // 测试执行记录统计
+        try {
+            log.debug("开始统计模块{}的执行记录数", moduleId);
+            Integer executionRecordCount = testExecutionMapper.countExecutionRecordsByModuleId(moduleId);
+            statistics.setExecutionRecordCount(executionRecordCount != null ? executionRecordCount : 0);
+            log.debug("模块{}的执行记录数: {}", moduleId, statistics.getExecutionRecordCount());
+        } catch (Exception e) {
+            log.error("统计模块{}的执行记录数失败", moduleId, e);
+            throw new RuntimeException("统计执行记录数失败: " + e.getMessage(), e);
+        }
+        
+        // 最近执行时间
+        try {
+            log.debug("开始获取模块{}的最近执行时间", moduleId);
+            String lastExecutionTime = testExecutionMapper.getLatestExecutionTimeByModuleId(moduleId);
+            statistics.setLastExecutionTime(lastExecutionTime);
+            log.debug("模块{}的最近执行时间: {}", moduleId, lastExecutionTime);
+        } catch (Exception e) {
+            log.error("获取模块{}的最近执行时间失败", moduleId, e);
+            throw new RuntimeException("获取最近执行时间失败: " + e.getMessage(), e);
+        }
+        
+        // 模块时间信息
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        if (module.getCreatedAt() != null) {
+            statistics.setCreatedAt(module.getCreatedAt().format(formatter));
+        }
+        if (module.getUpdatedAt() != null) {
+            statistics.setUpdatedAt(module.getUpdatedAt().format(formatter));
+        }
+        
+        return statistics;
     }
 }

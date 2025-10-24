@@ -578,4 +578,32 @@ public interface TestExecutionMapper {
          * @return 执行记录数量
          */
         Integer countExecutionRecordsByProjectId(@Param("projectId") Integer projectId);
+        
+        /**
+         * 统计模块下通过的测试用例结果数
+         * @param moduleId 模块ID
+         * @return 通过数量
+         */
+        Integer countPassedTestCasesByModuleId(@Param("moduleId") Integer moduleId);
+        
+        /**
+         * 统计模块下失败的测试用例结果数
+         * @param moduleId 模块ID
+         * @return 失败数量
+         */
+        Integer countFailedTestCasesByModuleId(@Param("moduleId") Integer moduleId);
+        
+        /**
+         * 获取模块最近一次执行时间
+         * @param moduleId 模块ID
+         * @return 最近执行时间
+         */
+        String getLatestExecutionTimeByModuleId(@Param("moduleId") Integer moduleId);
+        
+        /**
+         * 统计模块下测试执行记录总数
+         * @param moduleId 模块ID
+         * @return 执行记录数量
+         */
+        Integer countExecutionRecordsByModuleId(@Param("moduleId") Integer moduleId);
     }

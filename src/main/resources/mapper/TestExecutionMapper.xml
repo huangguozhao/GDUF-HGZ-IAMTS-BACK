@@ -1,8 +1,8 @@
-<?xml version="1.0" encoding="UTF-8"?>
+﻿<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.victor.iatms.mappers.TestExecutionMapper">
 
-    <!-- 根据用例ID查询用例执行信息 -->
+    <!-- 鏍规嵁鐢ㄤ緥ID鏌ヨ鐢ㄤ緥鎵ц淇℃伅 -->
     <select id="findTestCaseForExecution" resultType="com.victor.iatms.entity.dto.TestCaseExecutionDTO">
         SELECT 
             tc.case_id,
@@ -53,7 +53,7 @@
         AND a.status = 'active'
     </select>
 
-    <!-- 插入测试结果 -->
+    <!-- 鎻掑叆娴嬭瘯缁撴灉 -->
     <insert id="insertTestCaseResult" parameterType="com.victor.iatms.entity.po.TestCaseResult" useGeneratedKeys="true" keyProperty="resultId">
         INSERT INTO TestCaseResults (
             execution_record_id, report_id, execution_id, task_type, ref_id, full_name, status, duration,
@@ -70,7 +70,7 @@
         )
     </insert>
 
-    <!-- 插入测试报告汇总 -->
+    <!-- 鎻掑叆娴嬭瘯鎶ュ憡姹囨€?-->
     <insert id="insertTestReportSummary" parameterType="com.victor.iatms.entity.po.TestReportSummary" useGeneratedKeys="true" keyProperty="reportId">
         INSERT INTO TestReportSummaries (
             report_name, report_type, execution_id, project_id, environment, start_time, end_time, duration,
@@ -87,7 +87,7 @@
         )
     </insert>
 
-    <!-- 更新测试报告汇总 -->
+    <!-- 鏇存柊娴嬭瘯鎶ュ憡姹囨€?-->
     <update id="updateTestReportSummary" parameterType="com.victor.iatms.entity.po.TestReportSummary">
         UPDATE TestReportSummaries SET
             report_name = #{reportName},
@@ -123,7 +123,7 @@
         AND is_deleted = FALSE
     </update>
 
-    <!-- 根据报告ID查询测试结果列表 -->
+    <!-- 鏍规嵁鎶ュ憡ID鏌ヨ娴嬭瘯缁撴灉鍒楄〃 -->
     <select id="findTestCaseResultsByReportId" resultType="com.victor.iatms.entity.po.TestCaseResult">
         SELECT 
             result_id, report_id, execution_id, task_type, ref_id, full_name, status, duration,
@@ -137,7 +137,7 @@
         ORDER BY created_at DESC
     </select>
 
-    <!-- 根据执行ID查询测试结果 -->
+    <!-- 鏍规嵁鎵цID鏌ヨ娴嬭瘯缁撴灉 -->
     <select id="findTestCaseResultByExecutionId" resultType="com.victor.iatms.entity.po.TestCaseResult">
         SELECT 
             result_id, report_id, execution_id, task_type, ref_id, full_name, status, duration,
@@ -151,7 +151,7 @@
         LIMIT 1
     </select>
 
-    <!-- 根据报告ID查询报告汇总 -->
+    <!-- 鏍规嵁鎶ュ憡ID鏌ヨ鎶ュ憡姹囨€?-->
     <select id="findTestReportSummaryById" resultType="com.victor.iatms.entity.po.TestReportSummary">
         SELECT 
             report_id, report_name, report_type, execution_id, project_id, environment, start_time, end_time, duration,
@@ -164,7 +164,7 @@
         AND is_deleted = FALSE
     </select>
 
-    <!-- 查询最新的报告汇总 -->
+    <!-- 鏌ヨ鏈€鏂扮殑鎶ュ憡姹囨€?-->
     <select id="findLatestReportSummary" resultType="com.victor.iatms.entity.po.TestReportSummary">
         SELECT 
             report_id, report_name, report_type, execution_id, project_id, environment, start_time, end_time, duration,
@@ -180,7 +180,7 @@
         LIMIT 1
     </select>
 
-    <!-- 更新测试结果 -->
+    <!-- 鏇存柊娴嬭瘯缁撴灉 -->
     <update id="updateTestCaseResult" parameterType="com.victor.iatms.entity.po.TestCaseResult">
         UPDATE TestCaseResults SET
             report_id = #{reportId},
@@ -214,9 +214,9 @@
         AND is_deleted = FALSE
     </update>
 
-    <!-- ========== 模块执行相关SQL ========== -->
+    <!-- ========== 妯″潡鎵ц鐩稿叧SQL ========== -->
 
-    <!-- 根据ID查询模块 -->
+    <!-- 鏍规嵁ID鏌ヨ妯″潡 -->
     <select id="findModuleById" resultType="com.victor.iatms.entity.po.Module">
         SELECT 
             module_id,
@@ -238,7 +238,7 @@
         AND is_deleted = FALSE
     </select>
 
-    <!-- 查询模块下的所有接口的测试用例 -->
+    <!-- 鏌ヨ妯″潡涓嬬殑鎵€鏈夋帴鍙ｇ殑娴嬭瘯鐢ㄤ緥 -->
     <select id="findTestCasesByModuleId" resultType="com.victor.iatms.entity.po.TestCase">
         SELECT 
             tc.case_id,
@@ -296,7 +296,7 @@
         ORDER BY tc.priority, tc.created_at
     </select>
 
-    <!-- 统计模块下的测试用例数量 -->
+    <!-- 缁熻妯″潡涓嬬殑娴嬭瘯鐢ㄤ緥鏁伴噺 -->
     <select id="countTestCasesByModuleId" resultType="java.lang.Integer">
         SELECT COUNT(*)
         FROM TestCases tc
@@ -325,7 +325,7 @@
         </if>
     </select>
 
-    <!-- 查询模块下的接口列表 -->
+    <!-- 鏌ヨ妯″潡涓嬬殑鎺ュ彛鍒楄〃 -->
     <select id="findApiIdsByModuleId" resultType="java.lang.Integer">
         SELECT api_id
         FROM Apis
@@ -335,9 +335,9 @@
         ORDER BY created_at
     </select>
 
-    <!-- ========== 项目执行相关SQL ========== -->
+    <!-- ========== 椤圭洰鎵ц鐩稿叧SQL ========== -->
 
-    <!-- 根据ID查询项目 -->
+    <!-- 鏍规嵁ID鏌ヨ椤圭洰 -->
     <select id="findProjectById" resultType="com.victor.iatms.entity.po.Project">
         SELECT 
             project_id,
@@ -358,7 +358,7 @@
         AND is_deleted = FALSE
     </select>
 
-    <!-- 查询项目下的所有模块 -->
+    <!-- 鏌ヨ椤圭洰涓嬬殑鎵€鏈夋ā鍧?-->
     <select id="findModulesByProjectId" resultType="com.victor.iatms.entity.po.Module">
         SELECT 
             module_id,
@@ -390,7 +390,7 @@
         ORDER BY created_at
     </select>
 
-    <!-- 查询项目下的所有测试用例 -->
+    <!-- 鏌ヨ椤圭洰涓嬬殑鎵€鏈夋祴璇曠敤渚?-->
     <select id="findTestCasesByProjectId" resultType="com.victor.iatms.entity.po.TestCase">
         SELECT 
             tc.case_id,
@@ -457,7 +457,7 @@
         ORDER BY tc.priority, tc.created_at
     </select>
 
-    <!-- 统计项目下的测试用例数量 -->
+    <!-- 缁熻椤圭洰涓嬬殑娴嬭瘯鐢ㄤ緥鏁伴噺 -->
     <select id="countTestCasesByProjectId" resultType="java.lang.Integer">
         SELECT COUNT(*)
         FROM TestCases tc
@@ -495,7 +495,7 @@
         </if>
     </select>
 
-    <!-- 查询项目下的模块ID列表 -->
+    <!-- 鏌ヨ椤圭洰涓嬬殑妯″潡ID鍒楄〃 -->
     <select id="findModuleIdsByProjectId" resultType="java.lang.Integer">
         SELECT module_id
         FROM Modules
@@ -513,9 +513,9 @@
         ORDER BY created_at
     </select>
 
-    <!-- ========== 接口执行相关SQL ========== -->
+    <!-- ========== 鎺ュ彛鎵ц鐩稿叧SQL ========== -->
 
-    <!-- 根据ID查询接口 -->
+    <!-- 鏍规嵁ID鏌ヨ鎺ュ彛 -->
     <select id="findApiById" resultType="com.victor.iatms.entity.po.Api">
         SELECT 
             api_id,
@@ -552,7 +552,7 @@
         AND is_deleted = FALSE
     </select>
 
-    <!-- 查询接口下的所有测试用例 -->
+    <!-- 鏌ヨ鎺ュ彛涓嬬殑鎵€鏈夋祴璇曠敤渚?-->
     <select id="findTestCasesByApiId" resultType="com.victor.iatms.entity.po.TestCase">
         SELECT 
             tc.case_id,
@@ -644,7 +644,7 @@
         </choose>
     </select>
 
-    <!-- 统计接口下的测试用例数量 -->
+    <!-- 缁熻鎺ュ彛涓嬬殑娴嬭瘯鐢ㄤ緥鏁伴噺 -->
     <select id="countTestCasesByApiId" resultType="java.lang.Integer">
         SELECT COUNT(*)
         FROM TestCases tc
@@ -670,9 +670,9 @@
         </if>
     </select>
 
-    <!-- ========== 测试套件执行相关SQL ========== -->
+    <!-- ========== 娴嬭瘯濂椾欢鎵ц鐩稿叧SQL ========== -->
 
-    <!-- 根据ID查询测试套件 -->
+    <!-- 鏍规嵁ID鏌ヨ娴嬭瘯濂椾欢 -->
     <select id="findTestSuiteById" resultType="com.victor.iatms.entity.po.TestSuite">
         SELECT 
             suite_id,
@@ -693,7 +693,7 @@
         AND is_deleted = FALSE
     </select>
 
-    <!-- 查询测试套件下的所有测试用例 -->
+    <!-- 鏌ヨ娴嬭瘯濂椾欢涓嬬殑鎵€鏈夋祴璇曠敤渚?-->
     <select id="findTestCasesBySuiteId" resultType="com.victor.iatms.entity.po.TestCase">
         SELECT 
             tc.case_id,
@@ -757,7 +757,7 @@
             END ASC, tc.created_at DESC
     </select>
 
-    <!-- 统计测试套件下的测试用例数量 -->
+    <!-- 缁熻娴嬭瘯濂椾欢涓嬬殑娴嬭瘯鐢ㄤ緥鏁伴噺 -->
     <select id="countTestCasesBySuiteId" resultType="java.lang.Integer">
         SELECT COUNT(*)
         FROM TestCases tc
@@ -785,9 +785,9 @@
         </if>
     </select>
 
-    <!-- ========== 测试结果查询相关SQL ========== -->
+    <!-- ========== 娴嬭瘯缁撴灉鏌ヨ鐩稿叧SQL ========== -->
 
-    <!-- 分页查询测试结果列表 -->
+    <!-- 鍒嗛〉鏌ヨ娴嬭瘯缁撴灉鍒楄〃 -->
     <select id="findTestResults" resultType="com.victor.iatms.entity.po.TestCaseResult">
         SELECT 
             tcr.result_id,
@@ -904,7 +904,7 @@
         LIMIT #{query.offset}, #{query.pageSize}
     </select>
 
-    <!-- 统计测试结果总数 -->
+    <!-- 缁熻娴嬭瘯缁撴灉鎬绘暟 -->
     <select id="countTestResults" resultType="java.lang.Long">
         SELECT COUNT(*)
         FROM TestCaseResults tcr
@@ -950,7 +950,7 @@
         </if>
     </select>
 
-    <!-- 统计测试结果摘要 -->
+    <!-- 缁熻娴嬭瘯缁撴灉鎽樿 -->
     <select id="getTestResultSummary" resultType="com.victor.iatms.entity.dto.TestResultSummaryDTO">
         SELECT 
             COUNT(*) as totalCount,
@@ -1007,7 +1007,7 @@
         </if>
     </select>
 
-    <!-- 根据结果ID查询测试结果详情 -->
+    <!-- 鏍规嵁缁撴灉ID鏌ヨ娴嬭瘯缁撴灉璇︽儏 -->
     <select id="findTestResultById" resultType="com.victor.iatms.entity.po.TestCaseResult">
         SELECT 
             result_id,
@@ -1048,9 +1048,9 @@
         AND is_deleted = FALSE
     </select>
 
-    <!-- ========== 测试统计相关SQL ========== -->
+    <!-- ========== 娴嬭瘯缁熻鐩稿叧SQL ========== -->
 
-    <!-- 获取统计摘要 -->
+    <!-- 鑾峰彇缁熻鎽樿 -->
     <select id="getStatisticsSummary" resultType="com.victor.iatms.entity.dto.StatisticsSummaryDTO">
         SELECT 
             COUNT(*) as totalExecutions,
@@ -1083,7 +1083,7 @@
         </if>
     </select>
 
-    <!-- 按时间分组获取趋势数据 -->
+    <!-- 鎸夋椂闂村垎缁勮幏鍙栬秼鍔挎暟鎹?-->
     <select id="getTrendData" resultType="com.victor.iatms.entity.dto.TrendDataDTO">
         SELECT 
             <choose>
@@ -1137,7 +1137,7 @@
         ORDER BY timePeriod ASC
     </select>
 
-    <!-- 按指定维度分组获取统计数据 -->
+    <!-- 鎸夋寚瀹氱淮搴﹀垎缁勮幏鍙栫粺璁℃暟鎹?-->
     <select id="getGroupData" resultType="com.victor.iatms.entity.dto.GroupDataDTO">
         SELECT 
             <choose>
@@ -1145,11 +1145,11 @@
                     priority as groupKey,
                     CONCAT(priority, '-', 
                         CASE priority 
-                            WHEN 'P0' THEN '最高优先级'
-                            WHEN 'P1' THEN '高优先级'
-                            WHEN 'P2' THEN '中优先级'
-                            WHEN 'P3' THEN '低优先级'
-                            ELSE '未知'
+                            WHEN 'P0' THEN '鏈€楂樹紭鍏堢骇'
+                            WHEN 'P1' THEN '楂樹紭鍏堢骇'
+                            WHEN 'P2' THEN '涓紭鍏堢骇'
+                            WHEN 'P3' THEN '浣庝紭鍏堢骇'
+                            ELSE '鏈煡'
                         END
                     ) as groupName,
                 </when>
@@ -1157,12 +1157,12 @@
                     severity as groupKey,
                     CONCAT(severity, '-', 
                         CASE severity 
-                            WHEN 'blocker' THEN '阻塞'
-                            WHEN 'critical' THEN '严重'
-                            WHEN 'normal' THEN '一般'
-                            WHEN 'minor' THEN '次要'
-                            WHEN 'trivial' THEN '轻微'
-                            ELSE '未知'
+                            WHEN 'blocker' THEN '闃诲'
+                            WHEN 'critical' THEN '涓ラ噸'
+                            WHEN 'normal' THEN '涓€鑸?
+                            WHEN 'minor' THEN '娆¤'
+                            WHEN 'trivial' THEN '杞诲井'
+                            ELSE '鏈煡'
                         END
                     ) as groupName,
                 </when>
@@ -1211,7 +1211,7 @@
             </choose>
     </select>
 
-    <!-- 获取主要问题统计 -->
+    <!-- 鑾峰彇涓昏闂缁熻 -->
     <select id="getTopIssues" resultType="com.victor.iatms.entity.dto.TopIssueDTO">
         SELECT 
             failure_type as failureType,
@@ -1252,9 +1252,9 @@
         </if>
     </select>
 
-    <!-- ========== 近七天执行情况相关SQL ========== -->
+    <!-- ========== 杩戜竷澶╂墽琛屾儏鍐电浉鍏砈QL ========== -->
 
-    <!-- 获取近七天总体统计摘要 -->
+    <!-- 鑾峰彇杩戜竷澶╂€讳綋缁熻鎽樿 -->
     <select id="getWeeklySummary" resultType="com.victor.iatms.entity.dto.SummaryDTO">
         SELECT 
             COUNT(*) as totalExecutions,
@@ -1293,18 +1293,18 @@
         </if>
     </select>
 
-    <!-- 获取近七天每日趋势数据 -->
+    <!-- 鑾峰彇杩戜竷澶╂瘡鏃ヨ秼鍔挎暟鎹?-->
     <select id="getWeeklyDailyTrend" resultType="com.victor.iatms.entity.dto.DailyTrendDTO">
         SELECT 
             DATE(start_time) as date,
             CASE DAYOFWEEK(start_time)
-                WHEN 1 THEN '周日'
-                WHEN 2 THEN '周一'
-                WHEN 3 THEN '周二'
-                WHEN 4 THEN '周三'
-                WHEN 5 THEN '周四'
-                WHEN 6 THEN '周五'
-                WHEN 7 THEN '周六'
+                WHEN 1 THEN '鍛ㄦ棩'
+                WHEN 2 THEN '鍛ㄤ竴'
+                WHEN 3 THEN '鍛ㄤ簩'
+                WHEN 4 THEN '鍛ㄤ笁'
+                WHEN 5 THEN '鍛ㄥ洓'
+                WHEN 6 THEN '鍛ㄤ簲'
+                WHEN 7 THEN '鍛ㄥ叚'
             END as dayOfWeek,
             COUNT(*) as total,
             SUM(CASE WHEN status = 'passed' THEN 1 ELSE 0 END) as passed,
@@ -1343,7 +1343,7 @@
         ORDER BY date ASC
     </select>
 
-    <!-- 获取项目统计排行（前5） -->
+    <!-- 鑾峰彇椤圭洰缁熻鎺掕锛堝墠5锛?-->
     <select id="getWeeklyProjectStats" resultType="com.victor.iatms.entity.dto.ProjectStatsDTO">
         SELECT 
             trs.project_id as projectId,
@@ -1372,7 +1372,7 @@
         LIMIT 5
     </select>
 
-    <!-- 获取模块统计排行（前5） -->
+    <!-- 鑾峰彇妯″潡缁熻鎺掕锛堝墠5锛?-->
     <select id="getWeeklyModuleStats" resultType="com.victor.iatms.entity.dto.ModuleStatsDTO">
         SELECT 
             m.module_id as moduleId,
@@ -1404,7 +1404,7 @@
         LIMIT 5
     </select>
 
-    <!-- 获取近七天主要失败原因 -->
+    <!-- 鑾峰彇杩戜竷澶╀富瑕佸け璐ュ師鍥?-->
     <select id="getWeeklyTopFailures" resultType="com.victor.iatms.entity.dto.TopFailureDTO">
         SELECT 
             failure_type as failureType,
@@ -1454,7 +1454,7 @@
         </if>
     </select>
 
-    <!-- 获取近七天性能指标 -->
+    <!-- 鑾峰彇杩戜竷澶╂€ц兘鎸囨爣 -->
     <select id="getWeeklyPerformanceMetrics" resultType="com.victor.iatms.entity.dto.PerformanceMetricsDTO">
         SELECT 
             (SELECT duration FROM TestCaseResults 
@@ -1532,7 +1532,7 @@
         </if>
     </select>
 
-    <!-- 获取上周同期数据（用于对比） -->
+    <!-- 鑾峰彇涓婂懆鍚屾湡鏁版嵁锛堢敤浜庡姣旓級 -->
     <select id="getLastWeekSummary" resultType="com.victor.iatms.entity.dto.SummaryDTO">
         SELECT 
             COUNT(*) as totalExecutions,
@@ -1571,9 +1571,9 @@
         </if>
     </select>
 
-    <!-- ========== 个人测试概况相关SQL ========== -->
+    <!-- ========== 涓汉娴嬭瘯姒傚喌鐩稿叧SQL ========== -->
 
-    <!-- 获取用户基本信息 -->
+    <!-- 鑾峰彇鐢ㄦ埛鍩烘湰淇℃伅 -->
     <select id="getUserInfo" resultType="com.victor.iatms.entity.dto.UserInfoDTO">
         SELECT 
             user_id as userId,
@@ -1588,7 +1588,7 @@
         AND is_deleted = FALSE
     </select>
 
-    <!-- 获取用户执行统计信息 -->
+    <!-- 鑾峰彇鐢ㄦ埛鎵ц缁熻淇℃伅 -->
     <select id="getUserExecutionStats" resultType="com.victor.iatms.entity.dto.ExecutionStatsDTO">
         SELECT 
             COUNT(*) as totalExecutions,
@@ -1613,7 +1613,7 @@
         </if>
     </select>
 
-    <!-- 获取用户项目统计概览 -->
+    <!-- 鑾峰彇鐢ㄦ埛椤圭洰缁熻姒傝 -->
     <select id="getUserProjectStats" resultType="com.victor.iatms.entity.dto.ProjectStatsDTO">
         SELECT 
             trs.project_id as projectId,
@@ -1637,7 +1637,7 @@
         LIMIT 5
     </select>
 
-    <!-- 获取用户最近活动记录 -->
+    <!-- 鑾峰彇鐢ㄦ埛鏈€杩戞椿鍔ㄨ褰?-->
     <select id="getUserRecentActivity" resultType="com.victor.iatms.entity.dto.RecentActivityDTO">
         SELECT 
             log_id as activityId,
@@ -1659,7 +1659,7 @@
         </if>
     </select>
 
-    <!-- 获取用户待办事项 -->
+    <!-- 鑾峰彇鐢ㄦ埛寰呭姙浜嬮」 -->
     <select id="getUserPendingTasks" resultType="com.victor.iatms.entity.dto.PendingTaskDTO">
         SELECT 
             task_id as taskId,
@@ -1676,7 +1676,7 @@
         ORDER BY priority DESC, due_date ASC
     </select>
 
-    <!-- 获取系统状态信息 -->
+    <!-- 鑾峰彇绯荤粺鐘舵€佷俊鎭?-->
     <select id="getSystemStatus" resultType="com.victor.iatms.entity.dto.SystemStatusDTO">
         SELECT 
             (SELECT COUNT(*) FROM TestCases WHERE is_deleted = FALSE) as totalCases,
@@ -1687,7 +1687,7 @@
             'good' as systemHealth
     </select>
 
-    <!-- 获取用户质量健康评分 -->
+    <!-- 鑾峰彇鐢ㄦ埛璐ㄩ噺鍋ュ悍璇勫垎 -->
     <select id="getUserHealthScore" resultType="com.victor.iatms.entity.dto.HealthScoreDTO">
         SELECT 
             ROUND(
@@ -1740,7 +1740,7 @@
         ) scores
     </select>
 
-    <!-- 统计项目下通过的测试用例结果数 -->
+    <!-- 缁熻椤圭洰涓嬮€氳繃鐨勬祴璇曠敤渚嬬粨鏋滄暟 -->
     <select id="countPassedTestCasesByProjectId" resultType="java.lang.Integer">
         SELECT COUNT(DISTINCT tcr.result_id)
         FROM TestCaseResults tcr
@@ -1755,7 +1755,7 @@
           AND m.is_deleted = 0
     </select>
 
-    <!-- 统计项目下失败的测试用例结果数 -->
+    <!-- 缁熻椤圭洰涓嬪け璐ョ殑娴嬭瘯鐢ㄤ緥缁撴灉鏁?-->
     <select id="countFailedTestCasesByProjectId" resultType="java.lang.Integer">
         SELECT COUNT(DISTINCT tcr.result_id)
         FROM TestCaseResults tcr
@@ -1770,7 +1770,7 @@
           AND m.is_deleted = 0
     </select>
 
-    <!-- 获取项目最近一次执行时间 -->
+    <!-- 鑾峰彇椤圭洰鏈€杩戜竴娆℃墽琛屾椂闂?-->
     <select id="getLatestExecutionTimeByProjectId" resultType="java.lang.String">
         SELECT DATE_FORMAT(MAX(ter.start_time), '%Y-%m-%d %H:%i:%s') as last_execution_time
         FROM TestExecutionRecords ter
@@ -1779,7 +1779,7 @@
           AND ter.is_deleted = 0
     </select>
 
-    <!-- 统计项目下测试执行记录总数 -->
+    <!-- 缁熻椤圭洰涓嬫祴璇曟墽琛岃褰曟€绘暟 -->
     <select id="countExecutionRecordsByProjectId" resultType="java.lang.Integer">
         SELECT COUNT(*)
         FROM TestExecutionRecords
@@ -1788,4 +1788,48 @@
           AND is_deleted = 0
     </select>
 
+    <!-- 统计模块下通过的测试用例结果数 -->
+    <select id="countPassedTestCasesByModuleId" resultType="java.lang.Integer">
+        SELECT COUNT(DISTINCT tcr.result_id)
+        FROM TestCaseResults tcr
+        INNER JOIN TestCases tc ON tcr.task_type = 'test_case' AND tcr.ref_id = tc.case_id
+        INNER JOIN Apis a ON tc.api_id = a.api_id
+        WHERE a.module_id = #{moduleId}
+          AND tcr.status = 'passed'
+          AND tc.is_deleted = 0
+          AND tcr.is_deleted = 0
+          AND a.is_deleted = 0
+    </select>
+
+    <!-- 统计模块下失败的测试用例结果数 -->
+    <select id="countFailedTestCasesByModuleId" resultType="java.lang.Integer">
+        SELECT COUNT(DISTINCT tcr.result_id)
+        FROM TestCaseResults tcr
+        INNER JOIN TestCases tc ON tcr.task_type = 'test_case' AND tcr.ref_id = tc.case_id
+        INNER JOIN Apis a ON tc.api_id = a.api_id
+        WHERE a.module_id = #{moduleId}
+          AND tcr.status IN ('failed', 'error', 'broken')
+          AND tc.is_deleted = 0
+          AND tcr.is_deleted = 0
+          AND a.is_deleted = 0
+    </select>
+
+    <!-- 获取模块最近一次执行时间 -->
+    <select id="getLatestExecutionTimeByModuleId" resultType="java.lang.String">
+        SELECT DATE_FORMAT(MAX(ter.start_time), '%Y-%m-%d %H:%i:%s') as last_execution_time
+        FROM TestExecutionRecords ter
+        WHERE ter.execution_scope = 'module'
+          AND ter.ref_id = #{moduleId}
+          AND ter.is_deleted = 0
+    </select>
+
+    <!-- 统计模块下测试执行记录总数 -->
+    <select id="countExecutionRecordsByModuleId" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM TestExecutionRecords
+        WHERE execution_scope = 'module'
+          AND ref_id = #{moduleId}
+          AND is_deleted = 0
+          AND is_deleted = 0
+    </select>
 </mapper>

@@ -119,4 +119,5 @@ public interface ModuleMapper {
      * @return 统计摘要
      */
     ApiSummaryDTO selectApiSummary(@Param("moduleId") Integer moduleId);
+
 }
