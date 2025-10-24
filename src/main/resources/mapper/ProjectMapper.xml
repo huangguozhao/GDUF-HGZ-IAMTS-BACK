@@ -775,4 +775,23 @@
         </association>
     </resultMap>
 
+    <!-- 根据项目编码查询项目 -->
+    <select id="selectByCode" resultType="com.victor.iatms.entity.po.Project">
+        SELECT *
+        FROM Projects
+        WHERE project_code = #{projectCode}
+          AND is_deleted = 0
+    </select>
+
+    <!-- 检查项目编码是否存在 -->
+    <select id="checkProjectCodeExists" resultType="int">
+        SELECT COUNT(*)
+        FROM Projects
+        WHERE project_code = #{projectCode}
+          AND is_deleted = 0
+        <if test="excludeId != null">
+          AND project_id != #{excludeId}
+        </if>
+    </select>
+
 </mapper>

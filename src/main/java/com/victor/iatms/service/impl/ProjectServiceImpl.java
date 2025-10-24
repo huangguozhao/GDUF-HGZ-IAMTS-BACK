@@ -27,12 +27,14 @@ import com.victor.iatms.entity.enums.ProjectSortFieldEnum;
 import com.victor.iatms.entity.enums.SortOrderEnum;
 import com.victor.iatms.entity.po.Project;
 import com.victor.iatms.mappers.ProjectMapper;
+import com.victor.iatms.mappers.TestExecutionMapper;
 import com.victor.iatms.service.ProjectService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -44,6 +46,9 @@ public class ProjectServiceImpl implements ProjectService {
     
     @Autowired
     private ProjectMapper projectMapper;
+    
+    @Autowired
+    private TestExecutionMapper testExecutionMapper;
     
     @Override
     public ModuleListResponseDTO getModuleList(ModuleListQueryDTO queryDTO) {
@@ -930,5 +935,93 @@ public class ProjectServiceImpl implements ProjectService {
         timeRangeDTO.setDays(days);
         
         return timeRangeDTO;
+    }
+    
+    @Override
+    public com.victor.iatms.entity.dto.ProjectStatisticsDTO getProjectStatistics(Integer projectId) {
+        // 参数校验
+        if (projectId == null) {
+            throw new IllegalArgumentException("项目ID不能为空");
+        }
+        
+        // 检查项目是否存在
+        Project project = projectMapper.selectById(projectId);
+        if (project == null) {
+            throw new IllegalArgumentException("项目不存在");
+        }
+        if (project.getIsDeleted()) {
+            throw new IllegalArgumentException("项目已被删除");
+        }
+        
+        // 构建统计数据
+        com.victor.iatms.entity.dto.ProjectStatisticsDTO statistics = new com.victor.iatms.entity.dto.ProjectStatisticsDTO();
+        
+        // 基本信息
+        statistics.setProjectId(project.getProjectId());
+        statistics.setProjectName(project.getName());
+        statistics.setProjectCode(null); // Project 实体暂无 projectCode 字段
+        
+        // 模块统计
+        ModuleListQueryDTO moduleQuery = new ModuleListQueryDTO();
+        moduleQuery.setProjectId(projectId);
+        moduleQuery.setIncludeDeleted(false);
+        Integer moduleCount = projectMapper.countModules(moduleQuery);
+        statistics.setModuleCount(moduleCount != null ? moduleCount : 0);
+        
+        // 接口统计
+        Integer apiCount = projectMapper.checkProjectHasApis(projectId);
+        statistics.setApiCount(apiCount != null ? apiCount : 0);
+        
+        // 测试用例统计
+        Integer testCaseCount = testExecutionMapper.countTestCasesByProjectId(projectId, null, null, null, true);
+        statistics.setTestCaseCount(testCaseCount != null ? testCaseCount : 0);
+        
+        // 通过/失败统计（基于最近的测试结果）
+        Integer passedCount = testExecutionMapper.countPassedTestCasesByProjectId(projectId);
+        Integer failedCount = testExecutionMapper.countFailedTestCasesByProjectId(projectId);
+        statistics.setPassedCount(passedCount != null ? passedCount : 0);
+        statistics.setFailedCount(failedCount != null ? failedCount : 0);
+        
+        // 未执行数 = 总用例数 - 通过数 - 失败数
+        int executedCount = statistics.getPassedCount() + statistics.getFailedCount();
+        int notExecutedCount = statistics.getTestCaseCount() - executedCount;
+        statistics.setNotExecutedCount(notExecutedCount > 0 ? notExecutedCount : 0);
+        
+        // 计算通过率
+        if (executedCount > 0) {
+            double passRate = (statistics.getPassedCount() * 100.0) / executedCount;
+            statistics.setPassRate(Math.round(passRate * 100.0) / 100.0); // 保留2位小数
+        } else {
+            statistics.setPassRate(0.0);
+        }
+        
+        // 测试执行记录统计
+        Integer executionRecordCount = testExecutionMapper.countExecutionRecordsByProjectId(projectId);
+        statistics.setExecutionRecordCount(executionRecordCount != null ? executionRecordCount : 0);
+        
+        // 测试报告统计
+        Integer testReportCount = projectMapper.checkProjectHasTestReports(projectId);
+        statistics.setTestReportCount(testReportCount != null ? testReportCount : 0);
+        
+        // 项目成员统计
+        ProjectMembersQueryDTO memberQuery = new ProjectMembersQueryDTO();
+        memberQuery.setProjectId(projectId);
+        Long memberCount = projectMapper.countProjectMembers(memberQuery);
+        statistics.setMemberCount(memberCount != null ? memberCount.intValue() : 0);
+        
+        // 最近执行时间
+        String lastExecutionTime = testExecutionMapper.getLatestExecutionTimeByProjectId(projectId);
+        statistics.setLastExecutionTime(lastExecutionTime);
+        
+        // 项目时间信息
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        if (project.getCreatedAt() != null) {
+            statistics.setCreatedAt(project.getCreatedAt().format(formatter));
+        }
+        if (project.getUpdatedAt() != null) {
+            statistics.setUpdatedAt(project.getUpdatedAt().format(formatter));
+        }
+        
+        return statistics;
     }
 }

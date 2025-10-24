@@ -501,4 +501,31 @@ public class ProjectController {
             return ResponseVO.serverError("查询最近编辑项目失败：" + e.getMessage());
         }
     }
+    
+    /**
+     * 获取项目统计数据
+     * 
+     * @param projectId 项目ID
+     * @return 项目统计信息
+     */
+    @GetMapping("/{projectId}/statistics")
+    @GlobalInterceptor(checkLogin = true)
+    public ResponseVO<com.victor.iatms.entity.dto.ProjectStatisticsDTO> getProjectStatistics(
+            @PathVariable("projectId") Integer projectId) {
+        try {
+            com.victor.iatms.entity.dto.ProjectStatisticsDTO statistics = projectService.getProjectStatistics(projectId);
+            return ResponseVO.success("查询项目统计数据成功", statistics);
+            
+        } catch (IllegalArgumentException e) {
+            if (e.getMessage().contains("项目不存在")) {
+                return ResponseVO.notFound(e.getMessage());
+            } else if (e.getMessage().contains("已被删除")) {
+                return ResponseVO.businessError(e.getMessage());
+            } else {
+                return ResponseVO.paramError(e.getMessage());
+            }
+        } catch (Exception e) {
+            return ResponseVO.serverError("查询项目统计数据失败：" + e.getMessage());
+        }
+    }
 }

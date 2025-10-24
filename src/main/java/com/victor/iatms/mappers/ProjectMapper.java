@@ -204,4 +204,19 @@ public interface ProjectMapper {
     Long countRecentProjects(@Param("queryDTO") RecentProjectsQueryDTO queryDTO, 
                             @Param("currentUserId") Integer currentUserId,
                             @Param("timeRange") TimeRangeDTO timeRange);
+    
+    /**
+     * 根据项目编码查询项目
+     * @param projectCode 项目编码
+     * @return 项目信息
+     */
+    Project selectByCode(@Param("projectCode") String projectCode);
+    
+    /**
+     * 检查项目编码是否存在
+     * @param projectCode 项目编码
+     * @param excludeId 排除的项目ID
+     * @return 存在数量
+     */
+    int checkProjectCodeExists(@Param("projectCode") String projectCode, @Param("excludeId") Integer excludeId);
 }

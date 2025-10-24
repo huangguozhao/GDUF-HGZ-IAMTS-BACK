@@ -550,4 +550,32 @@ public interface TestExecutionMapper {
             @Param("userId") Integer userId,
             @Param("startTime") java.time.LocalDateTime startTime,
             @Param("endTime") java.time.LocalDateTime endTime);
+        
+        /**
+         * 统计项目下通过的测试用例结果数
+         * @param projectId 项目ID
+         * @return 通过数量
+         */
+        Integer countPassedTestCasesByProjectId(@Param("projectId") Integer projectId);
+        
+        /**
+         * 统计项目下失败的测试用例结果数
+         * @param projectId 项目ID
+         * @return 失败数量
+         */
+        Integer countFailedTestCasesByProjectId(@Param("projectId") Integer projectId);
+        
+        /**
+         * 获取项目最近一次执行时间
+         * @param projectId 项目ID
+         * @return 最近执行时间
+         */
+        String getLatestExecutionTimeByProjectId(@Param("projectId") Integer projectId);
+        
+        /**
+         * 统计项目下测试执行记录总数
+         * @param projectId 项目ID
+         * @return 执行记录数量
+         */
+        Integer countExecutionRecordsByProjectId(@Param("projectId") Integer projectId);
     }

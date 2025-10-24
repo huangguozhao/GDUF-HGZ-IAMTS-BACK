@@ -1740,4 +1740,52 @@
         ) scores
     </select>
 
+    <!-- 统计项目下通过的测试用例结果数 -->
+    <select id="countPassedTestCasesByProjectId" resultType="java.lang.Integer">
+        SELECT COUNT(DISTINCT tcr.result_id)
+        FROM TestCaseResults tcr
+        INNER JOIN TestCases tc ON tcr.task_type = 'test_case' AND tcr.ref_id = tc.case_id
+        INNER JOIN Apis a ON tc.api_id = a.api_id
+        INNER JOIN Modules m ON a.module_id = m.module_id
+        WHERE m.project_id = #{projectId}
+          AND tcr.status = 'passed'
+          AND tc.is_deleted = 0
+          AND tcr.is_deleted = 0
+          AND a.is_deleted = 0
+          AND m.is_deleted = 0
+    </select>
+
+    <!-- 统计项目下失败的测试用例结果数 -->
+    <select id="countFailedTestCasesByProjectId" resultType="java.lang.Integer">
+        SELECT COUNT(DISTINCT tcr.result_id)
+        FROM TestCaseResults tcr
+        INNER JOIN TestCases tc ON tcr.task_type = 'test_case' AND tcr.ref_id = tc.case_id
+        INNER JOIN Apis a ON tc.api_id = a.api_id
+        INNER JOIN Modules m ON a.module_id = m.module_id
+        WHERE m.project_id = #{projectId}
+          AND tcr.status IN ('failed', 'error', 'broken')
+          AND tc.is_deleted = 0
+          AND tcr.is_deleted = 0
+          AND a.is_deleted = 0
+          AND m.is_deleted = 0
+    </select>
+
+    <!-- 获取项目最近一次执行时间 -->
+    <select id="getLatestExecutionTimeByProjectId" resultType="java.lang.String">
+        SELECT DATE_FORMAT(MAX(ter.start_time), '%Y-%m-%d %H:%i:%s') as last_execution_time
+        FROM TestExecutionRecords ter
+        WHERE ter.execution_scope = 'project'
+          AND ter.ref_id = #{projectId}
+          AND ter.is_deleted = 0
+    </select>
+
+    <!-- 统计项目下测试执行记录总数 -->
+    <select id="countExecutionRecordsByProjectId" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM TestExecutionRecords
+        WHERE execution_scope = 'project'
+          AND ref_id = #{projectId}
+          AND is_deleted = 0
+    </select>
+
 </mapper>

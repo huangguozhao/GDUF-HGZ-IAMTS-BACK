@@ -272,9 +272,9 @@ public class ApiServiceImpl implements ApiService {
         }
 
         // 检查接口是否存在前置条件
-        if (hasPreconditions(apiId)) {
-            throw new IllegalArgumentException("接口存在前置条件配置，无法删除");
-        }
+//        if (hasPreconditions(apiId)) {
+//            throw new IllegalArgumentException("接口存在前置条件配置，无法删除");
+//        }
 
         // 检查接口是否正在被使用
         if (isApiInUse(apiId)) {

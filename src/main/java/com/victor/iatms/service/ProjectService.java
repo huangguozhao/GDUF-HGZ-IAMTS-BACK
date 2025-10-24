@@ -126,4 +126,11 @@ public interface ProjectService {
      * @return 分页的最近编辑项目列表
      */
     RecentProjectsResponseDTO getRecentProjects(RecentProjectsQueryDTO queryDTO, Integer currentUserId);
+    
+    /**
+     * 获取项目统计数据
+     * @param projectId 项目ID
+     * @return 项目统计信息
+     */
+    com.victor.iatms.entity.dto.ProjectStatisticsDTO getProjectStatistics(Integer projectId);
 }
