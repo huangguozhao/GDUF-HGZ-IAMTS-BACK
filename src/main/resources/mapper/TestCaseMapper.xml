@@ -9,6 +9,7 @@
         <result column="api_id" property="apiId"/>
         <result column="name" property="name"/>
         <result column="description" property="description"/>
+        <result column="test_type" property="testType"/>
         <result column="priority" property="priority"/>
         <result column="severity" property="severity"/>
         <result column="tags" property="tags"/>
@@ -63,6 +64,7 @@
             api_id,
             name,
             description,
+            test_type,
             priority,
             severity,
             tags,
@@ -89,6 +91,7 @@
             #{apiId},
             #{name},
             #{description},
+            #{testType},
             #{priority},
             #{severity},
             #{tags},
@@ -121,6 +124,7 @@
             api_id,
             name,
             description,
+            test_type,
             priority,
             severity,
             tags,
@@ -186,6 +190,7 @@
             <if test="caseCode != null">case_code = #{caseCode},</if>
             <if test="name != null">name = #{name},</if>
             <if test="description != null">description = #{description},</if>
+            <if test="testType != null">test_type = #{testType},</if>
             <if test="priority != null">priority = #{priority},</if>
             <if test="severity != null">severity = #{severity},</if>
             <if test="tags != null">tags = #{tags},</if>
@@ -269,6 +274,7 @@
             p.name AS project_name,
             tc.name,
             tc.description,
+            tc.test_type,
             tc.priority,
             tc.severity,
             tc.tags,
@@ -320,6 +326,9 @@
             </if>
             <if test="queryDTO.severity != null and queryDTO.severity != ''">
                 AND tc.severity = #{queryDTO.severity}
+            </if>
+            <if test="queryDTO.testType != null and queryDTO.testType != ''">
+                AND tc.test_type = #{queryDTO.testType}
             </if>
             <if test="queryDTO.status != null and queryDTO.status != ''">
                 <choose>
@@ -407,6 +416,9 @@
             <if test="queryDTO.severity != null and queryDTO.severity != ''">
                 AND tc.severity = #{queryDTO.severity}
             </if>
+            <if test="queryDTO.testType != null and queryDTO.testType != ''">
+                AND tc.test_type = #{queryDTO.testType}
+            </if>
             <if test="queryDTO.status != null and queryDTO.status != ''">
                 <choose>
                     <when test="queryDTO.status == 'active'">
@@ -445,6 +457,7 @@
         <result column="project_name" property="projectName"/>
         <result column="name" property="name"/>
         <result column="description" property="description"/>
+        <result column="test_type" property="testType"/>
         <result column="priority" property="priority"/>
         <result column="severity" property="severity"/>
         <result column="tags" property="tags" typeHandler="com.victor.iatms.utils.JsonTypeHandler"/>
@@ -521,6 +534,9 @@
             </if>
             <if test="queryDTO.severity != null and queryDTO.severity != ''">
                 AND tc.severity = #{queryDTO.severity}
+            </if>
+            <if test="queryDTO.testType != null and queryDTO.testType != ''">
+                AND tc.test_type = #{queryDTO.testType}
             </if>
             <if test="queryDTO.status != null and queryDTO.status != ''">
                 <choose>

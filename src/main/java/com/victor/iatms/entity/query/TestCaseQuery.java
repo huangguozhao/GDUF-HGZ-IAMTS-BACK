@@ -29,6 +29,11 @@ public class TestCaseQuery {
     private String severity;
 
     /**
+     * 测试类型过滤：functional, performance, security, compatibility, smoke, regression
+     */
+    private String testType;
+
+    /**
      * 是否启用过滤
      */
     private Boolean isEnabled;

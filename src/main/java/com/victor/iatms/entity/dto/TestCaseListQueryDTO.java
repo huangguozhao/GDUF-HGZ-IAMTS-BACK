@@ -46,6 +46,11 @@ public class TestCaseListQueryDTO {
     private String severity;
 
     /**
+     * 测试类型过滤。可选: functional, performance, security, compatibility, smoke, regression
+     */
+    private String testType;
+
+    /**
      * 状态过滤。可选: active, inactive
      */
     private String status;

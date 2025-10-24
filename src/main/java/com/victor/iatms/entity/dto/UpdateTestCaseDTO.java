@@ -27,6 +27,12 @@ public class UpdateTestCaseDTO {
     private String description;
 
     /**
+     * 测试类型：functional-功能, performance-性能, security-安全, 
+     * compatibility-兼容性, smoke-冒烟, regression-回归
+     */
+    private String testType;
+
+    /**
      * 优先级。可选: P0, P1, P2, P3
      */
     private String priority;

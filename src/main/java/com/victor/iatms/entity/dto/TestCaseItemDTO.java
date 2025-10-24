@@ -72,6 +72,12 @@ public class TestCaseItemDTO {
     private String description;
 
     /**
+     * 测试类型：functional-功能, performance-性能, security-安全, 
+     * compatibility-兼容性, smoke-冒烟, regression-回归
+     */
+    private String testType;
+
+    /**
      * 优先级
      */
     private String priority;
