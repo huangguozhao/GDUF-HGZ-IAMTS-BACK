@@ -71,21 +71,21 @@ public class TestExecutionRecordController {
             query.setPage(page);
             query.setPageSize(pageSize);
             
-            // 解析时间参数
+            // 解析时间参数（支持UTC时间自动转换）
             if (startTimeBeginStr != null && !startTimeBeginStr.isEmpty()) {
                 try {
-                    query.setStartTimeBegin(LocalDateTime.parse(startTimeBeginStr, 
-                        DateTimeFormatter.ISO_DATE_TIME));
+                    LocalDateTime startTimeBegin = parseTimeParameter(startTimeBeginStr);
+                    query.setStartTimeBegin(startTimeBegin);
                 } catch (Exception e) {
-                    return ResponseVO.paramError("开始时间格式错误，请使用ISO 8601格式");
+                    return ResponseVO.paramError("开始时间格式错误，请使用ISO 8601格式: " + e.getMessage());
                 }
             }
             if (startTimeEndStr != null && !startTimeEndStr.isEmpty()) {
                 try {
-                    query.setStartTimeEnd(LocalDateTime.parse(startTimeEndStr, 
-                        DateTimeFormatter.ISO_DATE_TIME));
+                    LocalDateTime startTimeEnd = parseTimeParameter(startTimeEndStr);
+                    query.setStartTimeEnd(startTimeEnd);
                 } catch (Exception e) {
-                    return ResponseVO.paramError("结束时间格式错误，请使用ISO 8601格式");
+                    return ResponseVO.paramError("结束时间格式错误，请使用ISO 8601格式: " + e.getMessage());
                 }
             }
             
@@ -239,21 +239,21 @@ public class TestExecutionRecordController {
             query.setEnvironment(environment);
             query.setStatus(status);
             
-            // 解析时间参数
+            // 解析时间参数（支持UTC时间自动转换）
             if (startTimeBeginStr != null && !startTimeBeginStr.isEmpty()) {
                 try {
-                    query.setStartTimeBegin(LocalDateTime.parse(startTimeBeginStr, 
-                        DateTimeFormatter.ISO_DATE_TIME));
+                    LocalDateTime startTimeBegin = parseTimeParameter(startTimeBeginStr);
+                    query.setStartTimeBegin(startTimeBegin);
                 } catch (Exception e) {
-                    return ResponseVO.paramError("开始时间格式错误，请使用ISO 8601格式");
+                    return ResponseVO.paramError("开始时间格式错误，请使用ISO 8601格式: " + e.getMessage());
                 }
             }
             if (startTimeEndStr != null && !startTimeEndStr.isEmpty()) {
                 try {
-                    query.setStartTimeEnd(LocalDateTime.parse(startTimeEndStr, 
-                        DateTimeFormatter.ISO_DATE_TIME));
+                    LocalDateTime startTimeEnd = parseTimeParameter(startTimeEndStr);
+                    query.setStartTimeEnd(startTimeEnd);
                 } catch (Exception e) {
-                    return ResponseVO.paramError("结束时间格式错误，请使用ISO 8601格式");
+                    return ResponseVO.paramError("结束时间格式错误，请使用ISO 8601格式: " + e.getMessage());
                 }
             }
             
@@ -286,6 +286,26 @@ public class TestExecutionRecordController {
         }
     }
     
+    /**
+     * 解析时间参数（支持UTC时间自动转换为本地时间）
+     * 
+     * @param timeStr 时间字符串，支持：
+     *                - UTC时间（带Z后缀）：2025-10-23T08:22:23.192Z
+     *                - 本地时间：2025-10-23T16:22:23.192
+     * @return 本地时间
+     */
+    private LocalDateTime parseTimeParameter(String timeStr) {
+        if (timeStr.endsWith("Z")) {
+            // UTC时间，需要转换为本地时间（UTC+8）
+            java.time.ZonedDateTime utcTime = java.time.ZonedDateTime.parse(timeStr);
+            java.time.ZonedDateTime localTime = utcTime.withZoneSameInstant(java.time.ZoneId.systemDefault());
+            return localTime.toLocalDateTime();
+        } else {
+            // 本地时间，直接解析
+            return LocalDateTime.parse(timeStr, DateTimeFormatter.ISO_DATE_TIME);
+        }
+    }
+
     /**
      * 获取当前用户ID
      */
