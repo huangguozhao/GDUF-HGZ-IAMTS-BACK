@@ -11,14 +11,9 @@ import java.util.List;
 public class ApiListResponseDTO {
 
     /**
-     * 符合条件的数据总条数
+     * 总记录数
      */
-    private Integer total;
-
-    /**
-     * 当前页的接口数据列表
-     */
-    private List<ApiDTO> items;
+    private Long total;
 
     /**
      * 当前页码
@@ -26,12 +21,27 @@ public class ApiListResponseDTO {
     private Integer page;
 
     /**
-     * 当前每页条数
+     * 每页条数
      */
     private Integer pageSize;
 
     /**
-     * 接口统计摘要
+     * 总页数
      */
-    private ApiSummaryDTO summary;
+    private Integer totalPages;
+
+    /**
+     * 接口列表
+     */
+    private List<ApiDTO> items;
+
+    /**
+     * 统计信息（可选）
+     */
+    private ApiStatisticsDTO statistics;
+
+    /**
+     * 接口摘要信息（可选）
+     */
+    private Object summary;
 }

@@ -96,4 +96,185 @@
           AND is_deleted = FALSE
     </select>
 
+    <!-- 插入接口 -->
+    <insert id="insert" parameterType="com.victor.iatms.entity.po.Api" useGeneratedKeys="true" keyProperty="apiId">
+        INSERT INTO Apis (
+            api_code, module_id, name, method, path, base_url,
+            request_parameters, path_parameters, request_headers, request_body,
+            request_body_type, response_body_type, description, status, version,
+            timeout_seconds, auth_type, auth_config, tags, examples,
+            created_by, updated_by, created_at, updated_at, is_deleted
+        ) VALUES (
+            #{apiCode}, #{moduleId}, #{name}, #{method}, #{path}, #{baseUrl},
+            #{requestParameters}, #{pathParameters}, #{requestHeaders}, #{requestBody},
+            #{requestBodyType}, #{responseBodyType}, #{description}, #{status}, #{version},
+            #{timeoutSeconds}, #{authType}, #{authConfig}, #{tags}, #{examples},
+            #{createdBy}, #{updatedBy}, #{createdAt}, #{updatedAt}, #{isDeleted}
+        )
+    </insert>
+
+    <!-- 更新接口 -->
+    <update id="updateById" parameterType="com.victor.iatms.entity.po.Api">
+        UPDATE Apis
+        <set>
+            <if test="apiCode != null">api_code = #{apiCode},</if>
+            <if test="moduleId != null">module_id = #{moduleId},</if>
+            <if test="name != null">name = #{name},</if>
+            <if test="method != null">method = #{method},</if>
+            <if test="path != null">path = #{path},</if>
+            <if test="baseUrl != null">base_url = #{baseUrl},</if>
+            <if test="requestParameters != null">request_parameters = #{requestParameters},</if>
+            <if test="pathParameters != null">path_parameters = #{pathParameters},</if>
+            <if test="requestHeaders != null">request_headers = #{requestHeaders},</if>
+            <if test="requestBody != null">request_body = #{requestBody},</if>
+            <if test="requestBodyType != null">request_body_type = #{requestBodyType},</if>
+            <if test="responseBodyType != null">response_body_type = #{responseBodyType},</if>
+            <if test="description != null">description = #{description},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="version != null">version = #{version},</if>
+            <if test="timeoutSeconds != null">timeout_seconds = #{timeoutSeconds},</if>
+            <if test="authType != null">auth_type = #{authType},</if>
+            <if test="authConfig != null">auth_config = #{authConfig},</if>
+            <if test="tags != null">tags = #{tags},</if>
+            <if test="examples != null">examples = #{examples},</if>
+            <if test="updatedBy != null">updated_by = #{updatedBy},</if>
+            <if test="updatedAt != null">updated_at = #{updatedAt},</if>
+        </set>
+        WHERE api_id = #{apiId}
+          AND is_deleted = FALSE
+    </update>
+
+    <!-- 分页查询接口列表 -->
+    <select id="selectApiList" resultMap="ApiResultMap">
+        SELECT 
+            a.api_id, a.api_code, a.module_id, a.name, a.method, a.path, 
+            a.base_url, a.request_parameters, a.path_parameters, a.request_headers,
+            a.request_body, a.request_body_type, a.response_body_type, 
+            a.description, a.status, a.version, a.timeout_seconds,
+            a.auth_type, a.auth_config, a.tags, a.examples,
+            a.created_by, a.updated_by, a.created_at, a.updated_at,
+            a.is_deleted
+        FROM Apis a
+        <where>
+            <if test="queryDTO.includeDeleted == null or queryDTO.includeDeleted == false">
+                AND a.is_deleted = FALSE
+            </if>
+            <if test="queryDTO.moduleId != null">
+                AND a.module_id = #{queryDTO.moduleId}
+            </if>
+            <if test="queryDTO.method != null and queryDTO.method != ''">
+                AND a.method = #{queryDTO.method}
+            </if>
+            <if test="queryDTO.status != null and queryDTO.status != ''">
+                AND a.status = #{queryDTO.status}
+            </if>
+            <if test="queryDTO.authType != null and queryDTO.authType != ''">
+                AND a.auth_type = #{queryDTO.authType}
+            </if>
+            <if test="queryDTO.searchKeyword != null and queryDTO.searchKeyword != ''">
+                AND (a.name LIKE CONCAT('%', #{queryDTO.searchKeyword}, '%') 
+                     OR a.description LIKE CONCAT('%', #{queryDTO.searchKeyword}, '%')
+                     OR a.path LIKE CONCAT('%', #{queryDTO.searchKeyword}, '%'))
+            </if>
+        </where>
+        ORDER BY 
+        <choose>
+            <when test="queryDTO.sortBy == 'name'">
+                a.name
+            </when>
+            <when test="queryDTO.sortBy == 'method'">
+                a.method
+            </when>
+            <when test="queryDTO.sortBy == 'status'">
+                a.status
+            </when>
+            <when test="queryDTO.sortBy == 'updated_at'">
+                a.updated_at
+            </when>
+            <otherwise>
+                a.created_at
+            </otherwise>
+        </choose>
+        <choose>
+            <when test="queryDTO.sortOrder == 'asc'">
+                ASC
+            </when>
+            <otherwise>
+                DESC
+            </otherwise>
+        </choose>
+        LIMIT #{queryDTO.pageSize} OFFSET #{queryDTO.offset}
+    </select>
+
+    <!-- 统计接口列表总数 -->
+    <select id="countApiList" resultType="long">
+        SELECT COUNT(*)
+        FROM Apis a
+        <where>
+            <if test="queryDTO.includeDeleted == null or queryDTO.includeDeleted == false">
+                AND a.is_deleted = FALSE
+            </if>
+            <if test="queryDTO.moduleId != null">
+                AND a.module_id = #{queryDTO.moduleId}
+            </if>
+            <if test="queryDTO.method != null and queryDTO.method != ''">
+                AND a.method = #{queryDTO.method}
+            </if>
+            <if test="queryDTO.status != null and queryDTO.status != ''">
+                AND a.status = #{queryDTO.status}
+            </if>
+            <if test="queryDTO.authType != null and queryDTO.authType != ''">
+                AND a.auth_type = #{queryDTO.authType}
+            </if>
+            <if test="queryDTO.searchKeyword != null and queryDTO.searchKeyword != ''">
+                AND (a.name LIKE CONCAT('%', #{queryDTO.searchKeyword}, '%') 
+                     OR a.description LIKE CONCAT('%', #{queryDTO.searchKeyword}, '%')
+                     OR a.path LIKE CONCAT('%', #{queryDTO.searchKeyword}, '%'))
+            </if>
+        </where>
+    </select>
+
+    <!-- 查询接口统计信息 -->
+    <select id="selectApiStatistics" resultType="com.victor.iatms.entity.dto.ApiStatisticsDTO">
+        SELECT 
+            COUNT(*) AS totalApis,
+            SUM(CASE WHEN a.method = 'GET' THEN 1 ELSE 0 END) AS `byMethod.GET`,
+            SUM(CASE WHEN a.method = 'POST' THEN 1 ELSE 0 END) AS `byMethod.POST`,
+            SUM(CASE WHEN a.method = 'PUT' THEN 1 ELSE 0 END) AS `byMethod.PUT`,
+            SUM(CASE WHEN a.method = 'DELETE' THEN 1 ELSE 0 END) AS `byMethod.DELETE`,
+            SUM(CASE WHEN a.status = 'active' THEN 1 ELSE 0 END) AS `byStatus.active`,
+            SUM(CASE WHEN a.status = 'draft' THEN 1 ELSE 0 END) AS `byStatus.draft`,
+            SUM(CASE WHEN a.status = 'deprecated' THEN 1 ELSE 0 END) AS `byStatus.deprecated`,
+            SUM(CASE WHEN (SELECT COUNT(*) FROM TestCases tc WHERE tc.api_id = a.api_id AND tc.is_deleted = FALSE) > 0 THEN 1 ELSE 0 END) AS apisWithTestCases,
+            SUM(CASE WHEN (SELECT COUNT(*) FROM TestCases tc WHERE tc.api_id = a.api_id AND tc.is_deleted = FALSE) = 0 THEN 1 ELSE 0 END) AS apisWithoutTestCases
+        FROM Apis a
+        <where>
+            <if test="queryDTO.includeDeleted == null or queryDTO.includeDeleted == false">
+                AND a.is_deleted = FALSE
+            </if>
+            <if test="queryDTO.moduleId != null">
+                AND a.module_id = #{queryDTO.moduleId}
+            </if>
+        </where>
+    </select>
+
+    <!-- 检查接口编码是否存在 -->
+    <select id="checkApiCodeExists" resultType="int">
+        SELECT COUNT(*)
+        FROM Apis
+        WHERE api_code = #{apiCode}
+          AND module_id = #{moduleId}
+          AND is_deleted = FALSE
+    </select>
+
+    <!-- 检查接口编码是否存在（排除自己） -->
+    <select id="checkApiCodeExistsExcludeSelf" resultType="int">
+        SELECT COUNT(*)
+        FROM Apis
+        WHERE api_code = #{apiCode}
+          AND module_id = #{moduleId}
+          AND api_id != #{apiId}
+          AND is_deleted = FALSE
+    </select>
+
 </mapper>

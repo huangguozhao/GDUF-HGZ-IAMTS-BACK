@@ -292,7 +292,7 @@ public class ModuleServiceImpl implements ModuleService {
         
         // 构建响应
         ApiListResponseDTO responseDTO = new ApiListResponseDTO();
-        responseDTO.setTotal(total);
+        responseDTO.setTotal(Long.valueOf(total));
         responseDTO.setItems(apiList);
         responseDTO.setPage(queryDTO.getPage());
         responseDTO.setPageSize(queryDTO.getPageSize());
