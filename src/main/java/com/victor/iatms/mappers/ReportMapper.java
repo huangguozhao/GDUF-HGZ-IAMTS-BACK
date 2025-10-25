@@ -11,6 +11,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 报告管理Mapper接口
@@ -41,6 +42,30 @@ public interface ReportMapper {
      * @return 统计摘要
      */
     ReportSummaryDTO selectReportSummary(ReportListQueryDTO queryDTO);
+    
+    /**
+     * 按报告类型统计数量
+     * 
+     * @param queryDTO 查询参数
+     * @return Map<reportType, count>
+     */
+    Map<String, Long> countReportsByType(ReportListQueryDTO queryDTO);
+    
+    /**
+     * 按报告状态统计数量
+     * 
+     * @param queryDTO 查询参数
+     * @return Map<reportStatus, count>
+     */
+    Map<String, Long> countReportsByStatus(ReportListQueryDTO queryDTO);
+    
+    /**
+     * 按环境统计数量
+     * 
+     * @param queryDTO 查询参数
+     * @return Map<environment, count>
+     */
+    Map<String, Long> countReportsByEnvironment(ReportListQueryDTO queryDTO);
     
     /**
      * 根据ID查询报告详情

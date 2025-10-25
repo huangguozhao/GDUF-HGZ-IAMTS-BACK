@@ -28,6 +28,32 @@ public class ReportServiceImpl implements ReportService {
     @Autowired
     private ReportMapper reportMapper;
     
+    /**
+     * 将MyBatis返回的Map转换为Map<String, Long>
+     * MyBatis的resultType="map"返回的value是Object类型,需要转换
+     */
+    private java.util.Map<String, Long> convertToLongMap(java.util.Map<String, Long> sourceMap) {
+        if (sourceMap == null || sourceMap.isEmpty()) {
+            return new java.util.HashMap<>();
+        }
+        java.util.Map<String, Long> resultMap = new java.util.LinkedHashMap<>();
+        for (java.util.Map.Entry<String, Long> entry : sourceMap.entrySet()) {
+            String key = entry.getKey();
+            Object value = entry.getValue();
+            // 处理不同类型的value
+            Long longValue = 0L;
+            if (value instanceof Long) {
+                longValue = (Long) value;
+            } else if (value instanceof Integer) {
+                longValue = ((Integer) value).longValue();
+            } else if (value instanceof Number) {
+                longValue = ((Number) value).longValue();
+            }
+            resultMap.put(key, longValue);
+        }
+        return resultMap;
+    }
+    
     @Override
     public ReportPageResultDTO getReportList(ReportListQueryDTO queryDTO) {
         // 参数校验
@@ -48,6 +74,20 @@ public class ReportServiceImpl implements ReportService {
         
         // 查询统计摘要
         ReportSummaryDTO summary = reportMapper.selectReportSummary(queryDTO);
+        
+        // 在Service层构建统计Map，避免MySQL JSON_OBJECT的问题
+        if (summary != null) {
+            try {
+                summary.setByType(convertToLongMap(reportMapper.countReportsByType(queryDTO)));
+                summary.setByStatus(convertToLongMap(reportMapper.countReportsByStatus(queryDTO)));
+                summary.setByEnvironment(convertToLongMap(reportMapper.countReportsByEnvironment(queryDTO)));
+            } catch (Exception e) {
+                // 如果统计查询失败，设置空Map避免NPE
+                summary.setByType(new java.util.HashMap<>());
+                summary.setByStatus(new java.util.HashMap<>());
+                summary.setByEnvironment(new java.util.HashMap<>());
+            }
+        }
         
         // 构建结果
         ReportPageResultDTO result = new ReportPageResultDTO();

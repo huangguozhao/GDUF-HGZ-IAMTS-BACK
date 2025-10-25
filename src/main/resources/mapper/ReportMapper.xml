@@ -241,27 +241,10 @@
     </select>
 
     <!-- 查询报告统计摘要 -->
-    <select id="selectReportSummary" parameterType="com.victor.iatms.entity.dto.ReportListQueryDTO" resultMap="ReportSummaryResultMap">
+    <select id="selectReportSummary" parameterType="com.victor.iatms.entity.dto.ReportListQueryDTO" resultType="com.victor.iatms.entity.dto.ReportSummaryDTO">
         SELECT 
-            COUNT(*) AS total_reports,
-            JSON_OBJECT(
-                'execution', SUM(CASE WHEN report_type = 'execution' THEN 1 ELSE 0 END),
-                'coverage', SUM(CASE WHEN report_type = 'coverage' THEN 1 ELSE 0 END),
-                'trend', SUM(CASE WHEN report_type = 'trend' THEN 1 ELSE 0 END),
-                'comparison', SUM(CASE WHEN report_type = 'comparison' THEN 1 ELSE 0 END),
-                'custom', SUM(CASE WHEN report_type = 'custom' THEN 1 ELSE 0 END)
-            ) AS by_type,
-            JSON_OBJECT(
-                'completed', SUM(CASE WHEN report_status = 'completed' THEN 1 ELSE 0 END),
-                'generating', SUM(CASE WHEN report_status = 'generating' THEN 1 ELSE 0 END),
-                'failed', SUM(CASE WHEN report_status = 'failed' THEN 1 ELSE 0 END)
-            ) AS by_status,
-            JSON_OBJECT(
-                'test', SUM(CASE WHEN environment = 'test' THEN 1 ELSE 0 END),
-                'staging', SUM(CASE WHEN environment = 'staging' THEN 1 ELSE 0 END),
-                'production', SUM(CASE WHEN environment = 'production' THEN 1 ELSE 0 END)
-            ) AS by_environment,
-            AVG(success_rate) AS avg_success_rate
+            COUNT(*) AS totalReports,
+            AVG(success_rate) AS avgSuccessRate
         FROM TestReportSummaries trs
         <where>
             <if test="includeDeleted == null or includeDeleted == false">
@@ -302,6 +285,75 @@
                      OR JSON_SEARCH(trs.tags_json, 'one', CONCAT('%', #{searchKeyword}, '%')) IS NOT NULL)
             </if>
         </where>
+    </select>
+
+    <!-- 按报告类型统计数量 -->
+    <select id="countReportsByType" parameterType="com.victor.iatms.entity.dto.ReportListQueryDTO" resultType="map">
+        SELECT 
+            report_type AS `key`,
+            COUNT(*) AS `value`
+        FROM TestReportSummaries trs
+        <where>
+            <if test="includeDeleted == null or includeDeleted == false">
+                AND trs.is_deleted = 0
+            </if>
+            <if test="projectId != null">
+                AND trs.project_id = #{projectId}
+            </if>
+            <if test="environment != null and environment != ''">
+                AND trs.environment = #{environment}
+            </if>
+            <if test="reportStatus != null and reportStatus != ''">
+                AND trs.report_status = #{reportStatus}
+            </if>
+        </where>
+        GROUP BY report_type
+    </select>
+
+    <!-- 按报告状态统计数量 -->
+    <select id="countReportsByStatus" parameterType="com.victor.iatms.entity.dto.ReportListQueryDTO" resultType="map">
+        SELECT 
+            report_status AS `key`,
+            COUNT(*) AS `value`
+        FROM TestReportSummaries trs
+        <where>
+            <if test="includeDeleted == null or includeDeleted == false">
+                AND trs.is_deleted = 0
+            </if>
+            <if test="projectId != null">
+                AND trs.project_id = #{projectId}
+            </if>
+            <if test="reportType != null and reportType != ''">
+                AND trs.report_type = #{reportType}
+            </if>
+            <if test="environment != null and environment != ''">
+                AND trs.environment = #{environment}
+            </if>
+        </where>
+        GROUP BY report_status
+    </select>
+
+    <!-- 按环境统计数量 -->
+    <select id="countReportsByEnvironment" parameterType="com.victor.iatms.entity.dto.ReportListQueryDTO" resultType="map">
+        SELECT 
+            environment AS `key`,
+            COUNT(*) AS `value`
+        FROM TestReportSummaries trs
+        <where>
+            <if test="includeDeleted == null or includeDeleted == false">
+                AND trs.is_deleted = 0
+            </if>
+            <if test="projectId != null">
+                AND trs.project_id = #{projectId}
+            </if>
+            <if test="reportType != null and reportType != ''">
+                AND trs.report_type = #{reportType}
+            </if>
+            <if test="reportStatus != null and reportStatus != ''">
+                AND trs.report_status = #{reportStatus}
+            </if>
+        </where>
+        GROUP BY environment
     </select>
 
     <!-- 根据ID查询报告详情 -->
