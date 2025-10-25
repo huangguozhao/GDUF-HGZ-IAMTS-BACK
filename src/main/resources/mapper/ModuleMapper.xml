@@ -194,20 +194,10 @@
         SELECT CASE 
             WHEN EXISTS (
                 SELECT 1 FROM TestCases tc
-                LEFT JOIN Apis a ON tc.api_id = a.api_id
+                INNER JOIN Apis a ON tc.api_id = a.api_id
                 WHERE a.module_id = #{moduleId}
                   AND tc.is_deleted = FALSE
                   AND a.is_deleted = FALSE
-            ) THEN TRUE
-            WHEN EXISTS (
-                SELECT 1 FROM TestSuiteModules tsm
-                WHERE tsm.module_id = #{moduleId}
-                  AND tsm.is_deleted = FALSE
-            ) THEN TRUE
-            WHEN EXISTS (
-                SELECT 1 FROM TestPlans tp
-                WHERE tp.module_id = #{moduleId}
-                  AND tp.is_deleted = FALSE
             ) THEN TRUE
             ELSE FALSE
         END

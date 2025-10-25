@@ -1,0 +1,254 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.victor.iatms.mappers.EnvironmentConfigMapper">
+
+    <!-- 环境配置结果映射 -->
+    <resultMap id="EnvironmentConfigMap" type="com.victor.iatms.entity.po.EnvironmentConfig">
+        <id column="env_id" property="envId"/>
+        <result column="env_code" property="envCode"/>
+        <result column="env_name" property="envName"/>
+        <result column="env_type" property="envType"/>
+        <result column="description" property="description"/>
+        <result column="base_url" property="baseUrl"/>
+        <result column="domain" property="domain"/>
+        <result column="protocol" property="protocol"/>
+        <result column="port" property="port"/>
+        <result column="database_config" property="databaseConfig"/>
+        <result column="external_services" property="externalServices"/>
+        <result column="variables" property="variables"/>
+        <result column="auth_config" property="authConfig"/>
+        <result column="feature_flags" property="featureFlags"/>
+        <result column="performance_config" property="performanceConfig"/>
+        <result column="monitoring_config" property="monitoringConfig"/>
+        <result column="status" property="status"/>
+        <result column="is_default" property="isDefault"/>
+        <result column="maintenance_message" property="maintenanceMessage"/>
+        <result column="deployment_info" property="deploymentInfo"/>
+        <result column="last_deployed_at" property="lastDeployedAt"/>
+        <result column="deployed_version" property="deployedVersion"/>
+        <result column="created_by" property="createdBy"/>
+        <result column="updated_by" property="updatedBy"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+    </resultMap>
+
+    <!-- 环境配置详情结果映射（包含用户信息） -->
+    <resultMap id="EnvironmentConfigDTOMap" type="com.victor.iatms.entity.dto.EnvironmentConfigDTO">
+        <id column="env_id" property="envId"/>
+        <result column="env_code" property="envCode"/>
+        <result column="env_name" property="envName"/>
+        <result column="env_type" property="envType"/>
+        <result column="description" property="description"/>
+        <result column="base_url" property="baseUrl"/>
+        <result column="domain" property="domain"/>
+        <result column="protocol" property="protocol"/>
+        <result column="port" property="port"/>
+        <result column="database_config" property="databaseConfig" typeHandler="com.victor.iatms.mappers.handler.JsonTypeHandler"/>
+        <result column="external_services" property="externalServices" typeHandler="com.victor.iatms.mappers.handler.JsonTypeHandler"/>
+        <result column="variables" property="variables" typeHandler="com.victor.iatms.mappers.handler.JsonTypeHandler"/>
+        <result column="auth_config" property="authConfig" typeHandler="com.victor.iatms.mappers.handler.JsonTypeHandler"/>
+        <result column="feature_flags" property="featureFlags" typeHandler="com.victor.iatms.mappers.handler.JsonTypeHandler"/>
+        <result column="performance_config" property="performanceConfig" typeHandler="com.victor.iatms.mappers.handler.JsonTypeHandler"/>
+        <result column="monitoring_config" property="monitoringConfig" typeHandler="com.victor.iatms.mappers.handler.JsonTypeHandler"/>
+        <result column="status" property="status"/>
+        <result column="is_default" property="isDefault"/>
+        <result column="maintenance_message" property="maintenanceMessage"/>
+        <result column="deployment_info" property="deploymentInfo" typeHandler="com.victor.iatms.mappers.handler.JsonTypeHandler"/>
+        <result column="last_deployed_at" property="lastDeployedAt"/>
+        <result column="deployed_version" property="deployedVersion"/>
+        <result column="created_by" property="createdBy"/>
+        <result column="creator_name" property="creatorName"/>
+        <result column="creator_avatar" property="creatorAvatar"/>
+        <result column="updated_by" property="updatedBy"/>
+        <result column="updater_name" property="updaterName"/>
+        <result column="updater_avatar" property="updaterAvatar"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+    </resultMap>
+
+    <!-- 插入环境配置 -->
+    <insert id="insert" parameterType="com.victor.iatms.entity.po.EnvironmentConfig" useGeneratedKeys="true" keyProperty="envId">
+        INSERT INTO EnvironmentConfigs (
+            env_code, env_name, env_type, description,
+            base_url, domain, protocol, port,
+            database_config, external_services, variables, auth_config,
+            feature_flags, performance_config, monitoring_config,
+            status, is_default, maintenance_message,
+            deployment_info, deployed_version,
+            created_by, updated_by, created_at, updated_at
+        ) VALUES (
+            #{envCode}, #{envName}, #{envType}, #{description},
+            #{baseUrl}, #{domain}, #{protocol}, #{port},
+            #{databaseConfig}, #{externalServices}, #{variables}, #{authConfig},
+            #{featureFlags}, #{performanceConfig}, #{monitoringConfig},
+            #{status}, #{isDefault}, #{maintenanceMessage},
+            #{deploymentInfo}, #{deployedVersion},
+            #{createdBy}, #{updatedBy}, #{createdAt}, #{updatedAt}
+        )
+    </insert>
+
+    <!-- 根据ID查询环境配置 -->
+    <select id="selectById" resultMap="EnvironmentConfigMap">
+        SELECT * FROM EnvironmentConfigs
+        WHERE env_id = #{envId}
+    </select>
+
+    <!-- 根据ID查询环境配置详情（包含用户信息） -->
+    <select id="selectDetailById" resultMap="EnvironmentConfigDTOMap">
+        SELECT 
+            ec.*,
+            DATE_FORMAT(ec.last_deployed_at, '%Y-%m-%d %H:%i:%s') as last_deployed_at,
+            DATE_FORMAT(ec.created_at, '%Y-%m-%d %H:%i:%s') as created_at,
+            DATE_FORMAT(ec.updated_at, '%Y-%m-%d %H:%i:%s') as updated_at,
+            creator.name as creator_name,
+            creator.avatar_url as creator_avatar,
+            updater.name as updater_name,
+            updater.avatar_url as updater_avatar
+        FROM EnvironmentConfigs ec
+        LEFT JOIN Users creator ON ec.created_by = creator.user_id
+        LEFT JOIN Users updater ON ec.updated_by = updater.user_id
+        WHERE ec.env_id = #{envId}
+    </select>
+
+    <!-- 更新环境配置 -->
+    <update id="updateById" parameterType="com.victor.iatms.entity.po.EnvironmentConfig">
+        UPDATE EnvironmentConfigs
+        <set>
+            <if test="envCode != null">env_code = #{envCode},</if>
+            <if test="envName != null">env_name = #{envName},</if>
+            <if test="envType != null">env_type = #{envType},</if>
+            <if test="description != null">description = #{description},</if>
+            <if test="baseUrl != null">base_url = #{baseUrl},</if>
+            <if test="domain != null">domain = #{domain},</if>
+            <if test="protocol != null">protocol = #{protocol},</if>
+            <if test="port != null">port = #{port},</if>
+            <if test="databaseConfig != null">database_config = #{databaseConfig},</if>
+            <if test="externalServices != null">external_services = #{externalServices},</if>
+            <if test="variables != null">variables = #{variables},</if>
+            <if test="authConfig != null">auth_config = #{authConfig},</if>
+            <if test="featureFlags != null">feature_flags = #{featureFlags},</if>
+            <if test="performanceConfig != null">performance_config = #{performanceConfig},</if>
+            <if test="monitoringConfig != null">monitoring_config = #{monitoringConfig},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="isDefault != null">is_default = #{isDefault},</if>
+            <if test="maintenanceMessage != null">maintenance_message = #{maintenanceMessage},</if>
+            <if test="deploymentInfo != null">deployment_info = #{deploymentInfo},</if>
+            <if test="deployedVersion != null">deployed_version = #{deployedVersion},</if>
+            <if test="lastDeployedAt != null">last_deployed_at = #{lastDeployedAt},</if>
+            <if test="updatedBy != null">updated_by = #{updatedBy},</if>
+            updated_at = NOW()
+        </set>
+        WHERE env_id = #{envId}
+    </update>
+
+    <!-- 查询环境配置列表 -->
+    <select id="selectList" resultMap="EnvironmentConfigDTOMap">
+        SELECT 
+            ec.*,
+            DATE_FORMAT(ec.last_deployed_at, '%Y-%m-%d %H:%i:%s') as last_deployed_at,
+            DATE_FORMAT(ec.created_at, '%Y-%m-%d %H:%i:%s') as created_at,
+            DATE_FORMAT(ec.updated_at, '%Y-%m-%d %H:%i:%s') as updated_at,
+            creator.name as creator_name,
+            creator.avatar_url as creator_avatar,
+            updater.name as updater_name,
+            updater.avatar_url as updater_avatar
+        FROM EnvironmentConfigs ec
+        LEFT JOIN Users creator ON ec.created_by = creator.user_id
+        LEFT JOIN Users updater ON ec.updated_by = updater.user_id
+        <where>
+            <if test="envType != null and envType != ''">
+                AND ec.env_type = #{envType}
+            </if>
+            <if test="status != null and status != ''">
+                AND ec.status = #{status}
+            </if>
+            <if test="isDefault != null">
+                AND ec.is_default = #{isDefault}
+            </if>
+            <if test="searchKeyword != null and searchKeyword != ''">
+                AND (ec.env_name LIKE CONCAT('%', #{searchKeyword}, '%')
+                     OR ec.env_code LIKE CONCAT('%', #{searchKeyword}, '%')
+                     OR ec.description LIKE CONCAT('%', #{searchKeyword}, '%'))
+            </if>
+        </where>
+        <choose>
+            <when test="sortBy != null and sortBy == 'created_at'">
+                ORDER BY ec.created_at
+            </when>
+            <when test="sortBy != null and sortBy == 'updated_at'">
+                ORDER BY ec.updated_at
+            </when>
+            <when test="sortBy != null and sortBy == 'env_name'">
+                ORDER BY ec.env_name
+            </when>
+            <otherwise>
+                ORDER BY ec.created_at
+            </otherwise>
+        </choose>
+        <if test="sortOrder != null and sortOrder == 'asc'">
+            ASC
+        </if>
+        <if test="sortOrder == null or sortOrder == 'desc'">
+            DESC
+        </if>
+        <if test="pageSize != null and offset != null">
+            LIMIT #{pageSize} OFFSET #{offset}
+        </if>
+    </select>
+
+    <!-- 统计环境配置总数 -->
+    <select id="countList" resultType="java.lang.Integer">
+        SELECT COUNT(*) FROM EnvironmentConfigs ec
+        <where>
+            <if test="envType != null and envType != ''">
+                AND ec.env_type = #{envType}
+            </if>
+            <if test="status != null and status != ''">
+                AND ec.status = #{status}
+            </if>
+            <if test="isDefault != null">
+                AND ec.is_default = #{isDefault}
+            </if>
+            <if test="searchKeyword != null and searchKeyword != ''">
+                AND (ec.env_name LIKE CONCAT('%', #{searchKeyword}, '%')
+                     OR ec.env_code LIKE CONCAT('%', #{searchKeyword}, '%')
+                     OR ec.description LIKE CONCAT('%', #{searchKeyword}, '%'))
+            </if>
+        </where>
+    </select>
+
+    <!-- 检查环境编码是否存在 -->
+    <select id="checkEnvCodeExists" resultType="java.lang.Integer">
+        SELECT COUNT(*) FROM EnvironmentConfigs
+        WHERE env_code = #{envCode}
+    </select>
+
+    <!-- 检查环境编码是否存在（排除自身） -->
+    <select id="checkEnvCodeExistsExcludeSelf" resultType="java.lang.Integer">
+        SELECT COUNT(*) FROM EnvironmentConfigs
+        WHERE env_code = #{envCode} AND env_id != #{envId}
+    </select>
+
+    <!-- 检查是否存在默认环境 -->
+    <select id="checkDefaultExists" resultType="java.lang.Integer">
+        SELECT COUNT(*) FROM EnvironmentConfigs
+        WHERE is_default = TRUE
+    </select>
+
+    <!-- 检查是否存在默认环境（排除自身） -->
+    <select id="checkDefaultExistsExcludeSelf" resultType="java.lang.Integer">
+        SELECT COUNT(*) FROM EnvironmentConfigs
+        WHERE is_default = TRUE AND env_id != #{envId}
+    </select>
+
+    <!-- 清除所有默认环境标记 -->
+    <update id="clearAllDefaultFlags">
+        UPDATE EnvironmentConfigs
+        SET is_default = FALSE
+        WHERE is_default = TRUE
+    </update>
+
+</mapper>
+
