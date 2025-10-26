@@ -4996,3 +4996,239 @@ java.lang.IllegalArgumentException: 报告正在生成中，请稍后再试
 2025-10-26 14:00:55.477 [http-nio-8080-exec-6] INFO  com.victor.iatms.aspect.WebLogAspect - Execution Time: 61 ms
 2025-10-26 14:00:55.480 [http-nio-8080-exec-6] INFO  com.victor.iatms.aspect.WebLogAspect - Response      : <200 OK OK,Byte array resource [resource loaded from byte array],[Content-Disposition:"form-data; name="attachment"; filename="ISO%E4%BC%81%E4%B8%9A%E7%BA%A7%E6%B5%8B%E8%AF%95%E6%8A%A5%E5%91%8A_TR-20251012-0001_20251026_140055.html"", Content-Type:"text/html;charset=UTF-8", Cache-Control:"no-cache, no-store, must-revalidate", Pragma:"no-cache", Expires:"Thu, 01 Jan 1970 00:00:00 GMT"]>
 2025-10-26 14:00:55.481 [http-nio-8080-exec-6] INFO  com.victor.iatms.aspect.WebLogAspect - ====================================================
+2025-10-26 14:28:45.883 [http-nio-8080-exec-7] INFO  com.victor.iatms.aspect.WebLogAspect - ================ HTTP Request Start ================
+2025-10-26 14:28:45.887 [http-nio-8080-exec-7] INFO  com.victor.iatms.aspect.WebLogAspect - Request ID    : 759b1d86953d43d6
+2025-10-26 14:28:45.888 [http-nio-8080-exec-7] INFO  com.victor.iatms.aspect.WebLogAspect - URL           : http://localhost:8080/api/reports
+2025-10-26 14:28:45.912 [http-nio-8080-exec-7] INFO  com.victor.iatms.aspect.WebLogAspect - URI           : /api/reports
+2025-10-26 14:28:45.912 [http-nio-8080-exec-7] INFO  com.victor.iatms.aspect.WebLogAspect - HTTP Method   : GET
+2025-10-26 14:28:45.912 [http-nio-8080-exec-7] INFO  com.victor.iatms.aspect.WebLogAspect - IP Address    : 0:0:0:0:0:0:0:1
+2025-10-26 14:28:45.912 [http-nio-8080-exec-7] INFO  com.victor.iatms.aspect.WebLogAspect - Class Method  : com.victor.iatms.controller.ReportController.getReportList
+2025-10-26 14:28:45.912 [http-nio-8080-exec-7] INFO  com.victor.iatms.aspect.WebLogAspect - Content-Type  : null
+2025-10-26 14:28:45.912 [http-nio-8080-exec-7] INFO  com.victor.iatms.aspect.WebLogAspect - Request Headers:
+2025-10-26 14:28:45.912 [http-nio-8080-exec-7] INFO  com.victor.iatms.aspect.WebLogAspect -   Authorization : Bearer eyJhbGciOi...CODbLkSjig
+2025-10-26 14:28:45.912 [http-nio-8080-exec-7] INFO  com.victor.iatms.aspect.WebLogAspect -   Accept : application/json, text/plain, */*
+2025-10-26 14:28:45.912 [http-nio-8080-exec-7] INFO  com.victor.iatms.aspect.WebLogAspect -   Referer : http://localhost:5175/reports
+2025-10-26 14:28:45.912 [http-nio-8080-exec-7] INFO  com.victor.iatms.aspect.WebLogAspect - Query Parameters:
+2025-10-26 14:28:45.912 [http-nio-8080-exec-7] INFO  com.victor.iatms.aspect.WebLogAspect -   tags : 
+2025-10-26 14:28:45.912 [http-nio-8080-exec-7] INFO  com.victor.iatms.aspect.WebLogAspect -   search_keyword : 
+2025-10-26 14:28:45.912 [http-nio-8080-exec-7] INFO  com.victor.iatms.aspect.WebLogAspect -   sort_by : start_time
+2025-10-26 14:28:45.912 [http-nio-8080-exec-7] INFO  com.victor.iatms.aspect.WebLogAspect -   sort_order : desc
+2025-10-26 14:28:45.912 [http-nio-8080-exec-7] INFO  com.victor.iatms.aspect.WebLogAspect -   include_deleted : false
+2025-10-26 14:28:45.913 [http-nio-8080-exec-7] INFO  com.victor.iatms.aspect.WebLogAspect -   page : 1
+2025-10-26 14:28:45.913 [http-nio-8080-exec-7] INFO  com.victor.iatms.aspect.WebLogAspect -   page_size : 20
+2025-10-26 14:28:45.913 [http-nio-8080-exec-7] INFO  com.victor.iatms.aspect.WebLogAspect - Method Arguments:
+2025-10-26 14:28:45.913 [http-nio-8080-exec-7] INFO  com.victor.iatms.aspect.WebLogAspect -   projectId : null
+2025-10-26 14:28:45.913 [http-nio-8080-exec-7] INFO  com.victor.iatms.aspect.WebLogAspect -   reportType : null
+2025-10-26 14:28:45.913 [http-nio-8080-exec-7] INFO  com.victor.iatms.aspect.WebLogAspect -   environment : null
+2025-10-26 14:28:45.913 [http-nio-8080-exec-7] INFO  com.victor.iatms.aspect.WebLogAspect -   reportStatus : null
+2025-10-26 14:28:45.913 [http-nio-8080-exec-7] INFO  com.victor.iatms.aspect.WebLogAspect -   fileFormat : null
+2025-10-26 14:28:45.913 [http-nio-8080-exec-7] INFO  com.victor.iatms.aspect.WebLogAspect -   startTimeBegin : null
+2025-10-26 14:28:45.913 [http-nio-8080-exec-7] INFO  com.victor.iatms.aspect.WebLogAspect -   startTimeEnd : null
+2025-10-26 14:28:45.913 [http-nio-8080-exec-7] INFO  com.victor.iatms.aspect.WebLogAspect -   successRateMin : null
+2025-10-26 14:28:45.913 [http-nio-8080-exec-7] INFO  com.victor.iatms.aspect.WebLogAspect -   successRateMax : null
+2025-10-26 14:28:45.913 [http-nio-8080-exec-7] INFO  com.victor.iatms.aspect.WebLogAspect -   tags : ""
+2025-10-26 14:28:45.913 [http-nio-8080-exec-7] INFO  com.victor.iatms.aspect.WebLogAspect -   searchKeyword : ""
+2025-10-26 14:28:45.914 [http-nio-8080-exec-7] INFO  com.victor.iatms.aspect.WebLogAspect -   sortBy : "start_time"
+2025-10-26 14:28:45.914 [http-nio-8080-exec-7] INFO  com.victor.iatms.aspect.WebLogAspect -   sortOrder : "desc"
+2025-10-26 14:28:45.914 [http-nio-8080-exec-7] INFO  com.victor.iatms.aspect.WebLogAspect -   includeDeleted : false
+2025-10-26 14:28:45.914 [http-nio-8080-exec-7] INFO  com.victor.iatms.aspect.WebLogAspect -   page : 1
+2025-10-26 14:28:45.914 [http-nio-8080-exec-7] INFO  com.victor.iatms.aspect.WebLogAspect -   pageSize : 20
+2025-10-26 14:28:45.914 [http-nio-8080-exec-7] INFO  com.victor.iatms.aspect.WebLogAspect - User-Agent    : Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36 Edg/141.0.0.0
+2025-10-26 14:28:45.914 [http-nio-8080-exec-7] INFO  com.victor.iatms.aspect.WebLogAspect - ====================================================
+2025-10-26 14:28:45.941 [http-nio-8080-exec-7] DEBUG o.springframework.jdbc.datasource.DataSourceUtils - Fetching JDBC Connection from DataSource
+2025-10-26 14:28:46.081 [http-nio-8080-exec-7] DEBUG o.springframework.jdbc.datasource.DataSourceUtils - Fetching JDBC Connection from DataSource
+2025-10-26 14:28:46.096 [http-nio-8080-exec-7] DEBUG o.springframework.jdbc.datasource.DataSourceUtils - Fetching JDBC Connection from DataSource
+2025-10-26 14:28:46.102 [http-nio-8080-exec-7] DEBUG o.springframework.jdbc.datasource.DataSourceUtils - Fetching JDBC Connection from DataSource
+2025-10-26 14:28:46.113 [http-nio-8080-exec-7] DEBUG o.springframework.jdbc.datasource.DataSourceUtils - Fetching JDBC Connection from DataSource
+2025-10-26 14:28:46.120 [http-nio-8080-exec-7] INFO  com.victor.iatms.aspect.WebLogAspect - ================ HTTP Response Start ===============
+2025-10-26 14:28:46.121 [http-nio-8080-exec-7] INFO  com.victor.iatms.aspect.WebLogAspect - Request ID    : 759b1d86953d43d6
+2025-10-26 14:28:46.121 [http-nio-8080-exec-7] INFO  com.victor.iatms.aspect.WebLogAspect - Success       : true
+2025-10-26 14:28:46.121 [http-nio-8080-exec-7] INFO  com.victor.iatms.aspect.WebLogAspect - Execution Time: 244 ms
+2025-10-26 14:28:46.156 [http-nio-8080-exec-7] INFO  com.victor.iatms.aspect.WebLogAspect - Response      : {"code":1,"msg":"查询报告列表成功","data":{"total":173,"items":[{"reportId":195,"reportName":"接口测试报告 - 密码错误登录测试","reportType":"execution","projectId":1,"projectName":"PAMC Exchange Platform","environment":"dev","startTime":"2025-10-23T16:21:54","endTime":"2025-10-23T16:21:54","duration":381,"totalCases":1,"executedCases":1,"passedCases":1,"failedCases":0,"brokenCases":0,"skippedCases":0,"successRate":100.00,"reportStatus":"generating","fileFormat":"html","generatedBy":1,"generatorName":"系统管理员","createdAt":"2025-10-23T16:21:54","isDeleted":false},{"reportId":194,"reportName":"接口测试报告 - 用户名不存在登录测试","reportType":"execution","projectId":1,"projectName":"PAMC Exchange Platform","environment":"dev","startTime":"2025-10-23T16:21:54","endTime":"2025-10-23T16:21:54","duration":144,"totalCases":1,"executedCases":1,"passedCases":1,"failedCases":0,"brokenCases":0,"skippedCases":0,"successRate":100.00,"reportStatus":"generating","fileFormat":"html","generatedBy":1,"generatorName":"系统管理员","createdAt":"2025-1 ... (truncated, total 9927 chars)
+2025-10-26 14:28:46.157 [http-nio-8080-exec-7] INFO  com.victor.iatms.aspect.WebLogAspect - ====================================================
+2025-10-26 16:34:03.890 [background-preinit] INFO  org.hibernate.validator.internal.util.Version - HV000001: Hibernate Validator 8.0.3.Final
+2025-10-26 16:34:03.973 [main] INFO  com.victor.iatms.IatmsApplication - Starting IatmsApplication using Java 17.0.14 with PID 32820 (D:\GDUF\毕设\MyEssay\code\backend\IATMSII\iatms\target\classes started by Victor in D:\GDUF\毕设\MyEssay\code\backend\IATMSII\iatms)
+2025-10-26 16:34:03.973 [main] DEBUG com.victor.iatms.IatmsApplication - Running with Spring Boot v3.5.5, Spring v6.2.10
+2025-10-26 16:34:03.974 [main] INFO  com.victor.iatms.IatmsApplication - No active profile set, falling back to 1 default profile: "default"
+2025-10-26 16:34:05.041 [main] DEBUG o.m.s.boot.autoconfigure.MybatisAutoConfiguration - Searching for mappers annotated with @Mapper
+2025-10-26 16:34:05.041 [main] DEBUG o.m.s.boot.autoconfigure.MybatisAutoConfiguration - Using auto-configuration base package 'com.victor.iatms'
+2025-10-26 16:34:05.126 [main] INFO  o.s.d.r.config.RepositoryConfigurationDelegate - Multiple Spring Data modules found, entering strict repository configuration mode
+2025-10-26 16:34:05.131 [main] INFO  o.s.d.r.config.RepositoryConfigurationDelegate - Bootstrapping Spring Data Redis repositories in DEFAULT mode.
+2025-10-26 16:34:05.200 [main] INFO  o.s.d.r.config.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 24 ms. Found 0 Redis repository interfaces.
+2025-10-26 16:34:05.360 [main] DEBUG org.apache.ibatis.logging.LogFactory - Logging initialized using 'class org.apache.ibatis.logging.slf4j.Slf4jImpl' adapter.
+2025-10-26 16:34:05.378 [main] DEBUG org.mybatis.spring.mapper.ClassPathMapperScanner - Identified candidate component class: file [D:\GDUF\毕设\MyEssay\code\backend\IATMSII\iatms\target\classes\com\victor\iatms\mappers\ApiMapper.class]
+2025-10-26 16:34:05.378 [main] DEBUG org.mybatis.spring.mapper.ClassPathMapperScanner - Identified candidate component class: file [D:\GDUF\毕设\MyEssay\code\backend\IATMSII\iatms\target\classes\com\victor\iatms\mappers\EnvironmentConfigMapper.class]
+2025-10-26 16:34:05.378 [main] DEBUG org.mybatis.spring.mapper.ClassPathMapperScanner - Identified candidate component class: file [D:\GDUF\毕设\MyEssay\code\backend\IATMSII\iatms\target\classes\com\victor\iatms\mappers\ModuleMapper.class]
+2025-10-26 16:34:05.378 [main] DEBUG org.mybatis.spring.mapper.ClassPathMapperScanner - Identified candidate component class: file [D:\GDUF\毕设\MyEssay\code\backend\IATMSII\iatms\target\classes\com\victor\iatms\mappers\ProjectMapper.class]
+2025-10-26 16:34:05.378 [main] DEBUG org.mybatis.spring.mapper.ClassPathMapperScanner - Identified candidate component class: file [D:\GDUF\毕设\MyEssay\code\backend\IATMSII\iatms\target\classes\com\victor\iatms\mappers\ReportMapper.class]
+2025-10-26 16:34:05.379 [main] DEBUG org.mybatis.spring.mapper.ClassPathMapperScanner - Identified candidate component class: file [D:\GDUF\毕设\MyEssay\code\backend\IATMSII\iatms\target\classes\com\victor\iatms\mappers\TestCaseMapper.class]
+2025-10-26 16:34:05.379 [main] DEBUG org.mybatis.spring.mapper.ClassPathMapperScanner - Identified candidate component class: file [D:\GDUF\毕设\MyEssay\code\backend\IATMSII\iatms\target\classes\com\victor\iatms\mappers\TestExecutionMapper.class]
+2025-10-26 16:34:05.379 [main] DEBUG org.mybatis.spring.mapper.ClassPathMapperScanner - Identified candidate component class: file [D:\GDUF\毕设\MyEssay\code\backend\IATMSII\iatms\target\classes\com\victor\iatms\mappers\TestExecutionRecordMapper.class]
+2025-10-26 16:34:05.379 [main] DEBUG org.mybatis.spring.mapper.ClassPathMapperScanner - Identified candidate component class: file [D:\GDUF\毕设\MyEssay\code\backend\IATMSII\iatms\target\classes\com\victor\iatms\mappers\TestMapper.class]
+2025-10-26 16:34:05.379 [main] DEBUG org.mybatis.spring.mapper.ClassPathMapperScanner - Identified candidate component class: file [D:\GDUF\毕设\MyEssay\code\backend\IATMSII\iatms\target\classes\com\victor\iatms\mappers\UserMapper.class]
+2025-10-26 16:34:05.379 [main] DEBUG org.mybatis.spring.mapper.ClassPathMapperScanner - Identified candidate component class: file [D:\GDUF\毕设\MyEssay\code\backend\IATMSII\iatms\target\classes\com\victor\iatms\mappers\UserRoleMapper.class]
+2025-10-26 16:34:05.381 [main] DEBUG org.mybatis.spring.mapper.ClassPathMapperScanner - Creating MapperFactoryBean with name 'apiMapper' and 'com.victor.iatms.mappers.ApiMapper' mapperInterface
+2025-10-26 16:34:05.385 [main] DEBUG org.mybatis.spring.mapper.ClassPathMapperScanner - Creating MapperFactoryBean with name 'environmentConfigMapper' and 'com.victor.iatms.mappers.EnvironmentConfigMapper' mapperInterface
+2025-10-26 16:34:05.385 [main] DEBUG org.mybatis.spring.mapper.ClassPathMapperScanner - Creating MapperFactoryBean with name 'moduleMapper' and 'com.victor.iatms.mappers.ModuleMapper' mapperInterface
+2025-10-26 16:34:05.386 [main] DEBUG org.mybatis.spring.mapper.ClassPathMapperScanner - Creating MapperFactoryBean with name 'projectMapper' and 'com.victor.iatms.mappers.ProjectMapper' mapperInterface
+2025-10-26 16:34:05.387 [main] DEBUG org.mybatis.spring.mapper.ClassPathMapperScanner - Creating MapperFactoryBean with name 'reportMapper' and 'com.victor.iatms.mappers.ReportMapper' mapperInterface
+2025-10-26 16:34:05.387 [main] DEBUG org.mybatis.spring.mapper.ClassPathMapperScanner - Creating MapperFactoryBean with name 'testCaseMapper' and 'com.victor.iatms.mappers.TestCaseMapper' mapperInterface
+2025-10-26 16:34:05.388 [main] DEBUG org.mybatis.spring.mapper.ClassPathMapperScanner - Creating MapperFactoryBean with name 'testExecutionMapper' and 'com.victor.iatms.mappers.TestExecutionMapper' mapperInterface
+2025-10-26 16:34:05.388 [main] DEBUG org.mybatis.spring.mapper.ClassPathMapperScanner - Creating MapperFactoryBean with name 'testExecutionRecordMapper' and 'com.victor.iatms.mappers.TestExecutionRecordMapper' mapperInterface
+2025-10-26 16:34:05.389 [main] DEBUG org.mybatis.spring.mapper.ClassPathMapperScanner - Creating MapperFactoryBean with name 'testMapper' and 'com.victor.iatms.mappers.TestMapper' mapperInterface
+2025-10-26 16:34:05.389 [main] DEBUG org.mybatis.spring.mapper.ClassPathMapperScanner - Creating MapperFactoryBean with name 'userMapper' and 'com.victor.iatms.mappers.UserMapper' mapperInterface
+2025-10-26 16:34:05.390 [main] DEBUG org.mybatis.spring.mapper.ClassPathMapperScanner - Creating MapperFactoryBean with name 'userRoleMapper' and 'com.victor.iatms.mappers.UserRoleMapper' mapperInterface
+2025-10-26 16:34:06.416 [main] INFO  o.s.boot.web.embedded.tomcat.TomcatWebServer - Tomcat initialized with port 8080 (http)
+2025-10-26 16:34:06.432 [main] INFO  org.apache.coyote.http11.Http11NioProtocol - Initializing ProtocolHandler ["http-nio-8080"]
+2025-10-26 16:34:06.434 [main] INFO  org.apache.catalina.core.StandardService - Starting service [Tomcat]
+2025-10-26 16:34:06.434 [main] INFO  org.apache.catalina.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/10.1.44]
+2025-10-26 16:34:06.495 [main] INFO  o.a.c.c.ContainerBase.[Tomcat].[localhost].[/api] - Initializing Spring embedded WebApplicationContext
+2025-10-26 16:34:06.495 [main] INFO  o.s.b.w.s.c.ServletWebServerApplicationContext - Root WebApplicationContext: initialization completed in 2473 ms
+2025-10-26 16:34:06.958 [main] DEBUG org.mybatis.spring.SqlSessionFactoryBean - Parsed mapper file: 'file [D:\GDUF\毕设\MyEssay\code\backend\IATMSII\iatms\target\classes\mapper\ApiMapper.xml]'
+2025-10-26 16:34:06.979 [main] DEBUG org.mybatis.spring.SqlSessionFactoryBean - Parsed mapper file: 'file [D:\GDUF\毕设\MyEssay\code\backend\IATMSII\iatms\target\classes\mapper\EnvironmentConfigMapper.xml]'
+2025-10-26 16:34:07.009 [main] DEBUG org.mybatis.spring.SqlSessionFactoryBean - Parsed mapper file: 'file [D:\GDUF\毕设\MyEssay\code\backend\IATMSII\iatms\target\classes\mapper\ModuleMapper.xml]'
+2025-10-26 16:34:07.047 [main] DEBUG org.mybatis.spring.SqlSessionFactoryBean - Parsed mapper file: 'file [D:\GDUF\毕设\MyEssay\code\backend\IATMSII\iatms\target\classes\mapper\ProjectMapper.xml]'
+2025-10-26 16:34:07.074 [main] DEBUG org.mybatis.spring.SqlSessionFactoryBean - Parsed mapper file: 'file [D:\GDUF\毕设\MyEssay\code\backend\IATMSII\iatms\target\classes\mapper\ReportMapper.xml]'
+2025-10-26 16:34:07.090 [main] DEBUG org.mybatis.spring.SqlSessionFactoryBean - Parsed mapper file: 'file [D:\GDUF\毕设\MyEssay\code\backend\IATMSII\iatms\target\classes\mapper\TestCaseMapper.xml]'
+2025-10-26 16:34:07.131 [main] DEBUG org.mybatis.spring.SqlSessionFactoryBean - Parsed mapper file: 'file [D:\GDUF\毕设\MyEssay\code\backend\IATMSII\iatms\target\classes\mapper\TestExecutionMapper.xml]'
+2025-10-26 16:34:07.141 [main] DEBUG org.mybatis.spring.SqlSessionFactoryBean - Parsed mapper file: 'file [D:\GDUF\毕设\MyEssay\code\backend\IATMSII\iatms\target\classes\mapper\TestExecutionRecordMapper.xml]'
+2025-10-26 16:34:07.148 [main] DEBUG org.mybatis.spring.SqlSessionFactoryBean - Parsed mapper file: 'file [D:\GDUF\毕设\MyEssay\code\backend\IATMSII\iatms\target\classes\mapper\UserMapper.xml]'
+2025-10-26 16:34:07.153 [main] DEBUG org.mybatis.spring.SqlSessionFactoryBean - Parsed mapper file: 'file [D:\GDUF\毕设\MyEssay\code\backend\IATMSII\iatms\target\classes\mapper\UserRoleMapper.xml]'
+2025-10-26 16:34:08.345 [main] DEBUG o.m.s.boot.autoconfigure.MybatisAutoConfiguration - Not found configuration for registering mapper bean using @MapperScan, MapperFactoryBean and MapperScannerConfigurer.
+2025-10-26 16:34:08.819 [main] INFO  org.quartz.impl.StdSchedulerFactory - Using default implementation for ThreadExecutor
+2025-10-26 16:34:08.840 [main] INFO  org.quartz.core.SchedulerSignalerImpl - Initialized Scheduler Signaller of type: class org.quartz.core.SchedulerSignalerImpl
+2025-10-26 16:34:08.840 [main] INFO  org.quartz.core.QuartzScheduler - Quartz Scheduler v2.5.0 created.
+2025-10-26 16:34:08.842 [main] INFO  org.quartz.simpl.RAMJobStore - RAMJobStore initialized.
+2025-10-26 16:34:08.843 [main] INFO  org.quartz.core.QuartzScheduler - Scheduler meta-data: Quartz Scheduler (v2.5.0) 'quartzScheduler' with instanceId 'NON_CLUSTERED'
+  Scheduler class: 'org.quartz.core.QuartzScheduler' - running locally.
+  NOT STARTED.
+  Currently in standby mode.
+  Number of jobs executed: 0
+  Using thread pool 'org.quartz.simpl.SimpleThreadPool' - with 10 threads.
+  Using job-store 'org.quartz.simpl.RAMJobStore' - which does not support persistence. and is not clustered.
+
+2025-10-26 16:34:08.844 [main] INFO  org.quartz.impl.StdSchedulerFactory - Quartz scheduler 'quartzScheduler' initialized from an externally provided properties instance.
+2025-10-26 16:34:08.844 [main] INFO  org.quartz.impl.StdSchedulerFactory - Quartz scheduler version: 2.5.0
+2025-10-26 16:34:08.844 [main] INFO  org.quartz.core.QuartzScheduler - JobFactory set to: org.springframework.scheduling.quartz.SpringBeanJobFactory@1b26fac2
+2025-10-26 16:34:08.930 [main] INFO  org.apache.coyote.http11.Http11NioProtocol - Starting ProtocolHandler ["http-nio-8080"]
+2025-10-26 16:34:08.958 [main] INFO  o.s.boot.web.embedded.tomcat.TomcatWebServer - Tomcat started on port 8080 (http) with context path '/api'
+2025-10-26 16:34:08.961 [main] INFO  o.s.scheduling.quartz.SchedulerFactoryBean - Starting Quartz Scheduler now
+2025-10-26 16:34:08.961 [main] INFO  org.quartz.core.QuartzScheduler - Scheduler quartzScheduler_$_NON_CLUSTERED started.
+2025-10-26 16:34:08.973 [main] INFO  com.victor.iatms.IatmsApplication - Started IatmsApplication in 5.799 seconds (process running for 8.228)
+2025-10-26 16:39:28.380 [http-nio-8080-exec-1] INFO  o.a.c.c.ContainerBase.[Tomcat].[localhost].[/api] - Initializing Spring DispatcherServlet 'dispatcherServlet'
+2025-10-26 16:39:28.381 [http-nio-8080-exec-1] INFO  org.springframework.web.servlet.DispatcherServlet - Initializing Servlet 'dispatcherServlet'
+2025-10-26 16:39:28.385 [http-nio-8080-exec-1] INFO  org.springframework.web.servlet.DispatcherServlet - Completed initialization in 4 ms
+2025-10-26 16:39:28.527 [http-nio-8080-exec-1] INFO  com.victor.iatms.aspect.WebLogAspect - ================ HTTP Request Start ================
+2025-10-26 16:39:28.528 [http-nio-8080-exec-1] INFO  com.victor.iatms.aspect.WebLogAspect - Request ID    : cbe58335c2844419
+2025-10-26 16:39:28.528 [http-nio-8080-exec-1] INFO  com.victor.iatms.aspect.WebLogAspect - URL           : http://localhost:8080/api/reports
+2025-10-26 16:39:28.528 [http-nio-8080-exec-1] INFO  com.victor.iatms.aspect.WebLogAspect - URI           : /api/reports
+2025-10-26 16:39:28.528 [http-nio-8080-exec-1] INFO  com.victor.iatms.aspect.WebLogAspect - HTTP Method   : GET
+2025-10-26 16:39:28.528 [http-nio-8080-exec-1] INFO  com.victor.iatms.aspect.WebLogAspect - IP Address    : 0:0:0:0:0:0:0:1
+2025-10-26 16:39:28.528 [http-nio-8080-exec-1] INFO  com.victor.iatms.aspect.WebLogAspect - Class Method  : com.victor.iatms.controller.ReportController.getReportList
+2025-10-26 16:39:28.528 [http-nio-8080-exec-1] INFO  com.victor.iatms.aspect.WebLogAspect - Content-Type  : null
+2025-10-26 16:39:28.528 [http-nio-8080-exec-1] INFO  com.victor.iatms.aspect.WebLogAspect - Request Headers:
+2025-10-26 16:39:28.529 [http-nio-8080-exec-1] INFO  com.victor.iatms.aspect.WebLogAspect -   Authorization : Bearer eyJhbGciOi...CODbLkSjig
+2025-10-26 16:39:28.529 [http-nio-8080-exec-1] INFO  com.victor.iatms.aspect.WebLogAspect -   Accept : application/json, text/plain, */*
+2025-10-26 16:39:28.529 [http-nio-8080-exec-1] INFO  com.victor.iatms.aspect.WebLogAspect -   Referer : http://localhost:5175/reports
+2025-10-26 16:39:28.529 [http-nio-8080-exec-1] INFO  com.victor.iatms.aspect.WebLogAspect - Query Parameters:
+2025-10-26 16:39:28.530 [http-nio-8080-exec-1] INFO  com.victor.iatms.aspect.WebLogAspect -   tags : 
+2025-10-26 16:39:28.530 [http-nio-8080-exec-1] INFO  com.victor.iatms.aspect.WebLogAspect -   search_keyword : 
+2025-10-26 16:39:28.530 [http-nio-8080-exec-1] INFO  com.victor.iatms.aspect.WebLogAspect -   sort_by : start_time
+2025-10-26 16:39:28.530 [http-nio-8080-exec-1] INFO  com.victor.iatms.aspect.WebLogAspect -   sort_order : desc
+2025-10-26 16:39:28.530 [http-nio-8080-exec-1] INFO  com.victor.iatms.aspect.WebLogAspect -   include_deleted : false
+2025-10-26 16:39:28.530 [http-nio-8080-exec-1] INFO  com.victor.iatms.aspect.WebLogAspect -   page : 1
+2025-10-26 16:39:28.530 [http-nio-8080-exec-1] INFO  com.victor.iatms.aspect.WebLogAspect -   page_size : 20
+2025-10-26 16:39:28.530 [http-nio-8080-exec-1] INFO  com.victor.iatms.aspect.WebLogAspect - Method Arguments:
+2025-10-26 16:39:28.531 [http-nio-8080-exec-1] INFO  com.victor.iatms.aspect.WebLogAspect -   projectId : null
+2025-10-26 16:39:28.531 [http-nio-8080-exec-1] INFO  com.victor.iatms.aspect.WebLogAspect -   reportType : null
+2025-10-26 16:39:28.531 [http-nio-8080-exec-1] INFO  com.victor.iatms.aspect.WebLogAspect -   environment : null
+2025-10-26 16:39:28.532 [http-nio-8080-exec-1] INFO  com.victor.iatms.aspect.WebLogAspect -   reportStatus : null
+2025-10-26 16:39:28.533 [http-nio-8080-exec-1] INFO  com.victor.iatms.aspect.WebLogAspect -   fileFormat : null
+2025-10-26 16:39:28.533 [http-nio-8080-exec-1] INFO  com.victor.iatms.aspect.WebLogAspect -   startTimeBegin : null
+2025-10-26 16:39:28.533 [http-nio-8080-exec-1] INFO  com.victor.iatms.aspect.WebLogAspect -   startTimeEnd : null
+2025-10-26 16:39:28.534 [http-nio-8080-exec-1] INFO  com.victor.iatms.aspect.WebLogAspect -   successRateMin : null
+2025-10-26 16:39:28.534 [http-nio-8080-exec-1] INFO  com.victor.iatms.aspect.WebLogAspect -   successRateMax : null
+2025-10-26 16:39:28.534 [http-nio-8080-exec-1] INFO  com.victor.iatms.aspect.WebLogAspect -   tags : ""
+2025-10-26 16:39:28.534 [http-nio-8080-exec-1] INFO  com.victor.iatms.aspect.WebLogAspect -   searchKeyword : ""
+2025-10-26 16:39:28.535 [http-nio-8080-exec-1] INFO  com.victor.iatms.aspect.WebLogAspect -   sortBy : "start_time"
+2025-10-26 16:39:28.535 [http-nio-8080-exec-1] INFO  com.victor.iatms.aspect.WebLogAspect -   sortOrder : "desc"
+2025-10-26 16:39:28.535 [http-nio-8080-exec-1] INFO  com.victor.iatms.aspect.WebLogAspect -   includeDeleted : false
+2025-10-26 16:39:28.535 [http-nio-8080-exec-1] INFO  com.victor.iatms.aspect.WebLogAspect -   page : 1
+2025-10-26 16:39:28.535 [http-nio-8080-exec-1] INFO  com.victor.iatms.aspect.WebLogAspect -   pageSize : 20
+2025-10-26 16:39:28.535 [http-nio-8080-exec-1] INFO  com.victor.iatms.aspect.WebLogAspect - User-Agent    : Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36 Edg/141.0.0.0
+2025-10-26 16:39:28.535 [http-nio-8080-exec-1] INFO  com.victor.iatms.aspect.WebLogAspect - ====================================================
+2025-10-26 16:39:28.696 [http-nio-8080-exec-1] DEBUG o.springframework.jdbc.datasource.DataSourceUtils - Fetching JDBC Connection from DataSource
+2025-10-26 16:39:28.699 [http-nio-8080-exec-1] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
+2025-10-26 16:39:29.047 [http-nio-8080-exec-1] INFO  com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@43f0e2c0
+2025-10-26 16:39:29.049 [http-nio-8080-exec-1] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2025-10-26 16:39:29.298 [http-nio-8080-exec-1] DEBUG o.springframework.jdbc.datasource.DataSourceUtils - Fetching JDBC Connection from DataSource
+2025-10-26 16:39:29.306 [http-nio-8080-exec-1] DEBUG o.springframework.jdbc.datasource.DataSourceUtils - Fetching JDBC Connection from DataSource
+2025-10-26 16:39:29.311 [http-nio-8080-exec-1] DEBUG o.springframework.jdbc.datasource.DataSourceUtils - Fetching JDBC Connection from DataSource
+2025-10-26 16:39:29.317 [http-nio-8080-exec-1] DEBUG o.springframework.jdbc.datasource.DataSourceUtils - Fetching JDBC Connection from DataSource
+2025-10-26 16:39:29.321 [http-nio-8080-exec-1] INFO  com.victor.iatms.aspect.WebLogAspect - ================ HTTP Response Start ===============
+2025-10-26 16:39:29.322 [http-nio-8080-exec-1] INFO  com.victor.iatms.aspect.WebLogAspect - Request ID    : cbe58335c2844419
+2025-10-26 16:39:29.322 [http-nio-8080-exec-1] INFO  com.victor.iatms.aspect.WebLogAspect - Success       : true
+2025-10-26 16:39:29.322 [http-nio-8080-exec-1] INFO  com.victor.iatms.aspect.WebLogAspect - Execution Time: 826 ms
+2025-10-26 16:39:29.435 [http-nio-8080-exec-1] INFO  com.victor.iatms.aspect.WebLogAspect - Response      : {"code":1,"msg":"查询报告列表成功","data":{"total":173,"items":[{"reportId":195,"reportName":"接口测试报告 - 密码错误登录测试","reportType":"execution","projectId":1,"projectName":"PAMC Exchange Platform","environment":"dev","startTime":"2025-10-23T16:21:54","endTime":"2025-10-23T16:21:54","duration":381,"totalCases":1,"executedCases":1,"passedCases":1,"failedCases":0,"brokenCases":0,"skippedCases":0,"successRate":100.00,"reportStatus":"generating","fileFormat":"html","generatedBy":1,"generatorName":"系统管理员","createdAt":"2025-10-23T16:21:54","isDeleted":false},{"reportId":194,"reportName":"接口测试报告 - 用户名不存在登录测试","reportType":"execution","projectId":1,"projectName":"PAMC Exchange Platform","environment":"dev","startTime":"2025-10-23T16:21:54","endTime":"2025-10-23T16:21:54","duration":144,"totalCases":1,"executedCases":1,"passedCases":1,"failedCases":0,"brokenCases":0,"skippedCases":0,"successRate":100.00,"reportStatus":"generating","fileFormat":"html","generatedBy":1,"generatorName":"系统管理员","createdAt":"2025-1 ... (truncated, total 9927 chars)
+2025-10-26 16:39:29.435 [http-nio-8080-exec-1] INFO  com.victor.iatms.aspect.WebLogAspect - ====================================================
+2025-10-26 16:39:33.555 [http-nio-8080-exec-2] INFO  com.victor.iatms.aspect.WebLogAspect - ================ HTTP Request Start ================
+2025-10-26 16:39:33.556 [http-nio-8080-exec-2] INFO  com.victor.iatms.aspect.WebLogAspect - Request ID    : b9b2e38f50754d7c
+2025-10-26 16:39:33.556 [http-nio-8080-exec-2] INFO  com.victor.iatms.aspect.WebLogAspect - URL           : http://localhost:8080/api/reports/196
+2025-10-26 16:39:33.556 [http-nio-8080-exec-2] INFO  com.victor.iatms.aspect.WebLogAspect - URI           : /api/reports/196
+2025-10-26 16:39:33.556 [http-nio-8080-exec-2] INFO  com.victor.iatms.aspect.WebLogAspect - HTTP Method   : GET
+2025-10-26 16:39:33.556 [http-nio-8080-exec-2] INFO  com.victor.iatms.aspect.WebLogAspect - IP Address    : 0:0:0:0:0:0:0:1
+2025-10-26 16:39:33.557 [http-nio-8080-exec-2] INFO  com.victor.iatms.aspect.WebLogAspect - Class Method  : com.victor.iatms.controller.ReportController.getReportById
+2025-10-26 16:39:33.557 [http-nio-8080-exec-2] INFO  com.victor.iatms.aspect.WebLogAspect - Content-Type  : null
+2025-10-26 16:39:33.557 [http-nio-8080-exec-2] INFO  com.victor.iatms.aspect.WebLogAspect - Request Headers:
+2025-10-26 16:39:33.557 [http-nio-8080-exec-2] INFO  com.victor.iatms.aspect.WebLogAspect -   Authorization : Bearer eyJhbGciOi...CODbLkSjig
+2025-10-26 16:39:33.557 [http-nio-8080-exec-2] INFO  com.victor.iatms.aspect.WebLogAspect -   Accept : application/json, text/plain, */*
+2025-10-26 16:39:33.557 [http-nio-8080-exec-2] INFO  com.victor.iatms.aspect.WebLogAspect -   Referer : http://localhost:5175/reports
+2025-10-26 16:39:33.557 [http-nio-8080-exec-2] INFO  com.victor.iatms.aspect.WebLogAspect - Method Arguments:
+2025-10-26 16:39:33.557 [http-nio-8080-exec-2] INFO  com.victor.iatms.aspect.WebLogAspect -   reportId : 196
+2025-10-26 16:39:33.558 [http-nio-8080-exec-2] INFO  com.victor.iatms.aspect.WebLogAspect - User-Agent    : Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36 Edg/141.0.0.0
+2025-10-26 16:39:33.558 [http-nio-8080-exec-2] INFO  com.victor.iatms.aspect.WebLogAspect - ====================================================
+2025-10-26 16:39:33.561 [http-nio-8080-exec-2] DEBUG o.springframework.jdbc.datasource.DataSourceUtils - Fetching JDBC Connection from DataSource
+2025-10-26 16:39:33.570 [http-nio-8080-exec-2] INFO  com.victor.iatms.aspect.WebLogAspect - ================ HTTP Response Start ===============
+2025-10-26 16:39:33.570 [http-nio-8080-exec-2] INFO  com.victor.iatms.aspect.WebLogAspect - Request ID    : b9b2e38f50754d7c
+2025-10-26 16:39:33.570 [http-nio-8080-exec-2] INFO  com.victor.iatms.aspect.WebLogAspect - Success       : true
+2025-10-26 16:39:33.570 [http-nio-8080-exec-2] INFO  com.victor.iatms.aspect.WebLogAspect - Execution Time: 15 ms
+2025-10-26 16:39:33.577 [http-nio-8080-exec-2] INFO  com.victor.iatms.aspect.WebLogAspect - Response      : {"code":1,"msg":"查询报告详情成功","data":{"reportId":196,"reportName":"接口测试报告 - 正常登录测试","reportType":"execution","executionId":1761207714447,"projectId":1,"environment":"dev","startTime":"2025-10-23T16:21:54","endTime":"2025-10-23T16:21:54","duration":742,"totalCases":1,"executedCases":1,"passedCases":1,"failedCases":0,"brokenCases":0,"skippedCases":0,"successRate":100.00,"totalDuration":742,"avgDuration":742,"maxDuration":742,"minDuration":742,"reportStatus":"generating","fileFormat":"html","generatedBy":1,"createdAt":"2025-10-23T16:21:54","updatedAt":"2025-10-23T16:21:54","isDeleted":false}}
+2025-10-26 16:39:33.577 [http-nio-8080-exec-2] INFO  com.victor.iatms.aspect.WebLogAspect - ====================================================
+2025-10-26 16:39:40.869 [http-nio-8080-exec-3] INFO  com.victor.iatms.aspect.WebLogAspect - ================ HTTP Request Start ================
+2025-10-26 16:39:40.869 [http-nio-8080-exec-3] INFO  com.victor.iatms.aspect.WebLogAspect - Request ID    : 2117c6a931eb428b
+2025-10-26 16:39:40.870 [http-nio-8080-exec-3] INFO  com.victor.iatms.aspect.WebLogAspect - URL           : http://localhost:8080/api/reports/196/export/allure
+2025-10-26 16:39:40.870 [http-nio-8080-exec-3] INFO  com.victor.iatms.aspect.WebLogAspect - URI           : /api/reports/196/export/allure
+2025-10-26 16:39:40.870 [http-nio-8080-exec-3] INFO  com.victor.iatms.aspect.WebLogAspect - HTTP Method   : GET
+2025-10-26 16:39:40.870 [http-nio-8080-exec-3] INFO  com.victor.iatms.aspect.WebLogAspect - IP Address    : 0:0:0:0:0:0:0:1
+2025-10-26 16:39:40.870 [http-nio-8080-exec-3] INFO  com.victor.iatms.aspect.WebLogAspect - Class Method  : com.victor.iatms.controller.ReportController.exportAllureReport
+2025-10-26 16:39:40.870 [http-nio-8080-exec-3] INFO  com.victor.iatms.aspect.WebLogAspect - Content-Type  : null
+2025-10-26 16:39:40.870 [http-nio-8080-exec-3] INFO  com.victor.iatms.aspect.WebLogAspect - Request Headers:
+2025-10-26 16:39:40.870 [http-nio-8080-exec-3] INFO  com.victor.iatms.aspect.WebLogAspect -   Authorization : Bearer eyJhbGciOi...CODbLkSjig
+2025-10-26 16:39:40.870 [http-nio-8080-exec-3] INFO  com.victor.iatms.aspect.WebLogAspect -   Accept : application/json, text/plain, */*
+2025-10-26 16:39:40.870 [http-nio-8080-exec-3] INFO  com.victor.iatms.aspect.WebLogAspect -   Referer : http://localhost:5175/reports
+2025-10-26 16:39:40.870 [http-nio-8080-exec-3] INFO  com.victor.iatms.aspect.WebLogAspect - Query Parameters:
+2025-10-26 16:39:40.870 [http-nio-8080-exec-3] INFO  com.victor.iatms.aspect.WebLogAspect -   export_format : html
+2025-10-26 16:39:40.871 [http-nio-8080-exec-3] INFO  com.victor.iatms.aspect.WebLogAspect -   include_details : true
+2025-10-26 16:39:40.871 [http-nio-8080-exec-3] INFO  com.victor.iatms.aspect.WebLogAspect -   include_attachments : false
+2025-10-26 16:39:40.871 [http-nio-8080-exec-3] INFO  com.victor.iatms.aspect.WebLogAspect -   include_failure_details : true
+2025-10-26 16:39:40.871 [http-nio-8080-exec-3] INFO  com.victor.iatms.aspect.WebLogAspect -   timezone : Asia/Shanghai
+2025-10-26 16:39:40.871 [http-nio-8080-exec-3] INFO  com.victor.iatms.aspect.WebLogAspect - Method Arguments:
+2025-10-26 16:39:40.871 [http-nio-8080-exec-3] INFO  com.victor.iatms.aspect.WebLogAspect -   reportId : 196
+2025-10-26 16:39:40.871 [http-nio-8080-exec-3] INFO  com.victor.iatms.aspect.WebLogAspect -   locale : "zh_CN"
+2025-10-26 16:39:40.871 [http-nio-8080-exec-3] INFO  com.victor.iatms.aspect.WebLogAspect - User-Agent    : Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36 Edg/141.0.0.0
+2025-10-26 16:39:40.871 [http-nio-8080-exec-3] INFO  com.victor.iatms.aspect.WebLogAspect - ====================================================
+2025-10-26 16:39:40.871 [http-nio-8080-exec-3] INFO  com.victor.iatms.controller.ReportController - 开始导出Allure风格测试报告: reportId=196, locale=zh_CN
+2025-10-26 16:39:40.871 [http-nio-8080-exec-3] INFO  c.v.iatms.service.impl.AllureReportServiceImpl - 开始导出Allure风格测试报告: reportId=196, locale=zh_CN
+2025-10-26 16:39:40.871 [http-nio-8080-exec-3] INFO  c.v.iatms.service.impl.AllureReportServiceImpl - 开始构建Allure报告数据: reportId=196
+2025-10-26 16:39:40.872 [http-nio-8080-exec-3] DEBUG o.springframework.jdbc.datasource.DataSourceUtils - Fetching JDBC Connection from DataSource
+2025-10-26 16:39:40.877 [http-nio-8080-exec-3] DEBUG o.springframework.jdbc.datasource.DataSourceUtils - Fetching JDBC Connection from DataSource
+2025-10-26 16:39:40.886 [http-nio-8080-exec-3] INFO  c.v.iatms.service.impl.AllureReportServiceImpl - 查询到测试结果数: 0
+2025-10-26 16:39:40.888 [http-nio-8080-exec-3] INFO  c.v.iatms.service.impl.AllureReportServiceImpl - Allure报告数据构建完成: reportId=196
+2025-10-26 16:39:40.896 [http-nio-8080-exec-3] INFO  c.v.iatms.service.impl.AllureReportServiceImpl - Allure风格测试报告生成成功: reportId=196, fileName=Allure测试报告_20251026-196_20251026_163940.html
+2025-10-26 16:39:40.919 [http-nio-8080-exec-3] INFO  com.victor.iatms.controller.ReportController - Allure风格测试报告导出成功: reportId=196, fileName=Allure测试报告_20251026-196_20251026_163940.html
+2025-10-26 16:39:40.922 [http-nio-8080-exec-3] INFO  com.victor.iatms.aspect.WebLogAspect - ================ HTTP Response Start ===============
+2025-10-26 16:39:40.922 [http-nio-8080-exec-3] INFO  com.victor.iatms.aspect.WebLogAspect - Request ID    : 2117c6a931eb428b
+2025-10-26 16:39:40.922 [http-nio-8080-exec-3] INFO  com.victor.iatms.aspect.WebLogAspect - Success       : true
+2025-10-26 16:39:40.922 [http-nio-8080-exec-3] INFO  com.victor.iatms.aspect.WebLogAspect - Execution Time: 53 ms
+2025-10-26 16:39:40.960 [http-nio-8080-exec-3] INFO  com.victor.iatms.aspect.WebLogAspect - Response      : <200 OK OK,Byte array resource [resource loaded from byte array],[Content-Disposition:"form-data; name="attachment"; filename="Allure%E6%B5%8B%E8%AF%95%E6%8A%A5%E5%91%8A_20251026-196_20251026_163940.html"", Content-Type:"text/html;charset=UTF-8", Cache-Control:"no-cache, no-store, must-revalidate", Pragma:"no-cache", Expires:"Thu, 01 Jan 1970 00:00:00 GMT"]>
+2025-10-26 16:39:40.967 [http-nio-8080-exec-3] INFO  com.victor.iatms.aspect.WebLogAspect - ====================================================

@@ -44,6 +44,9 @@ public class ReportController {
     @Autowired
     private com.victor.iatms.service.ISOEnterpriseReportService isoEnterpriseReportService;
     
+    @Autowired
+    private com.victor.iatms.service.AllureReportService allureReportService;
+    
     /**
      * 分页查询测试报告列表
      * 
@@ -510,6 +513,57 @@ public class ReportController {
             return ResponseEntity.badRequest().build();
         } catch (Exception e) {
             log.error("导出ISO标准企业级报告失败: reportId={}, error={}", reportId, e.getMessage(), e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+    
+    /**
+     * 导出Allure风格测试报告（技术详细版）
+     * 面向测试和开发人员，包含详细的测试步骤、HTTP请求/响应、错误堆栈等
+     *
+     * @param reportId 报告ID
+     * @param locale 语言环境（zh_CN/en_US）
+     * @return HTML报告文件
+     */
+    @GetMapping("/{reportId}/export/allure")
+    @GlobalInterceptor(checkLogin = true)
+    public ResponseEntity<Resource> exportAllureReport(@PathVariable("reportId") Long reportId,
+                                                       @RequestParam(value = "locale", required = false, defaultValue = "zh_CN") String locale) {
+        try {
+            log.info("开始导出Allure风格测试报告: reportId={}, locale={}", reportId, locale);
+
+            // 导出Allure风格测试报告
+            Resource resource = allureReportService.exportAllureReport(reportId, locale);
+
+            // 设置响应头
+            HttpHeaders headers = new HttpHeaders();
+
+            // 设置Content-Disposition，支持中文文件名
+            String fileName = resource.getFilename();
+            if (fileName != null) {
+                String encodedFileName = java.net.URLEncoder.encode(fileName, "UTF-8").replaceAll("\\+", "%20");
+                headers.setContentDispositionFormData("attachment", encodedFileName);
+            }
+
+            // 设置Content-Type为HTML
+            headers.setContentType(MediaType.parseMediaType("text/html;charset=UTF-8"));
+
+            // 设置缓存控制
+            headers.setCacheControl("no-cache, no-store, must-revalidate");
+            headers.setPragma("no-cache");
+            headers.setExpires(0);
+
+            log.info("Allure风格测试报告导出成功: reportId={}, fileName={}", reportId, fileName);
+
+            return ResponseEntity.ok()
+                    .headers(headers)
+                    .body(resource);
+
+        } catch (IllegalArgumentException e) {
+            log.error("导出Allure风格测试报告参数错误: reportId={}, error={}", reportId, e.getMessage(), e);
+            return ResponseEntity.badRequest().build();
+        } catch (Exception e) {
+            log.error("导出Allure风格测试报告失败: reportId={}, error={}", reportId, e.getMessage(), e);
             return ResponseEntity.internalServerError().build();
         }
     }
