@@ -62,6 +62,16 @@ public class ReportListQueryDTO {
     private String tags;
     
     /**
+     * 报告配置ID过滤
+     */
+    private Integer reportConfigId;
+    
+    /**
+     * 是否只查询ISO报告（有iso_metrics的报告）
+     */
+    private Boolean isIsoReport;
+    
+    /**
      * 关键字搜索（报告名称、描述）
      */
     private String searchKeyword;

@@ -179,4 +179,106 @@ public class TestCaseResult {
      * 删除人ID
      */
     private Integer deletedBy;
+
+    // ==================== 新增字段 ====================
+
+    /**
+     * 用例ID（关联TestCases表）
+     */
+    private Integer caseId;
+
+    /**
+     * 用例编码
+     */
+    private String caseCode;
+
+    /**
+     * 用例名称
+     */
+    private String caseName;
+
+    /**
+     * 模块名称
+     */
+    private String moduleName;
+
+    /**
+     * 接口名称
+     */
+    private String apiName;
+
+    /**
+     * 测试套件名称
+     */
+    private String suiteName;
+
+    /**
+     * 包名/命名空间
+     */
+    private String packageName;
+
+    /**
+     * Epic名称
+     */
+    private String epicName;
+
+    /**
+     * Feature名称
+     */
+    private String featureName;
+
+    /**
+     * Story名称
+     */
+    private String storyName;
+
+    /**
+     * 测试层级（UNIT, INTEGRATION, API, E2E, PERFORMANCE, SECURITY）
+     */
+    private String testLayer;
+
+    /**
+     * 测试类型（POSITIVE, NEGATIVE, BOUNDARY, SECURITY, PERFORMANCE, USABILITY）
+     */
+    private String testType;
+
+    /**
+     * 不稳定次数
+     */
+    private Integer flakyCount;
+
+    /**
+     * 最后一次不稳定时间
+     */
+    private LocalDateTime lastFlakyTime;
+
+    /**
+     * 历史趋势数据（JSON格式）
+     */
+    private String historyTrend;
+
+    /**
+     * 自定义标签（JSON格式）
+     */
+    private String customLabels;
+
+    /**
+     * 根因分析
+     */
+    private String rootCauseAnalysis;
+
+    /**
+     * 影响评估（HIGH, MEDIUM, LOW）
+     */
+    private String impactAssessment;
+
+    /**
+     * 复测结果（PASSED, FAILED, NOT_RETESTED）
+     */
+    private String retestResult;
+
+    /**
+     * 复测备注
+     */
+    private String retestNotes;
 }

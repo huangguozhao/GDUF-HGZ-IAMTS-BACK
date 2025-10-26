@@ -5232,3 +5232,157 @@ java.lang.IllegalArgumentException: 报告正在生成中，请稍后再试
 2025-10-26 16:39:40.922 [http-nio-8080-exec-3] INFO  com.victor.iatms.aspect.WebLogAspect - Execution Time: 53 ms
 2025-10-26 16:39:40.960 [http-nio-8080-exec-3] INFO  com.victor.iatms.aspect.WebLogAspect - Response      : <200 OK OK,Byte array resource [resource loaded from byte array],[Content-Disposition:"form-data; name="attachment"; filename="Allure%E6%B5%8B%E8%AF%95%E6%8A%A5%E5%91%8A_20251026-196_20251026_163940.html"", Content-Type:"text/html;charset=UTF-8", Cache-Control:"no-cache, no-store, must-revalidate", Pragma:"no-cache", Expires:"Thu, 01 Jan 1970 00:00:00 GMT"]>
 2025-10-26 16:39:40.967 [http-nio-8080-exec-3] INFO  com.victor.iatms.aspect.WebLogAspect - ====================================================
+2025-10-26 20:00:22.452 [SpringApplicationShutdownHook] INFO  org.quartz.core.QuartzScheduler - Scheduler quartzScheduler_$_NON_CLUSTERED paused.
+2025-10-26 20:00:22.473 [SpringApplicationShutdownHook] INFO  o.s.boot.web.embedded.tomcat.GracefulShutdown - Commencing graceful shutdown. Waiting for active requests to complete
+2025-10-26 20:00:22.587 [tomcat-shutdown] INFO  o.s.boot.web.embedded.tomcat.GracefulShutdown - Graceful shutdown complete
+2025-10-26 20:00:22.674 [SpringApplicationShutdownHook] INFO  o.s.scheduling.quartz.SchedulerFactoryBean - Shutting down Quartz Scheduler
+2025-10-26 20:00:22.674 [SpringApplicationShutdownHook] INFO  org.quartz.core.QuartzScheduler - Scheduler quartzScheduler_$_NON_CLUSTERED shutting down.
+2025-10-26 20:00:22.675 [SpringApplicationShutdownHook] INFO  org.quartz.core.QuartzScheduler - Scheduler quartzScheduler_$_NON_CLUSTERED paused.
+2025-10-26 20:00:22.675 [SpringApplicationShutdownHook] INFO  org.quartz.core.QuartzScheduler - Scheduler quartzScheduler_$_NON_CLUSTERED shutdown complete.
+2025-10-26 20:00:22.712 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown initiated...
+2025-10-26 20:00:22.723 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown completed.
+2025-10-26 20:00:49.322 [background-preinit] INFO  org.hibernate.validator.internal.util.Version - HV000001: Hibernate Validator 8.0.3.Final
+2025-10-26 20:00:49.403 [main] INFO  com.victor.iatms.IatmsApplication - Starting IatmsApplication using Java 17.0.14 with PID 49212 (D:\GDUF\毕设\MyEssay\code\backend\IATMSII\iatms\target\classes started by Victor in D:\GDUF\毕设\MyEssay\code\backend\IATMSII\iatms)
+2025-10-26 20:00:49.403 [main] DEBUG com.victor.iatms.IatmsApplication - Running with Spring Boot v3.5.5, Spring v6.2.10
+2025-10-26 20:00:49.404 [main] INFO  com.victor.iatms.IatmsApplication - No active profile set, falling back to 1 default profile: "default"
+2025-10-26 20:00:50.721 [main] DEBUG o.m.s.boot.autoconfigure.MybatisAutoConfiguration - Searching for mappers annotated with @Mapper
+2025-10-26 20:00:50.721 [main] DEBUG o.m.s.boot.autoconfigure.MybatisAutoConfiguration - Using auto-configuration base package 'com.victor.iatms'
+2025-10-26 20:00:50.841 [main] INFO  o.s.d.r.config.RepositoryConfigurationDelegate - Multiple Spring Data modules found, entering strict repository configuration mode
+2025-10-26 20:00:50.844 [main] INFO  o.s.d.r.config.RepositoryConfigurationDelegate - Bootstrapping Spring Data Redis repositories in DEFAULT mode.
+2025-10-26 20:00:50.909 [main] INFO  o.s.d.r.config.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 34 ms. Found 0 Redis repository interfaces.
+2025-10-26 20:00:51.169 [main] DEBUG org.apache.ibatis.logging.LogFactory - Logging initialized using 'class org.apache.ibatis.logging.slf4j.Slf4jImpl' adapter.
+2025-10-26 20:00:51.188 [main] DEBUG org.mybatis.spring.mapper.ClassPathMapperScanner - Identified candidate component class: file [D:\GDUF\毕设\MyEssay\code\backend\IATMSII\iatms\target\classes\com\victor\iatms\mappers\ApiMapper.class]
+2025-10-26 20:00:51.188 [main] DEBUG org.mybatis.spring.mapper.ClassPathMapperScanner - Identified candidate component class: file [D:\GDUF\毕设\MyEssay\code\backend\IATMSII\iatms\target\classes\com\victor\iatms\mappers\EnvironmentConfigMapper.class]
+2025-10-26 20:00:51.189 [main] DEBUG org.mybatis.spring.mapper.ClassPathMapperScanner - Identified candidate component class: file [D:\GDUF\毕设\MyEssay\code\backend\IATMSII\iatms\target\classes\com\victor\iatms\mappers\ModuleMapper.class]
+2025-10-26 20:00:51.189 [main] DEBUG org.mybatis.spring.mapper.ClassPathMapperScanner - Identified candidate component class: file [D:\GDUF\毕设\MyEssay\code\backend\IATMSII\iatms\target\classes\com\victor\iatms\mappers\ProjectMapper.class]
+2025-10-26 20:00:51.189 [main] DEBUG org.mybatis.spring.mapper.ClassPathMapperScanner - Identified candidate component class: file [D:\GDUF\毕设\MyEssay\code\backend\IATMSII\iatms\target\classes\com\victor\iatms\mappers\ReportMapper.class]
+2025-10-26 20:00:51.189 [main] DEBUG org.mybatis.spring.mapper.ClassPathMapperScanner - Identified candidate component class: file [D:\GDUF\毕设\MyEssay\code\backend\IATMSII\iatms\target\classes\com\victor\iatms\mappers\TestCaseMapper.class]
+2025-10-26 20:00:51.189 [main] DEBUG org.mybatis.spring.mapper.ClassPathMapperScanner - Identified candidate component class: file [D:\GDUF\毕设\MyEssay\code\backend\IATMSII\iatms\target\classes\com\victor\iatms\mappers\TestExecutionMapper.class]
+2025-10-26 20:00:51.189 [main] DEBUG org.mybatis.spring.mapper.ClassPathMapperScanner - Identified candidate component class: file [D:\GDUF\毕设\MyEssay\code\backend\IATMSII\iatms\target\classes\com\victor\iatms\mappers\TestExecutionRecordMapper.class]
+2025-10-26 20:00:51.189 [main] DEBUG org.mybatis.spring.mapper.ClassPathMapperScanner - Identified candidate component class: file [D:\GDUF\毕设\MyEssay\code\backend\IATMSII\iatms\target\classes\com\victor\iatms\mappers\TestMapper.class]
+2025-10-26 20:00:51.189 [main] DEBUG org.mybatis.spring.mapper.ClassPathMapperScanner - Identified candidate component class: file [D:\GDUF\毕设\MyEssay\code\backend\IATMSII\iatms\target\classes\com\victor\iatms\mappers\UserMapper.class]
+2025-10-26 20:00:51.189 [main] DEBUG org.mybatis.spring.mapper.ClassPathMapperScanner - Identified candidate component class: file [D:\GDUF\毕设\MyEssay\code\backend\IATMSII\iatms\target\classes\com\victor\iatms\mappers\UserRoleMapper.class]
+2025-10-26 20:00:51.191 [main] DEBUG org.mybatis.spring.mapper.ClassPathMapperScanner - Creating MapperFactoryBean with name 'apiMapper' and 'com.victor.iatms.mappers.ApiMapper' mapperInterface
+2025-10-26 20:00:51.197 [main] DEBUG org.mybatis.spring.mapper.ClassPathMapperScanner - Creating MapperFactoryBean with name 'environmentConfigMapper' and 'com.victor.iatms.mappers.EnvironmentConfigMapper' mapperInterface
+2025-10-26 20:00:51.198 [main] DEBUG org.mybatis.spring.mapper.ClassPathMapperScanner - Creating MapperFactoryBean with name 'moduleMapper' and 'com.victor.iatms.mappers.ModuleMapper' mapperInterface
+2025-10-26 20:00:51.200 [main] DEBUG org.mybatis.spring.mapper.ClassPathMapperScanner - Creating MapperFactoryBean with name 'projectMapper' and 'com.victor.iatms.mappers.ProjectMapper' mapperInterface
+2025-10-26 20:00:51.201 [main] DEBUG org.mybatis.spring.mapper.ClassPathMapperScanner - Creating MapperFactoryBean with name 'reportMapper' and 'com.victor.iatms.mappers.ReportMapper' mapperInterface
+2025-10-26 20:00:51.203 [main] DEBUG org.mybatis.spring.mapper.ClassPathMapperScanner - Creating MapperFactoryBean with name 'testCaseMapper' and 'com.victor.iatms.mappers.TestCaseMapper' mapperInterface
+2025-10-26 20:00:51.204 [main] DEBUG org.mybatis.spring.mapper.ClassPathMapperScanner - Creating MapperFactoryBean with name 'testExecutionMapper' and 'com.victor.iatms.mappers.TestExecutionMapper' mapperInterface
+2025-10-26 20:00:51.204 [main] DEBUG org.mybatis.spring.mapper.ClassPathMapperScanner - Creating MapperFactoryBean with name 'testExecutionRecordMapper' and 'com.victor.iatms.mappers.TestExecutionRecordMapper' mapperInterface
+2025-10-26 20:00:51.205 [main] DEBUG org.mybatis.spring.mapper.ClassPathMapperScanner - Creating MapperFactoryBean with name 'testMapper' and 'com.victor.iatms.mappers.TestMapper' mapperInterface
+2025-10-26 20:00:51.205 [main] DEBUG org.mybatis.spring.mapper.ClassPathMapperScanner - Creating MapperFactoryBean with name 'userMapper' and 'com.victor.iatms.mappers.UserMapper' mapperInterface
+2025-10-26 20:00:51.206 [main] DEBUG org.mybatis.spring.mapper.ClassPathMapperScanner - Creating MapperFactoryBean with name 'userRoleMapper' and 'com.victor.iatms.mappers.UserRoleMapper' mapperInterface
+2025-10-26 20:00:52.432 [main] INFO  o.s.boot.web.embedded.tomcat.TomcatWebServer - Tomcat initialized with port 8080 (http)
+2025-10-26 20:00:52.452 [main] INFO  org.apache.coyote.http11.Http11NioProtocol - Initializing ProtocolHandler ["http-nio-8080"]
+2025-10-26 20:00:52.454 [main] INFO  org.apache.catalina.core.StandardService - Starting service [Tomcat]
+2025-10-26 20:00:52.455 [main] INFO  org.apache.catalina.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/10.1.44]
+2025-10-26 20:00:52.537 [main] INFO  o.a.c.c.ContainerBase.[Tomcat].[localhost].[/api] - Initializing Spring embedded WebApplicationContext
+2025-10-26 20:00:52.539 [main] INFO  o.s.b.w.s.c.ServletWebServerApplicationContext - Root WebApplicationContext: initialization completed in 3079 ms
+2025-10-26 20:00:53.071 [main] DEBUG org.mybatis.spring.SqlSessionFactoryBean - Parsed mapper file: 'file [D:\GDUF\毕设\MyEssay\code\backend\IATMSII\iatms\target\classes\mapper\ApiMapper.xml]'
+2025-10-26 20:00:53.123 [main] DEBUG org.mybatis.spring.SqlSessionFactoryBean - Parsed mapper file: 'file [D:\GDUF\毕设\MyEssay\code\backend\IATMSII\iatms\target\classes\mapper\EnvironmentConfigMapper.xml]'
+2025-10-26 20:00:53.167 [main] DEBUG org.mybatis.spring.SqlSessionFactoryBean - Parsed mapper file: 'file [D:\GDUF\毕设\MyEssay\code\backend\IATMSII\iatms\target\classes\mapper\ModuleMapper.xml]'
+2025-10-26 20:00:53.218 [main] DEBUG org.mybatis.spring.SqlSessionFactoryBean - Parsed mapper file: 'file [D:\GDUF\毕设\MyEssay\code\backend\IATMSII\iatms\target\classes\mapper\ProjectMapper.xml]'
+2025-10-26 20:00:53.260 [main] DEBUG org.mybatis.spring.SqlSessionFactoryBean - Parsed mapper file: 'file [D:\GDUF\毕设\MyEssay\code\backend\IATMSII\iatms\target\classes\mapper\ReportMapper.xml]'
+2025-10-26 20:00:53.285 [main] DEBUG org.mybatis.spring.SqlSessionFactoryBean - Parsed mapper file: 'file [D:\GDUF\毕设\MyEssay\code\backend\IATMSII\iatms\target\classes\mapper\TestCaseMapper.xml]'
+2025-10-26 20:00:53.345 [main] DEBUG org.mybatis.spring.SqlSessionFactoryBean - Parsed mapper file: 'file [D:\GDUF\毕设\MyEssay\code\backend\IATMSII\iatms\target\classes\mapper\TestExecutionMapper.xml]'
+2025-10-26 20:00:53.597 [main] DEBUG org.mybatis.spring.SqlSessionFactoryBean - Parsed mapper file: 'file [D:\GDUF\毕设\MyEssay\code\backend\IATMSII\iatms\target\classes\mapper\TestExecutionRecordMapper.xml]'
+2025-10-26 20:00:53.605 [main] DEBUG org.mybatis.spring.SqlSessionFactoryBean - Parsed mapper file: 'file [D:\GDUF\毕设\MyEssay\code\backend\IATMSII\iatms\target\classes\mapper\UserMapper.xml]'
+2025-10-26 20:00:53.611 [main] DEBUG org.mybatis.spring.SqlSessionFactoryBean - Parsed mapper file: 'file [D:\GDUF\毕设\MyEssay\code\backend\IATMSII\iatms\target\classes\mapper\UserRoleMapper.xml]'
+2025-10-26 20:01:00.895 [main] DEBUG o.m.s.boot.autoconfigure.MybatisAutoConfiguration - Not found configuration for registering mapper bean using @MapperScan, MapperFactoryBean and MapperScannerConfigurer.
+2025-10-26 20:01:01.659 [main] INFO  org.quartz.impl.StdSchedulerFactory - Using default implementation for ThreadExecutor
+2025-10-26 20:01:01.707 [main] INFO  org.quartz.core.SchedulerSignalerImpl - Initialized Scheduler Signaller of type: class org.quartz.core.SchedulerSignalerImpl
+2025-10-26 20:01:01.709 [main] INFO  org.quartz.core.QuartzScheduler - Quartz Scheduler v2.5.0 created.
+2025-10-26 20:01:01.711 [main] INFO  org.quartz.simpl.RAMJobStore - RAMJobStore initialized.
+2025-10-26 20:01:01.715 [main] INFO  org.quartz.core.QuartzScheduler - Scheduler meta-data: Quartz Scheduler (v2.5.0) 'quartzScheduler' with instanceId 'NON_CLUSTERED'
+  Scheduler class: 'org.quartz.core.QuartzScheduler' - running locally.
+  NOT STARTED.
+  Currently in standby mode.
+  Number of jobs executed: 0
+  Using thread pool 'org.quartz.simpl.SimpleThreadPool' - with 10 threads.
+  Using job-store 'org.quartz.simpl.RAMJobStore' - which does not support persistence. and is not clustered.
+
+2025-10-26 20:01:01.718 [main] INFO  org.quartz.impl.StdSchedulerFactory - Quartz scheduler 'quartzScheduler' initialized from an externally provided properties instance.
+2025-10-26 20:01:01.718 [main] INFO  org.quartz.impl.StdSchedulerFactory - Quartz scheduler version: 2.5.0
+2025-10-26 20:01:01.720 [main] INFO  org.quartz.core.QuartzScheduler - JobFactory set to: org.springframework.scheduling.quartz.SpringBeanJobFactory@61607ff0
+2025-10-26 20:01:01.938 [main] INFO  org.apache.coyote.http11.Http11NioProtocol - Starting ProtocolHandler ["http-nio-8080"]
+2025-10-26 20:01:02.067 [main] INFO  o.s.boot.web.embedded.tomcat.TomcatWebServer - Tomcat started on port 8080 (http) with context path '/api'
+2025-10-26 20:01:02.074 [main] INFO  o.s.scheduling.quartz.SchedulerFactoryBean - Starting Quartz Scheduler now
+2025-10-26 20:01:02.075 [main] INFO  org.quartz.core.QuartzScheduler - Scheduler quartzScheduler_$_NON_CLUSTERED started.
+2025-10-26 20:01:02.132 [main] INFO  com.victor.iatms.IatmsApplication - Started IatmsApplication in 14.018 seconds (process running for 16.142)
+2025-10-26 20:12:14.706 [SpringApplicationShutdownHook] INFO  org.quartz.core.QuartzScheduler - Scheduler quartzScheduler_$_NON_CLUSTERED paused.
+2025-10-26 20:12:14.708 [SpringApplicationShutdownHook] INFO  o.s.boot.web.embedded.tomcat.GracefulShutdown - Commencing graceful shutdown. Waiting for active requests to complete
+2025-10-26 20:12:14.909 [tomcat-shutdown] INFO  o.s.boot.web.embedded.tomcat.GracefulShutdown - Graceful shutdown complete
+2025-10-26 20:12:14.928 [SpringApplicationShutdownHook] INFO  o.s.scheduling.quartz.SchedulerFactoryBean - Shutting down Quartz Scheduler
+2025-10-26 20:12:14.929 [SpringApplicationShutdownHook] INFO  org.quartz.core.QuartzScheduler - Scheduler quartzScheduler_$_NON_CLUSTERED shutting down.
+2025-10-26 20:12:14.930 [SpringApplicationShutdownHook] INFO  org.quartz.core.QuartzScheduler - Scheduler quartzScheduler_$_NON_CLUSTERED paused.
+2025-10-26 20:12:14.930 [SpringApplicationShutdownHook] INFO  org.quartz.core.QuartzScheduler - Scheduler quartzScheduler_$_NON_CLUSTERED shutdown complete.
+2025-10-26 20:12:23.313 [background-preinit] INFO  org.hibernate.validator.internal.util.Version - HV000001: Hibernate Validator 8.0.3.Final
+2025-10-26 20:12:23.379 [main] INFO  com.victor.iatms.IatmsApplication - Starting IatmsApplication using Java 17.0.14 with PID 48520 (D:\GDUF\毕设\MyEssay\code\backend\IATMSII\iatms\target\classes started by Victor in D:\GDUF\毕设\MyEssay\code\backend\IATMSII\iatms)
+2025-10-26 20:12:23.382 [main] DEBUG com.victor.iatms.IatmsApplication - Running with Spring Boot v3.5.5, Spring v6.2.10
+2025-10-26 20:12:23.383 [main] INFO  com.victor.iatms.IatmsApplication - No active profile set, falling back to 1 default profile: "default"
+2025-10-26 20:12:24.950 [main] DEBUG o.m.s.boot.autoconfigure.MybatisAutoConfiguration - Searching for mappers annotated with @Mapper
+2025-10-26 20:12:24.951 [main] DEBUG o.m.s.boot.autoconfigure.MybatisAutoConfiguration - Using auto-configuration base package 'com.victor.iatms'
+2025-10-26 20:12:25.033 [main] INFO  o.s.d.r.config.RepositoryConfigurationDelegate - Multiple Spring Data modules found, entering strict repository configuration mode
+2025-10-26 20:12:25.036 [main] INFO  o.s.d.r.config.RepositoryConfigurationDelegate - Bootstrapping Spring Data Redis repositories in DEFAULT mode.
+2025-10-26 20:12:25.081 [main] INFO  o.s.d.r.config.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 27 ms. Found 0 Redis repository interfaces.
+2025-10-26 20:12:25.238 [main] DEBUG org.apache.ibatis.logging.LogFactory - Logging initialized using 'class org.apache.ibatis.logging.slf4j.Slf4jImpl' adapter.
+2025-10-26 20:12:25.256 [main] DEBUG org.mybatis.spring.mapper.ClassPathMapperScanner - Identified candidate component class: file [D:\GDUF\毕设\MyEssay\code\backend\IATMSII\iatms\target\classes\com\victor\iatms\mappers\ApiMapper.class]
+2025-10-26 20:12:25.257 [main] DEBUG org.mybatis.spring.mapper.ClassPathMapperScanner - Identified candidate component class: file [D:\GDUF\毕设\MyEssay\code\backend\IATMSII\iatms\target\classes\com\victor\iatms\mappers\EnvironmentConfigMapper.class]
+2025-10-26 20:12:25.257 [main] DEBUG org.mybatis.spring.mapper.ClassPathMapperScanner - Identified candidate component class: file [D:\GDUF\毕设\MyEssay\code\backend\IATMSII\iatms\target\classes\com\victor\iatms\mappers\ModuleMapper.class]
+2025-10-26 20:12:25.257 [main] DEBUG org.mybatis.spring.mapper.ClassPathMapperScanner - Identified candidate component class: file [D:\GDUF\毕设\MyEssay\code\backend\IATMSII\iatms\target\classes\com\victor\iatms\mappers\ProjectMapper.class]
+2025-10-26 20:12:25.257 [main] DEBUG org.mybatis.spring.mapper.ClassPathMapperScanner - Identified candidate component class: file [D:\GDUF\毕设\MyEssay\code\backend\IATMSII\iatms\target\classes\com\victor\iatms\mappers\ReportMapper.class]
+2025-10-26 20:12:25.257 [main] DEBUG org.mybatis.spring.mapper.ClassPathMapperScanner - Identified candidate component class: file [D:\GDUF\毕设\MyEssay\code\backend\IATMSII\iatms\target\classes\com\victor\iatms\mappers\TestCaseMapper.class]
+2025-10-26 20:12:25.257 [main] DEBUG org.mybatis.spring.mapper.ClassPathMapperScanner - Identified candidate component class: file [D:\GDUF\毕设\MyEssay\code\backend\IATMSII\iatms\target\classes\com\victor\iatms\mappers\TestExecutionMapper.class]
+2025-10-26 20:12:25.257 [main] DEBUG org.mybatis.spring.mapper.ClassPathMapperScanner - Identified candidate component class: file [D:\GDUF\毕设\MyEssay\code\backend\IATMSII\iatms\target\classes\com\victor\iatms\mappers\TestExecutionRecordMapper.class]
+2025-10-26 20:12:25.257 [main] DEBUG org.mybatis.spring.mapper.ClassPathMapperScanner - Identified candidate component class: file [D:\GDUF\毕设\MyEssay\code\backend\IATMSII\iatms\target\classes\com\victor\iatms\mappers\TestMapper.class]
+2025-10-26 20:12:25.257 [main] DEBUG org.mybatis.spring.mapper.ClassPathMapperScanner - Identified candidate component class: file [D:\GDUF\毕设\MyEssay\code\backend\IATMSII\iatms\target\classes\com\victor\iatms\mappers\UserMapper.class]
+2025-10-26 20:12:25.257 [main] DEBUG org.mybatis.spring.mapper.ClassPathMapperScanner - Identified candidate component class: file [D:\GDUF\毕设\MyEssay\code\backend\IATMSII\iatms\target\classes\com\victor\iatms\mappers\UserRoleMapper.class]
+2025-10-26 20:12:25.259 [main] DEBUG org.mybatis.spring.mapper.ClassPathMapperScanner - Creating MapperFactoryBean with name 'apiMapper' and 'com.victor.iatms.mappers.ApiMapper' mapperInterface
+2025-10-26 20:12:25.261 [main] DEBUG org.mybatis.spring.mapper.ClassPathMapperScanner - Creating MapperFactoryBean with name 'environmentConfigMapper' and 'com.victor.iatms.mappers.EnvironmentConfigMapper' mapperInterface
+2025-10-26 20:12:25.262 [main] DEBUG org.mybatis.spring.mapper.ClassPathMapperScanner - Creating MapperFactoryBean with name 'moduleMapper' and 'com.victor.iatms.mappers.ModuleMapper' mapperInterface
+2025-10-26 20:12:25.262 [main] DEBUG org.mybatis.spring.mapper.ClassPathMapperScanner - Creating MapperFactoryBean with name 'projectMapper' and 'com.victor.iatms.mappers.ProjectMapper' mapperInterface
+2025-10-26 20:12:25.263 [main] DEBUG org.mybatis.spring.mapper.ClassPathMapperScanner - Creating MapperFactoryBean with name 'reportMapper' and 'com.victor.iatms.mappers.ReportMapper' mapperInterface
+2025-10-26 20:12:25.263 [main] DEBUG org.mybatis.spring.mapper.ClassPathMapperScanner - Creating MapperFactoryBean with name 'testCaseMapper' and 'com.victor.iatms.mappers.TestCaseMapper' mapperInterface
+2025-10-26 20:12:25.264 [main] DEBUG org.mybatis.spring.mapper.ClassPathMapperScanner - Creating MapperFactoryBean with name 'testExecutionMapper' and 'com.victor.iatms.mappers.TestExecutionMapper' mapperInterface
+2025-10-26 20:12:25.264 [main] DEBUG org.mybatis.spring.mapper.ClassPathMapperScanner - Creating MapperFactoryBean with name 'testExecutionRecordMapper' and 'com.victor.iatms.mappers.TestExecutionRecordMapper' mapperInterface
+2025-10-26 20:12:25.265 [main] DEBUG org.mybatis.spring.mapper.ClassPathMapperScanner - Creating MapperFactoryBean with name 'testMapper' and 'com.victor.iatms.mappers.TestMapper' mapperInterface
+2025-10-26 20:12:25.265 [main] DEBUG org.mybatis.spring.mapper.ClassPathMapperScanner - Creating MapperFactoryBean with name 'userMapper' and 'com.victor.iatms.mappers.UserMapper' mapperInterface
+2025-10-26 20:12:25.265 [main] DEBUG org.mybatis.spring.mapper.ClassPathMapperScanner - Creating MapperFactoryBean with name 'userRoleMapper' and 'com.victor.iatms.mappers.UserRoleMapper' mapperInterface
+2025-10-26 20:12:26.193 [main] INFO  o.s.boot.web.embedded.tomcat.TomcatWebServer - Tomcat initialized with port 8080 (http)
+2025-10-26 20:12:26.211 [main] INFO  org.apache.coyote.http11.Http11NioProtocol - Initializing ProtocolHandler ["http-nio-8080"]
+2025-10-26 20:12:26.213 [main] INFO  org.apache.catalina.core.StandardService - Starting service [Tomcat]
+2025-10-26 20:12:26.213 [main] INFO  org.apache.catalina.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/10.1.44]
+2025-10-26 20:12:26.294 [main] INFO  o.a.c.c.ContainerBase.[Tomcat].[localhost].[/api] - Initializing Spring embedded WebApplicationContext
+2025-10-26 20:12:26.294 [main] INFO  o.s.b.w.s.c.ServletWebServerApplicationContext - Root WebApplicationContext: initialization completed in 2859 ms
+2025-10-26 20:12:26.753 [main] DEBUG org.mybatis.spring.SqlSessionFactoryBean - Parsed mapper file: 'file [D:\GDUF\毕设\MyEssay\code\backend\IATMSII\iatms\target\classes\mapper\ApiMapper.xml]'
+2025-10-26 20:12:26.789 [main] DEBUG org.mybatis.spring.SqlSessionFactoryBean - Parsed mapper file: 'file [D:\GDUF\毕设\MyEssay\code\backend\IATMSII\iatms\target\classes\mapper\EnvironmentConfigMapper.xml]'
+2025-10-26 20:12:26.833 [main] DEBUG org.mybatis.spring.SqlSessionFactoryBean - Parsed mapper file: 'file [D:\GDUF\毕设\MyEssay\code\backend\IATMSII\iatms\target\classes\mapper\ModuleMapper.xml]'
+2025-10-26 20:12:26.930 [main] DEBUG org.mybatis.spring.SqlSessionFactoryBean - Parsed mapper file: 'file [D:\GDUF\毕设\MyEssay\code\backend\IATMSII\iatms\target\classes\mapper\ProjectMapper.xml]'
+2025-10-26 20:12:26.977 [main] DEBUG org.mybatis.spring.SqlSessionFactoryBean - Parsed mapper file: 'file [D:\GDUF\毕设\MyEssay\code\backend\IATMSII\iatms\target\classes\mapper\ReportMapper.xml]'
+2025-10-26 20:12:27.015 [main] DEBUG org.mybatis.spring.SqlSessionFactoryBean - Parsed mapper file: 'file [D:\GDUF\毕设\MyEssay\code\backend\IATMSII\iatms\target\classes\mapper\TestCaseMapper.xml]'
+2025-10-26 20:12:27.079 [main] DEBUG org.mybatis.spring.SqlSessionFactoryBean - Parsed mapper file: 'file [D:\GDUF\毕设\MyEssay\code\backend\IATMSII\iatms\target\classes\mapper\TestExecutionMapper.xml]'
+2025-10-26 20:12:27.098 [main] DEBUG org.mybatis.spring.SqlSessionFactoryBean - Parsed mapper file: 'file [D:\GDUF\毕设\MyEssay\code\backend\IATMSII\iatms\target\classes\mapper\TestExecutionRecordMapper.xml]'
+2025-10-26 20:12:27.114 [main] DEBUG org.mybatis.spring.SqlSessionFactoryBean - Parsed mapper file: 'file [D:\GDUF\毕设\MyEssay\code\backend\IATMSII\iatms\target\classes\mapper\UserMapper.xml]'
+2025-10-26 20:12:27.122 [main] DEBUG org.mybatis.spring.SqlSessionFactoryBean - Parsed mapper file: 'file [D:\GDUF\毕设\MyEssay\code\backend\IATMSII\iatms\target\classes\mapper\UserRoleMapper.xml]'
+2025-10-26 20:12:29.315 [main] DEBUG o.m.s.boot.autoconfigure.MybatisAutoConfiguration - Not found configuration for registering mapper bean using @MapperScan, MapperFactoryBean and MapperScannerConfigurer.
+2025-10-26 20:12:29.704 [main] INFO  org.quartz.impl.StdSchedulerFactory - Using default implementation for ThreadExecutor
+2025-10-26 20:12:29.723 [main] INFO  org.quartz.core.SchedulerSignalerImpl - Initialized Scheduler Signaller of type: class org.quartz.core.SchedulerSignalerImpl
+2025-10-26 20:12:29.724 [main] INFO  org.quartz.core.QuartzScheduler - Quartz Scheduler v2.5.0 created.
+2025-10-26 20:12:29.725 [main] INFO  org.quartz.simpl.RAMJobStore - RAMJobStore initialized.
+2025-10-26 20:12:29.727 [main] INFO  org.quartz.core.QuartzScheduler - Scheduler meta-data: Quartz Scheduler (v2.5.0) 'quartzScheduler' with instanceId 'NON_CLUSTERED'
+  Scheduler class: 'org.quartz.core.QuartzScheduler' - running locally.
+  NOT STARTED.
+  Currently in standby mode.
+  Number of jobs executed: 0
+  Using thread pool 'org.quartz.simpl.SimpleThreadPool' - with 10 threads.
+  Using job-store 'org.quartz.simpl.RAMJobStore' - which does not support persistence. and is not clustered.
+
+2025-10-26 20:12:29.727 [main] INFO  org.quartz.impl.StdSchedulerFactory - Quartz scheduler 'quartzScheduler' initialized from an externally provided properties instance.
+2025-10-26 20:12:29.727 [main] INFO  org.quartz.impl.StdSchedulerFactory - Quartz scheduler version: 2.5.0
+2025-10-26 20:12:29.727 [main] INFO  org.quartz.core.QuartzScheduler - JobFactory set to: org.springframework.scheduling.quartz.SpringBeanJobFactory@18a38bba
+2025-10-26 20:12:29.846 [main] INFO  org.apache.coyote.http11.Http11NioProtocol - Starting ProtocolHandler ["http-nio-8080"]
+2025-10-26 20:12:29.885 [main] INFO  o.s.boot.web.embedded.tomcat.TomcatWebServer - Tomcat started on port 8080 (http) with context path '/api'
+2025-10-26 20:12:29.890 [main] INFO  o.s.scheduling.quartz.SchedulerFactoryBean - Starting Quartz Scheduler now
+2025-10-26 20:12:29.892 [main] INFO  org.quartz.core.QuartzScheduler - Scheduler quartzScheduler_$_NON_CLUSTERED started.
+2025-10-26 20:12:29.908 [main] INFO  com.victor.iatms.IatmsApplication - Started IatmsApplication in 7.309 seconds (process running for 8.359)

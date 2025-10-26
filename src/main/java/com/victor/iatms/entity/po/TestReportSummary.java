@@ -180,4 +180,46 @@ public class TestReportSummary {
      * 删除人ID
      */
     private Integer deletedBy;
+    
+    // ==================== ISO报告相关新增字段 ====================
+    
+    /**
+     * 报告配置ID
+     */
+    private Integer reportConfigId;
+    
+    /**
+     * ISO标准指标数据（JSON格式）
+     */
+    private String isoMetrics;
+    
+    /**
+     * 执行摘要
+     */
+    private String executiveSummary;
+    
+    /**
+     * 结论建议
+     */
+    private String conclusionRecommendation;
+    
+    /**
+     * 风险评估数据（JSON格式）
+     */
+    private String riskAssessment;
+    
+    /**
+     * 缺陷分析数据（JSON格式）
+     */
+    private String defectAnalysis;
+    
+    /**
+     * 环境详细信息（JSON格式）
+     */
+    private String environmentDetails;
+    
+    /**
+     * 测试范围详情（JSON格式）
+     */
+    private String testScopeDetails;
 }

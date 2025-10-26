@@ -54,6 +54,9 @@ public class ReportExportResponseDTO {
         private Integer brokenCases;
         private Integer skippedCases;
         private BigDecimal successRate;
+        private Integer reportConfigId;
+        private String executiveSummary;
+        private String conclusionRecommendation;
     }
     
     /**
@@ -90,6 +93,14 @@ public class ReportExportResponseDTO {
         private String device;
         private Integer retryCount;
         private Boolean flaky;
+        private String moduleName;
+        private String apiName;
+        private String suiteName;
+        private String testLayer;
+        private String testType;
+        private Integer flakyCount;
+        private String impactAssessment;
+        private String retestResult;
         private List<String> tags;
     }
     

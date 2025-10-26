@@ -343,6 +343,24 @@ public class TestExecutionServiceImpl implements TestExecutionService {
         result.setCreatedAt(LocalDateTime.now());
         result.setIsDeleted(false);
 
+        // 设置新增字段 - 从executionDTO中获取用例相关信息
+        result.setCaseId(executionDTO.getCaseId());
+        result.setCaseCode(executionDTO.getCaseCode());
+        result.setCaseName(executionDTO.getName());
+        
+        // 从API信息中获取相关数据
+        if (executionDTO.getApiInfo() != null) {
+            result.setApiName(executionDTO.getApiInfo().getName());
+        }
+        
+        // 设置测试层级和类型（根据实际业务逻辑设置默认值或从executionDTO获取）
+        result.setTestLayer("API"); // 默认为API层级
+        result.setTestType("POSITIVE"); // 默认为正向测试
+        
+        // 初始化不稳定用例相关字段
+        result.setFlakyCount(0);
+        result.setRetestResult("NOT_RETESTED");
+
         // 设置JSON字段
         try {
             if (executionDTO.getAssertionResults() != null) {
@@ -891,6 +909,15 @@ public class TestExecutionServiceImpl implements TestExecutionService {
         testCaseResult.setSeverity(testCase.getSeverity());
         testCaseResult.setPriority(testCase.getPriority());
         
+        // 设置新增字段
+        testCaseResult.setCaseId(testCase.getCaseId());
+        testCaseResult.setCaseCode(testCase.getCaseCode());
+        testCaseResult.setCaseName(testCase.getName());
+        testCaseResult.setTestLayer("API");
+        testCaseResult.setTestType("POSITIVE");
+        testCaseResult.setFlakyCount(0);
+        testCaseResult.setRetestResult("NOT_RETESTED");
+        
         testExecutionMapper.insertTestCaseResult(testCaseResult);
     }
 
@@ -911,6 +938,15 @@ public class TestExecutionServiceImpl implements TestExecutionService {
         testCaseResult.setEnvironment("test");
         testCaseResult.setSeverity(testCase.getSeverity());
         testCaseResult.setPriority(testCase.getPriority());
+        
+        // 设置新增字段
+        testCaseResult.setCaseId(testCase.getCaseId());
+        testCaseResult.setCaseCode(testCase.getCaseCode());
+        testCaseResult.setCaseName(testCase.getName());
+        testCaseResult.setTestLayer("API");
+        testCaseResult.setTestType("POSITIVE");
+        testCaseResult.setFlakyCount(0);
+        testCaseResult.setRetestResult("NOT_RETESTED");
         
         testExecutionMapper.insertTestCaseResult(testCaseResult);
     }
@@ -1326,6 +1362,15 @@ public class TestExecutionServiceImpl implements TestExecutionService {
         testCaseResult.setSeverity(testCase.getSeverity());
         testCaseResult.setPriority(testCase.getPriority());
         
+        // 设置新增字段
+        testCaseResult.setCaseId(testCase.getCaseId());
+        testCaseResult.setCaseCode(testCase.getCaseCode());
+        testCaseResult.setCaseName(testCase.getName());
+        testCaseResult.setTestLayer("API");
+        testCaseResult.setTestType("POSITIVE");
+        testCaseResult.setFlakyCount(0);
+        testCaseResult.setRetestResult("NOT_RETESTED");
+        
         testExecutionMapper.insertTestCaseResult(testCaseResult);
     }
 
@@ -1346,6 +1391,15 @@ public class TestExecutionServiceImpl implements TestExecutionService {
         testCaseResult.setEnvironment("test");
         testCaseResult.setSeverity(testCase.getSeverity());
         testCaseResult.setPriority(testCase.getPriority());
+        
+        // 设置新增字段
+        testCaseResult.setCaseId(testCase.getCaseId());
+        testCaseResult.setCaseCode(testCase.getCaseCode());
+        testCaseResult.setCaseName(testCase.getName());
+        testCaseResult.setTestLayer("API");
+        testCaseResult.setTestType("POSITIVE");
+        testCaseResult.setFlakyCount(0);
+        testCaseResult.setRetestResult("NOT_RETESTED");
         
         testExecutionMapper.insertTestCaseResult(testCaseResult);
     }
@@ -1885,6 +1939,15 @@ public class TestExecutionServiceImpl implements TestExecutionService {
         testCaseResult.setPriority(testCase.getPriority());
         testCaseResult.setIsDeleted(false);
         
+        // 设置新增字段
+        testCaseResult.setCaseId(testCase.getCaseId());
+        testCaseResult.setCaseCode(testCase.getCaseCode());
+        testCaseResult.setCaseName(testCase.getName());
+        testCaseResult.setTestLayer("API");
+        testCaseResult.setTestType("POSITIVE");
+        testCaseResult.setFlakyCount(0);
+        testCaseResult.setRetestResult("NOT_RETESTED");
+        
         testExecutionMapper.insertTestCaseResult(testCaseResult);
     }
 
@@ -1908,6 +1971,15 @@ public class TestExecutionServiceImpl implements TestExecutionService {
         testCaseResult.setSeverity(testCase.getSeverity());
         testCaseResult.setPriority(testCase.getPriority());
         testCaseResult.setIsDeleted(false);
+        
+        // 设置新增字段
+        testCaseResult.setCaseId(testCase.getCaseId());
+        testCaseResult.setCaseCode(testCase.getCaseCode());
+        testCaseResult.setCaseName(testCase.getName());
+        testCaseResult.setTestLayer("API");
+        testCaseResult.setTestType("POSITIVE");
+        testCaseResult.setFlakyCount(0);
+        testCaseResult.setRetestResult("NOT_RETESTED");
         
         testExecutionMapper.insertTestCaseResult(testCaseResult);
     }
@@ -2376,6 +2448,15 @@ public class TestExecutionServiceImpl implements TestExecutionService {
         testCaseResult.setSeverity(testCase.getSeverity());
         testCaseResult.setPriority(testCase.getPriority());
         
+        // 设置新增字段
+        testCaseResult.setCaseId(testCase.getCaseId());
+        testCaseResult.setCaseCode(testCase.getCaseCode());
+        testCaseResult.setCaseName(testCase.getName());
+        testCaseResult.setTestLayer("API");
+        testCaseResult.setTestType("POSITIVE");
+        testCaseResult.setFlakyCount(0);
+        testCaseResult.setRetestResult("NOT_RETESTED");
+        
         testExecutionMapper.insertTestCaseResult(testCaseResult);
     }
 
@@ -2396,6 +2477,15 @@ public class TestExecutionServiceImpl implements TestExecutionService {
         testCaseResult.setEnvironment("test");
         testCaseResult.setSeverity(testCase.getSeverity());
         testCaseResult.setPriority(testCase.getPriority());
+        
+        // 设置新增字段
+        testCaseResult.setCaseId(testCase.getCaseId());
+        testCaseResult.setCaseCode(testCase.getCaseCode());
+        testCaseResult.setCaseName(testCase.getName());
+        testCaseResult.setTestLayer("API");
+        testCaseResult.setTestType("POSITIVE");
+        testCaseResult.setFlakyCount(0);
+        testCaseResult.setRetestResult("NOT_RETESTED");
         
         testExecutionMapper.insertTestCaseResult(testCaseResult);
     }

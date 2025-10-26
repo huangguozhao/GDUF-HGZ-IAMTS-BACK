@@ -128,6 +128,21 @@ public class ReportListResponseDTO {
     private List<String> tags;
     
     /**
+     * 报告配置ID
+     */
+    private Integer reportConfigId;
+    
+    /**
+     * 执行摘要
+     */
+    private String executiveSummary;
+    
+    /**
+     * 结论建议
+     */
+    private String conclusionRecommendation;
+    
+    /**
      * 创建时间
      */
     private LocalDateTime createdAt;

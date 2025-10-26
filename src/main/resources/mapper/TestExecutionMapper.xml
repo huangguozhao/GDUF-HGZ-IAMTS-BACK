@@ -60,12 +60,18 @@
             start_time, end_time, failure_message, failure_trace, failure_type, error_code,
             steps_json, parameters_json, attachments_json, logs_link, screenshot_link, video_link,
             environment, browser, os, device, tags_json, severity, priority, retry_count, flaky,
+            case_id, case_code, case_name, module_name, api_name, suite_name, package_name,
+            epic_name, feature_name, story_name, test_layer, test_type, flaky_count, last_flaky_time,
+            history_trend, custom_labels, root_cause_analysis, impact_assessment, retest_result, retest_notes,
             created_at, is_deleted
         ) VALUES (
             #{executionRecordId}, #{reportId}, #{executionId}, #{taskType}, #{refId}, #{fullName}, #{status}, #{duration},
             #{startTime}, #{endTime}, #{failureMessage}, #{failureTrace}, #{failureType}, #{errorCode},
             #{stepsJson}, #{parametersJson}, #{attachmentsJson}, #{logsLink}, #{screenshotLink}, #{videoLink},
             #{environment}, #{browser}, #{os}, #{device}, #{tagsJson}, #{severity}, #{priority}, #{retryCount}, #{flaky},
+            #{caseId}, #{caseCode}, #{caseName}, #{moduleName}, #{apiName}, #{suiteName}, #{packageName},
+            #{epicName}, #{featureName}, #{storyName}, #{testLayer}, #{testType}, #{flakyCount}, #{lastFlakyTime},
+            #{historyTrend}, #{customLabels}, #{rootCauseAnalysis}, #{impactAssessment}, #{retestResult}, #{retestNotes},
             NOW(), FALSE
         )
     </insert>
@@ -77,12 +83,16 @@
             total_cases, executed_cases, passed_cases, failed_cases, broken_cases, skipped_cases, success_rate,
             total_duration, avg_duration, max_duration, min_duration, report_status, file_format, file_path,
             file_size, download_url, generated_by, tags_json, summary_json, trend_data_json,
+            report_config_id, iso_metrics, executive_summary, conclusion_recommendation,
+            risk_assessment, defect_analysis, environment_details, test_scope_details,
             created_at, updated_at, is_deleted
         ) VALUES (
             #{reportName}, #{reportType}, #{executionId}, #{projectId}, #{environment}, #{startTime}, #{endTime}, #{duration},
             #{totalCases}, #{executedCases}, #{passedCases}, #{failedCases}, #{brokenCases}, #{skippedCases}, #{successRate},
             #{totalDuration}, #{avgDuration}, #{maxDuration}, #{minDuration}, #{reportStatus}, #{fileFormat}, #{filePath},
             #{fileSize}, #{downloadUrl}, #{generatedBy}, #{tagsJson}, #{summaryJson}, #{trendDataJson},
+            #{reportConfigId}, #{isoMetrics}, #{executiveSummary}, #{conclusionRecommendation},
+            #{riskAssessment}, #{defectAnalysis}, #{environmentDetails}, #{testScopeDetails},
             NOW(), NOW(), FALSE
         )
     </insert>
@@ -118,6 +128,14 @@
             tags_json = #{tagsJson},
             summary_json = #{summaryJson},
             trend_data_json = #{trendDataJson},
+            report_config_id = #{reportConfigId},
+            iso_metrics = #{isoMetrics},
+            executive_summary = #{executiveSummary},
+            conclusion_recommendation = #{conclusionRecommendation},
+            risk_assessment = #{riskAssessment},
+            defect_analysis = #{defectAnalysis},
+            environment_details = #{environmentDetails},
+            test_scope_details = #{testScopeDetails},
             updated_at = NOW()
         WHERE report_id = #{reportId}
         AND is_deleted = FALSE
@@ -130,6 +148,9 @@
             start_time, end_time, failure_message, failure_trace, failure_type, error_code,
             steps_json, parameters_json, attachments_json, logs_link, screenshot_link, video_link,
             environment, browser, os, device, tags_json, severity, priority, retry_count, flaky,
+            case_id, case_code, case_name, module_name, api_name, suite_name, package_name,
+            epic_name, feature_name, story_name, test_layer, test_type, flaky_count, last_flaky_time,
+            history_trend, custom_labels, root_cause_analysis, impact_assessment, retest_result, retest_notes,
             created_at, is_deleted, deleted_at, deleted_by
         FROM TestCaseResults
         WHERE report_id = #{reportId}
@@ -144,6 +165,9 @@
             start_time, end_time, failure_message, failure_trace, failure_type, error_code,
             steps_json, parameters_json, attachments_json, logs_link, screenshot_link, video_link,
             environment, browser, os, device, tags_json, severity, priority, retry_count, flaky,
+            case_id, case_code, case_name, module_name, api_name, suite_name, package_name,
+            epic_name, feature_name, story_name, test_layer, test_type, flaky_count, last_flaky_time,
+            history_trend, custom_labels, root_cause_analysis, impact_assessment, retest_result, retest_notes,
             created_at, is_deleted, deleted_at, deleted_by
         FROM TestCaseResults
         WHERE execution_id = #{executionId}
@@ -209,7 +233,27 @@
             severity = #{severity},
             priority = #{priority},
             retry_count = #{retryCount},
-            flaky = #{flaky}
+            flaky = #{flaky},
+            case_id = #{caseId},
+            case_code = #{caseCode},
+            case_name = #{caseName},
+            module_name = #{moduleName},
+            api_name = #{apiName},
+            suite_name = #{suiteName},
+            package_name = #{packageName},
+            epic_name = #{epicName},
+            feature_name = #{featureName},
+            story_name = #{storyName},
+            test_layer = #{testLayer},
+            test_type = #{testType},
+            flaky_count = #{flakyCount},
+            last_flaky_time = #{lastFlakyTime},
+            history_trend = #{historyTrend},
+            custom_labels = #{customLabels},
+            root_cause_analysis = #{rootCauseAnalysis},
+            impact_assessment = #{impactAssessment},
+            retest_result = #{retestResult},
+            retest_notes = #{retestNotes}
         WHERE execution_id = #{executionId}
         AND is_deleted = FALSE
     </update>
@@ -819,6 +863,26 @@
             tcr.priority,
             tcr.retry_count,
             tcr.flaky,
+            tcr.case_id,
+            tcr.case_code,
+            tcr.case_name,
+            tcr.module_name,
+            tcr.api_name,
+            tcr.suite_name,
+            tcr.package_name,
+            tcr.epic_name,
+            tcr.feature_name,
+            tcr.story_name,
+            tcr.test_layer,
+            tcr.test_type,
+            tcr.flaky_count,
+            tcr.last_flaky_time,
+            tcr.history_trend,
+            tcr.custom_labels,
+            tcr.root_cause_analysis,
+            tcr.impact_assessment,
+            tcr.retest_result,
+            tcr.retest_notes,
             tcr.created_at
         FROM TestCaseResults tcr
         WHERE tcr.is_deleted = FALSE
@@ -1039,6 +1103,26 @@
             priority,
             retry_count,
             flaky,
+            case_id,
+            case_code,
+            case_name,
+            module_name,
+            api_name,
+            suite_name,
+            package_name,
+            epic_name,
+            feature_name,
+            story_name,
+            test_layer,
+            test_type,
+            flaky_count,
+            last_flaky_time,
+            history_trend,
+            custom_labels,
+            root_cause_analysis,
+            impact_assessment,
+            retest_result,
+            retest_notes,
             created_at,
             is_deleted,
             deleted_at,

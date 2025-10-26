@@ -71,6 +71,14 @@
         <result column="tags_json" property="tagsJson"/>
         <result column="summary_json" property="summaryJson"/>
         <result column="trend_data_json" property="trendDataJson"/>
+        <result column="report_config_id" property="reportConfigId"/>
+        <result column="iso_metrics" property="isoMetrics"/>
+        <result column="executive_summary" property="executiveSummary"/>
+        <result column="conclusion_recommendation" property="conclusionRecommendation"/>
+        <result column="risk_assessment" property="riskAssessment"/>
+        <result column="defect_analysis" property="defectAnalysis"/>
+        <result column="environment_details" property="environmentDetails"/>
+        <result column="test_scope_details" property="testScopeDetails"/>
         <result column="created_at" property="createdAt"/>
         <result column="updated_at" property="updatedAt"/>
         <result column="is_deleted" property="isDeleted"/>
@@ -384,6 +392,8 @@
             total_duration, avg_duration, max_duration, min_duration,
             report_status, file_format, file_path, file_size, download_url,
             generated_by, tags_json, summary_json, trend_data_json,
+            report_config_id, iso_metrics, executive_summary, conclusion_recommendation,
+            risk_assessment, defect_analysis, environment_details, test_scope_details,
             created_at, updated_at, is_deleted
         ) VALUES (
             #{reportName}, #{reportType}, #{executionId}, #{projectId}, #{environment},
@@ -392,6 +402,8 @@
             #{totalDuration}, #{avgDuration}, #{maxDuration}, #{minDuration},
             #{reportStatus}, #{fileFormat}, #{filePath}, #{fileSize}, #{downloadUrl},
             #{generatedBy}, #{tagsJson}, #{summaryJson}, #{trendDataJson},
+            #{reportConfigId}, #{isoMetrics}, #{executiveSummary}, #{conclusionRecommendation},
+            #{riskAssessment}, #{defectAnalysis}, #{environmentDetails}, #{testScopeDetails},
             #{createdAt}, #{updatedAt}, #{isDeleted}
         )
     </insert>
@@ -427,6 +439,14 @@
             tags_json = #{tagsJson},
             summary_json = #{summaryJson},
             trend_data_json = #{trendDataJson},
+            report_config_id = #{reportConfigId},
+            iso_metrics = #{isoMetrics},
+            executive_summary = #{executiveSummary},
+            conclusion_recommendation = #{conclusionRecommendation},
+            risk_assessment = #{riskAssessment},
+            defect_analysis = #{defectAnalysis},
+            environment_details = #{environmentDetails},
+            test_scope_details = #{testScopeDetails},
             updated_at = #{updatedAt}
         WHERE report_id = #{reportId}
     </update>
@@ -515,14 +535,14 @@
         SELECT 
             tcr.result_id AS resultId,
             tcr.ref_id AS caseId,
-            tc.case_code AS caseCode,
-            tc.name AS caseName,
+            COALESCE(tcr.case_code, tc.case_code) AS caseCode,
+            COALESCE(tcr.case_name, tc.name) AS caseName,
             tcr.status,
             tcr.duration,
             tcr.start_time AS startTime,
             tcr.end_time AS endTime,
-            tc.priority,
-            tc.severity,
+            COALESCE(tcr.priority, tc.priority) AS priority,
+            COALESCE(tcr.severity, tc.severity) AS severity,
             tcr.failure_message AS failureMessage,
             tcr.failure_trace AS failureTrace,
             tcr.failure_type AS failureType,
@@ -532,6 +552,14 @@
             tcr.device,
             tcr.retry_count AS retryCount,
             tcr.flaky,
+            tcr.module_name AS moduleName,
+            tcr.api_name AS apiName,
+            tcr.suite_name AS suiteName,
+            tcr.test_layer AS testLayer,
+            tcr.test_type AS testType,
+            tcr.flaky_count AS flakyCount,
+            tcr.impact_assessment AS impactAssessment,
+            tcr.retest_result AS retestResult,
             <if test="includeAttachments == true">
                 tcr.logs_link AS logsLink,
                 tcr.screenshot_link AS screenshotLink,
@@ -554,16 +582,16 @@
                 'skipped', SUM(CASE WHEN tcr.status = 'skipped' THEN 1 ELSE 0 END)
             ) AS by_status,
             JSON_OBJECT(
-                'P0', SUM(CASE WHEN tc.priority = 'P0' THEN 1 ELSE 0 END),
-                'P1', SUM(CASE WHEN tc.priority = 'P1' THEN 1 ELSE 0 END),
-                'P2', SUM(CASE WHEN tc.priority = 'P2' THEN 1 ELSE 0 END),
-                'P3', SUM(CASE WHEN tc.priority = 'P3' THEN 1 ELSE 0 END)
+                'P0', SUM(CASE WHEN COALESCE(tcr.priority, tc.priority) = 'P0' THEN 1 ELSE 0 END),
+                'P1', SUM(CASE WHEN COALESCE(tcr.priority, tc.priority) = 'P1' THEN 1 ELSE 0 END),
+                'P2', SUM(CASE WHEN COALESCE(tcr.priority, tc.priority) = 'P2' THEN 1 ELSE 0 END),
+                'P3', SUM(CASE WHEN COALESCE(tcr.priority, tc.priority) = 'P3' THEN 1 ELSE 0 END)
             ) AS by_priority,
             JSON_OBJECT(
-                'critical', SUM(CASE WHEN tc.severity = 'critical' THEN 1 ELSE 0 END),
-                'high', SUM(CASE WHEN tc.severity = 'high' THEN 1 ELSE 0 END),
-                'medium', SUM(CASE WHEN tc.severity = 'medium' THEN 1 ELSE 0 END),
-                'low', SUM(CASE WHEN tc.severity = 'low' THEN 1 ELSE 0 END)
+                'critical', SUM(CASE WHEN COALESCE(tcr.severity, tc.severity) = 'critical' THEN 1 ELSE 0 END),
+                'high', SUM(CASE WHEN COALESCE(tcr.severity, tc.severity) = 'high' THEN 1 ELSE 0 END),
+                'medium', SUM(CASE WHEN COALESCE(tcr.severity, tc.severity) = 'medium' THEN 1 ELSE 0 END),
+                'low', SUM(CASE WHEN COALESCE(tcr.severity, tc.severity) = 'low' THEN 1 ELSE 0 END)
             ) AS by_severity
         FROM TestCaseResults tcr
         LEFT JOIN TestCases tc ON tcr.ref_id = tc.case_id

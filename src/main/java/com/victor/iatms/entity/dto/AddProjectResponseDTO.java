@@ -26,6 +26,26 @@ public class AddProjectResponseDTO {
     private String description;
     
     /**
+     * 项目编码
+     */
+    private String projectCode;
+    
+    /**
+     * 项目类型：WEB, MOBILE, API, DESKTOP, HYBRID
+     */
+    private String projectType;
+    
+    /**
+     * 项目状态：ACTIVE, INACTIVE, ARCHIVED
+     */
+    private String status;
+    
+    /**
+     * 项目头像URL
+     */
+    private String avatarUrl;
+    
+    /**
      * 创建人ID
      */
     private Integer creatorId;

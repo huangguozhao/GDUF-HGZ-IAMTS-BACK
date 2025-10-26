@@ -19,6 +19,21 @@ public class ProjectListQueryDTO {
     private Integer creatorId;
     
     /**
+     * 项目编码（精确查询）
+     */
+    private String projectCode;
+    
+    /**
+     * 项目类型：WEB, MOBILE, API, DESKTOP, HYBRID
+     */
+    private String projectType;
+    
+    /**
+     * 项目状态：ACTIVE, INACTIVE, ARCHIVED
+     */
+    private String status;
+    
+    /**
      * 是否包含已删除的项目
      */
     private Boolean includeDeleted = false;

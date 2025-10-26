@@ -7,6 +7,10 @@
         <id column="project_id" property="projectId"/>
         <result column="name" property="name"/>
         <result column="description" property="description"/>
+        <result column="project_code" property="projectCode"/>
+        <result column="project_type" property="projectType"/>
+        <result column="status" property="status"/>
+        <result column="avatar_url" property="avatarUrl"/>
         <result column="created_at" property="createdAt"/>
         <result column="updated_at" property="updatedAt"/>
         <result column="is_deleted" property="isDeleted"/>
@@ -110,6 +114,10 @@
         <result column="creator_id" property="creatorId"/>
         <result column="created_at" property="createdAt"/>
         <result column="updated_at" property="updatedAt"/>
+        <result column="project_code" property="projectCode"/>
+        <result column="project_type" property="projectType"/>
+        <result column="status" property="status"/>
+        <result column="avatar_url" property="avatarUrl"/>
         <result column="is_deleted" property="isDeleted"/>
         <result column="deleted_at" property="deletedAt"/>
         <result column="deleted_by" property="deletedBy"/>
@@ -121,6 +129,10 @@
             p.project_id,
             p.name,
             p.description,
+            p.project_code,
+            p.project_type,
+            p.status,
+            p.avatar_url,
             p.created_at,
             p.updated_at,
             p.is_deleted,
@@ -187,6 +199,10 @@
             creator_id,
             created_at,
             updated_at,
+            project_code,
+            project_type,
+            status,
+            avatar_url,
             is_deleted,
             deleted_at,
             deleted_by
@@ -200,6 +216,10 @@
             name,
             description,
             creator_id,
+            project_code,
+            project_type,
+            status,
+            avatar_url,
             created_at,
             updated_at,
             is_deleted
@@ -207,6 +227,10 @@
             #{name},
             #{description},
             #{creatorId},
+            #{projectCode},
+            #{projectType},
+            #{status},
+            #{avatarUrl},
             #{createdAt},
             #{updatedAt},
             #{isDeleted}
@@ -222,6 +246,18 @@
             </if>
             <if test="description != null">
                 description = #{description},
+            </if>
+            <if test="projectCode != null and projectCode != ''">
+                project_code = #{projectCode},
+            </if>
+            <if test="projectType != null and projectType != ''">
+                project_type = #{projectType},
+            </if>
+            <if test="status != null and status != ''">
+                status = #{status},
+            </if>
+            <if test="avatarUrl != null">
+                avatar_url = #{avatarUrl},
             </if>
             updated_at = NOW()
         </set>
@@ -254,6 +290,10 @@
             p.project_id,
             p.name,
             p.description,
+            p.project_code,
+            p.project_type,
+            p.status,
+            p.avatar_url,
             p.creator_id AS creator_id,
             u.name AS creator_name,
             p.created_at,
@@ -555,6 +595,10 @@
             project_id,
             name,
             description,
+            project_code,
+            project_type,
+            status,
+            avatar_url,
             creator_id,
             created_at,
             updated_at,
@@ -776,8 +820,21 @@
     </resultMap>
 
     <!-- 根据项目编码查询项目 -->
-    <select id="selectByCode" resultType="com.victor.iatms.entity.po.Project">
-        SELECT *
+    <select id="selectByCode" resultMap="ProjectMap">
+        SELECT 
+            project_id,
+            name,
+            description,
+            creator_id,
+            created_at,
+            updated_at,
+            project_code,
+            project_type,
+            status,
+            avatar_url,
+            is_deleted,
+            deleted_at,
+            deleted_by
         FROM Projects
         WHERE project_code = #{projectCode}
           AND is_deleted = 0
