@@ -513,35 +513,33 @@
     <!-- 查询报告测试结果详情（用于导出） -->
     <select id="selectReportTestResults" resultType="com.victor.iatms.entity.dto.ReportExportResponseDTO$TestCaseResultDTO">
         SELECT 
-            tcr.result_id,
-            tcr.ref_id AS case_id,
-            tc.case_code,
-            tc.name AS case_name,
+            tcr.result_id AS resultId,
+            tcr.ref_id AS caseId,
+            tc.case_code AS caseCode,
+            tc.name AS caseName,
             tcr.status,
             tcr.duration,
-            tcr.start_time,
-            tcr.end_time,
+            tcr.start_time AS startTime,
+            tcr.end_time AS endTime,
             tc.priority,
             tc.severity,
-            <if test="includeFailureDetails == true">
-                tcr.failure_message,
-                tcr.failure_trace,
-                tcr.failure_type,
-            </if>
+            tcr.failure_message AS failureMessage,
+            tcr.failure_trace AS failureTrace,
+            tcr.failure_type AS failureType,
             tcr.environment,
             tcr.browser,
             tcr.os,
             tcr.device,
-            tcr.retry_count,
+            tcr.retry_count AS retryCount,
             tcr.flaky,
             <if test="includeAttachments == true">
-                tcr.logs_link,
-                tcr.screenshot_link,
-                tcr.video_link,
+                tcr.logs_link AS logsLink,
+                tcr.screenshot_link AS screenshotLink,
+                tcr.video_link AS videoLink,
             </if>
             tcr.tags_json AS tags
         FROM TestCaseResults tcr
-        LEFT JOIN TestCases tc ON tcr.ref_id = tc.case_id
+        LEFT JOIN TestCases tc ON tcr.ref_id = tc.case_id AND tcr.task_type = 'test_case'
         WHERE tcr.report_id = #{reportId} AND tcr.is_deleted = 0
         ORDER BY tcr.start_time ASC
     </select>

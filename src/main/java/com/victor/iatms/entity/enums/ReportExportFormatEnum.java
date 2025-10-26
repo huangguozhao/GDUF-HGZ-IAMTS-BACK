@@ -6,6 +6,11 @@ package com.victor.iatms.entity.enums;
 public enum ReportExportFormatEnum {
     
     /**
+     * HTML格式
+     */
+    HTML("html", "HTML格式", "text/html"),
+    
+    /**
      * Excel格式
      */
     EXCEL("excel", "Excel格式", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"),

@@ -11,6 +11,7 @@ import com.victor.iatms.entity.po.TestReportSummary;
 import com.victor.iatms.entity.vo.ResponseVO;
 import com.victor.iatms.service.ReportService;
 import com.victor.iatms.service.ReportExportService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
@@ -26,6 +27,7 @@ import java.util.List;
 /**
  * 报告管理控制器
  */
+@Slf4j
 @RestController
 @RequestMapping("/reports")
 public class ReportController {
@@ -35,6 +37,12 @@ public class ReportController {
     
     @Autowired
     private ReportExportService reportExportService;
+    
+    @Autowired
+    private com.victor.iatms.service.EnterpriseReportService enterpriseReportService;
+    
+    @Autowired
+    private com.victor.iatms.service.ISOEnterpriseReportService isoEnterpriseReportService;
     
     /**
      * 分页查询测试报告列表
@@ -369,17 +377,27 @@ public class ReportController {
             // 生成文件名
             String fileName = reportExportService.generateExportFileName(reportId, exportFormat);
             
-            // 设置响应头
+            // 设置响应头（优化版）
             HttpHeaders headers = new HttpHeaders();
-            headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName + "\"");
-            headers.add(HttpHeaders.CONTENT_TYPE, mimeType);
+            
+            // 设置Content-Disposition，支持中文文件名
+            String encodedFileName = java.net.URLEncoder.encode(fileName, "UTF-8").replaceAll("\\+", "%20");
+            headers.setContentDispositionFormData("attachment", encodedFileName);
+            
+            // 设置Content-Type
+            headers.setContentType(MediaType.parseMediaType(mimeType));
+            
+            // 设置缓存控制
+            headers.setCacheControl("no-cache, no-store, must-revalidate");
+            headers.setPragma("no-cache");
+            headers.setExpires(0);
             
             return ResponseEntity.ok()
                     .headers(headers)
-                    .contentType(MediaType.parseMediaType(mimeType))
                     .body(resource);
                     
         } catch (IllegalArgumentException e) {
+            log.error("导出报告参数错误: reportId={}, format={}, error={}", reportId, exportFormat, e.getMessage(), e);
             if (e.getMessage().contains("不存在")) {
                 return ResponseEntity.notFound().build();
             } else if (e.getMessage().contains("生成中")) {
@@ -390,6 +408,108 @@ public class ReportController {
                 return ResponseEntity.badRequest().build();
             }
         } catch (Exception e) {
+            log.error("导出报告失败: reportId={}, format={}, error={}", reportId, exportFormat, e.getMessage(), e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+    
+    /**
+     * 导出企业级测试报告
+     * 
+     * @param reportId 报告ID
+     * @param locale 语言环境（zh_CN/en_US）
+     * @return HTML报告文件
+     */
+    @GetMapping("/{reportId}/export/enterprise")
+    @GlobalInterceptor(checkLogin = true)
+    public ResponseEntity<Resource> exportEnterpriseReport(@PathVariable("reportId") Long reportId,
+                                                           @RequestParam(value = "locale", required = false, defaultValue = "zh_CN") String locale) {
+        try {
+            log.info("开始导出企业级报告: reportId={}, locale={}", reportId, locale);
+            
+            // 导出企业级报告
+            Resource resource = enterpriseReportService.exportEnterpriseReport(reportId, locale);
+            
+            // 设置响应头
+            HttpHeaders headers = new HttpHeaders();
+            
+            // 设置Content-Disposition，支持中文文件名
+            String fileName = resource.getFilename();
+            if (fileName != null) {
+                String encodedFileName = java.net.URLEncoder.encode(fileName, "UTF-8").replaceAll("\\+", "%20");
+                headers.setContentDispositionFormData("attachment", encodedFileName);
+            }
+            
+            // 设置Content-Type为HTML
+            headers.setContentType(MediaType.parseMediaType("text/html;charset=UTF-8"));
+            
+            // 设置缓存控制
+            headers.setCacheControl("no-cache, no-store, must-revalidate");
+            headers.setPragma("no-cache");
+            headers.setExpires(0);
+            
+            log.info("企业级报告导出成功: reportId={}, fileName={}", reportId, fileName);
+            
+            return ResponseEntity.ok()
+                    .headers(headers)
+                    .body(resource);
+                    
+        } catch (IllegalArgumentException e) {
+            log.error("导出企业级报告参数错误: reportId={}, error={}", reportId, e.getMessage(), e);
+            return ResponseEntity.badRequest().build();
+        } catch (Exception e) {
+            log.error("导出企业级报告失败: reportId={}, error={}", reportId, e.getMessage(), e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+    
+    /**
+     * 导出ISO/IEC/IEEE 29119标准企业级测试报告
+     * 符合国际软件测试标准和ISTQB最佳实践
+     * 
+     * @param reportId 报告ID
+     * @param locale 语言环境（zh_CN/en_US）
+     * @return HTML报告文件
+     */
+    @GetMapping("/{reportId}/export/iso")
+    @GlobalInterceptor(checkLogin = true)
+    public ResponseEntity<Resource> exportISOEnterpriseReport(@PathVariable("reportId") Long reportId,
+                                                              @RequestParam(value = "locale", required = false, defaultValue = "zh_CN") String locale) {
+        try {
+            log.info("开始导出ISO标准企业级报告: reportId={}, locale={}", reportId, locale);
+            
+            // 导出ISO标准企业级报告
+            Resource resource = isoEnterpriseReportService.exportISOEnterpriseReport(reportId, locale);
+            
+            // 设置响应头
+            HttpHeaders headers = new HttpHeaders();
+            
+            // 设置Content-Disposition，支持中文文件名
+            String fileName = resource.getFilename();
+            if (fileName != null) {
+                String encodedFileName = java.net.URLEncoder.encode(fileName, "UTF-8").replaceAll("\\+", "%20");
+                headers.setContentDispositionFormData("attachment", encodedFileName);
+            }
+            
+            // 设置Content-Type为HTML
+            headers.setContentType(MediaType.parseMediaType("text/html;charset=UTF-8"));
+            
+            // 设置缓存控制
+            headers.setCacheControl("no-cache, no-store, must-revalidate");
+            headers.setPragma("no-cache");
+            headers.setExpires(0);
+            
+            log.info("ISO标准企业级报告导出成功: reportId={}, fileName={}", reportId, fileName);
+            
+            return ResponseEntity.ok()
+                    .headers(headers)
+                    .body(resource);
+                    
+        } catch (IllegalArgumentException e) {
+            log.error("导出ISO标准企业级报告参数错误: reportId={}, error={}", reportId, e.getMessage(), e);
+            return ResponseEntity.badRequest().build();
+        } catch (Exception e) {
+            log.error("导出ISO标准企业级报告失败: reportId={}, error={}", reportId, e.getMessage(), e);
             return ResponseEntity.internalServerError().build();
         }
     }
