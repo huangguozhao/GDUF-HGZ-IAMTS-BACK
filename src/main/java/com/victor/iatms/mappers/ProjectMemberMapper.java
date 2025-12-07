@@ -11,6 +11,13 @@ import java.util.List;
 @Mapper
 public interface ProjectMemberMapper {
 
+
+    /**
+     * 
+     * @param projectId
+     * @param userId
+     * @return
+     */
     ProjectMember findByProjectAndUser(@Param("projectId") Integer projectId,
                                        @Param("userId") Integer userId);
 
