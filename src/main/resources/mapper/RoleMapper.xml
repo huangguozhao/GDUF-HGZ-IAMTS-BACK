@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.victor.iatms.mappers.RoleMapper">
+
+    <resultMap id="RoleListItemMap" type="com.victor.iatms.entity.dto.RoleListItemDTO">
+        <id column="role_id" property="roleId"/>
+        <result column="role_name" property="roleName"/>
+        <result column="description" property="description"/>
+        <result column="is_super_admin" property="isSuperAdmin"/>
+        <result column="user_count" property="userCount"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+        <result column="is_deleted" property="isDeleted"/>
+        <result column="deleted_at" property="deletedAt"/>
+    </resultMap>
+
+    <select id="selectRoleList" resultMap="RoleListItemMap">
+        SELECT r.role_id,
+               r.role_name,
+               r.description,
+               r.is_super_admin,
+               r.created_at,
+               r.updated_at,
+               r.is_deleted,
+               r.deleted_at,
+               (SELECT COUNT(1) FROM UserRoles ur WHERE ur.role_id = r.role_id) AS user_count
+        FROM Roles r
+        <where>
+            <if test="roleName != null and roleName != ''">
+                AND r.role_name LIKE CONCAT('%', #{roleName}, '%')
+            </if>
+            <if test="isSuperAdmin != null">
+                AND r.is_super_admin = #{isSuperAdmin}
+            </if>
+            <if test="includeDeleted == null or includeDeleted == false">
+                AND r.is_deleted = FALSE
+            </if>
+        </where>
+        ORDER BY r.created_at DESC
+        LIMIT #{pageSize} OFFSET ${(page-1)*pageSize}
+    </select>
+
+    <select id="countRoles" resultType="long">
+        SELECT COUNT(1)
+        FROM Roles r
+        <where>
+            <if test="roleName != null and roleName != ''">
+                AND r.role_name LIKE CONCAT('%', #{roleName}, '%')
+            </if>
+            <if test="isSuperAdmin != null">
+                AND r.is_super_admin = #{isSuperAdmin}
+            </if>
+            <if test="includeDeleted == null or includeDeleted == false">
+                AND r.is_deleted = FALSE
+            </if>
+        </where>
+    </select>
+
+    <select id="selectById" resultType="com.victor.iatms.entity.po.Role">
+        SELECT * FROM Roles WHERE role_id = #{roleId}
+    </select>
+
+    <insert id="insert" parameterType="com.victor.iatms.entity.po.Role" useGeneratedKeys="true" keyProperty="roleId">
+        INSERT INTO Roles(role_name, description, is_super_admin, created_at, updated_at, is_deleted)
+        VALUES(#{roleName}, #{description}, #{isSuperAdmin}, NOW(), NOW(), FALSE)
+    </insert>
+
+    <update id="updateById" parameterType="com.victor.iatms.entity.po.Role">
+        UPDATE Roles
+        <set>
+            <if test="roleName != null">role_name = #{roleName},</if>
+            <if test="description != null">description = #{description},</if>
+            <if test="isSuperAdmin != null">is_super_admin = #{isSuperAdmin},</if>
+            updated_at = NOW()
+        </set>
+        WHERE role_id = #{roleId}
+    </update>
+
+    <update id="softDelete">
+        UPDATE Roles
+        SET is_deleted = TRUE, deleted_at = NOW(), deleted_by = #{deletedBy}
+        WHERE role_id = #{roleId}
+    </update>
+
+    <select id="existsByName" resultType="int">
+        SELECT COUNT(1) FROM Roles
+        WHERE role_name = #{roleName}
+          <if test="excludeId != null">AND role_id != #{excludeId}</if>
+    </select>
+
+</mapper>

@@ -133,4 +133,10 @@ public interface ProjectService {
      * @return 项目统计信息
      */
     com.victor.iatms.entity.dto.ProjectStatisticsDTO getProjectStatistics(Integer projectId);
+
+    // 3.9 添加项目成员
+    com.victor.iatms.entity.dto.ProjectMemberDTO addProjectMember(Integer projectId, com.victor.iatms.entity.dto.AddProjectMemberDTO dto, Integer operatorId);
+
+    // 3.10 更新项目成员角色/权限
+    com.victor.iatms.entity.dto.ProjectMemberDTO updateProjectMember(Integer projectId, Integer userId, com.victor.iatms.entity.dto.UpdateProjectMemberDTO dto, Integer operatorId);
 }

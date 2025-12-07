@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.victor.iatms.mappers.ProjectMemberMapper">
+
+    <resultMap id="UserProjectItemMap" type="com.victor.iatms.entity.dto.UserProjectItemDTO">
+        <id column="member_id" property="memberId"/>
+        <result column="project_id" property="projectId"/>
+        <result column="permission_level" property="permissionLevel"/>
+        <result column="project_role" property="projectRole"/>
+        <result column="status" property="status"/>
+        <result column="join_time" property="joinTime"/>
+        <result column="leave_time" property="leaveTime"/>
+        <result column="assigned_tasks" property="assignedTasks"/>
+        <result column="completed_tasks" property="completedTasks"/>
+        <result column="additional_roles" property="additionalRoles"/>
+        <result column="custom_permissions" property="customPermissions"/>
+        <association property="projectInfo" javaType="com.victor.iatms.entity.dto.UserProjectItemDTO$ProjectInfo">
+            <result column="project_name" property="name"/>
+            <result column="project_description" property="description"/>
+            <result column="creator_id" property="creatorId"/>
+            <result column="project_created_at" property="createdAt"/>
+        </association>
+    </resultMap>
+
+    <select id="findByProjectAndUser" resultType="com.victor.iatms.entity.po.ProjectMember">
+        SELECT *
+        FROM ProjectMembers
+        WHERE project_id = #{projectId} AND user_id = #{userId}
+        LIMIT 1
+    </select>
+
+    <insert id="insert" parameterType="com.victor.iatms.entity.po.ProjectMember" useGeneratedKeys="true" keyProperty="memberId">
+        INSERT INTO ProjectMembers (
+            project_id, user_id, permission_level, project_role, status,
+            join_time, last_active_time, assigned_tasks, completed_tasks,
+            additional_roles, custom_permissions, notes,
+            created_by, updated_by, created_at, updated_at
+        ) VALUES (
+            #{projectId}, #{userId}, #{permissionLevel}, #{projectRole}, #{status},
+            NOW(), NULL, #{assignedTasks}, #{completedTasks},
+            #{additionalRoles}, #{customPermissions}, #{notes},
+            #{createdBy}, #{updatedBy}, NOW(), NOW()
+        )
+    </insert>
+
+    <update id="softRemove">
+        UPDATE ProjectMembers
+        SET status = 'removed', leave_time = NOW(), updated_by = #{updatedBy}, updated_at = NOW()
+        WHERE project_id = #{projectId} AND user_id = #{userId} AND status != 'removed'
+    </update>
+
+    <select id="countUserProjects" resultType="long">
+        SELECT COUNT(1)
+        FROM ProjectMembers pm
+        INNER JOIN Projects p ON pm.project_id = p.project_id
+        WHERE pm.user_id = #{userId}
+          <if test="status != null and status != ''">
+            AND pm.status = #{status}
+          </if>
+          <if test="projectRole != null and projectRole != ''">
+            AND pm.project_role = #{projectRole}
+          </if>
+          AND p.is_deleted = FALSE
+    </select>
+
+    <select id="selectUserProjects" resultMap="UserProjectItemMap">
+        SELECT 
+            pm.member_id,
+            pm.project_id,
+            p.name AS project_name,
+            p.description AS project_description,
+            p.creator_id,
+            p.created_at AS project_created_at,
+            pm.permission_level,
+            pm.project_role,
+            pm.status,
+            pm.join_time,
+            pm.leave_time,
+            pm.assigned_tasks,
+            pm.completed_tasks,
+            pm.additional_roles,
+            pm.custom_permissions
+        FROM ProjectMembers pm
+        INNER JOIN Projects p ON pm.project_id = p.project_id
+        WHERE pm.user_id = #{userId}
+          <if test="status != null and status != ''">
+            AND pm.status = #{status}
+          </if>
+          <if test="projectRole != null and projectRole != ''">
+            AND pm.project_role = #{projectRole}
+          </if>
+          AND p.is_deleted = FALSE
+        ORDER BY pm.join_time DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <update id="updateMember" parameterType="com.victor.iatms.entity.po.ProjectMember">
+        UPDATE ProjectMembers
+        <set>
+            <if test="permissionLevel != null">permission_level = #{permissionLevel},</if>
+            <if test="projectRole != null">project_role = #{projectRole},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="lastActiveTime != null">last_active_time = #{lastActiveTime},</if>
+            <if test="assignedTasks != null">assigned_tasks = #{assignedTasks},</if>
+            <if test="completedTasks != null">completed_tasks = #{completedTasks},</if>
+            <if test="additionalRoles != null">additional_roles = #{additionalRoles},</if>
+            <if test="customPermissions != null">custom_permissions = #{customPermissions},</if>
+            <if test="notes != null">notes = #{notes},</if>
+            <if test="updatedBy != null">updated_by = #{updatedBy},</if>
+            updated_at = NOW()
+        </set>
+        WHERE project_id = #{projectId} AND user_id = #{userId}
+    </update>
+
+</mapper>

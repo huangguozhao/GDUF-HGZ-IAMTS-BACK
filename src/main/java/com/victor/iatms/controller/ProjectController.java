@@ -9,6 +9,8 @@ import com.victor.iatms.entity.dto.ModuleListResponseDTO;
 import com.victor.iatms.entity.dto.ProjectDeleteResultDTO;
 import com.victor.iatms.entity.dto.ProjectListQueryDTO;
 import com.victor.iatms.entity.dto.ProjectMembersPageResultDTO;
+import com.victor.iatms.entity.dto.AddProjectMemberDTO;
+import com.victor.iatms.entity.dto.UpdateProjectMemberDTO;
 import com.victor.iatms.entity.dto.ProjectMembersQueryDTO;
 import com.victor.iatms.entity.dto.ProjectPageResultDTO;
 import com.victor.iatms.entity.dto.ProjectRelationCheckDTO;
