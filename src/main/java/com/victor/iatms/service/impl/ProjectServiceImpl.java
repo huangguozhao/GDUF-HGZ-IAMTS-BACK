@@ -51,13 +51,13 @@ import java.util.List;
  */
 @Service
 public class ProjectServiceImpl implements ProjectService {
-
+    
     @Autowired
     private ProjectMapper projectMapper;
-
+    
     @Autowired
     private TestExecutionMapper testExecutionMapper;
-
+    
     @Autowired
     private ProjectMemberMapper projectMemberMapper;
 
@@ -72,7 +72,7 @@ public class ProjectServiceImpl implements ProjectService {
         if (project == null) { throw new IllegalArgumentException("项目不存在"); }
         if (project.getIsDeleted()) { throw new IllegalArgumentException("项目已被删除"); }
         setModuleQueryDefaultValues(queryDTO);
-
+        
         List<ModuleDTO> modules;
         if (ModuleStructureEnum.TREE.getCode().equals(queryDTO.getStructure())) {
             modules = projectMapper.selectModuleListTree(queryDTO);
@@ -82,7 +82,7 @@ public class ProjectServiceImpl implements ProjectService {
             addLevelAndPathInfo(modules);
         }
         Integer totalModules = projectMapper.countModules(queryDTO);
-
+        
         ModuleListResponseDTO response = new ModuleListResponseDTO();
         response.setProjectId(queryDTO.getProjectId());
         response.setProjectName(project.getName());
@@ -90,7 +90,7 @@ public class ProjectServiceImpl implements ProjectService {
         response.setModules(modules);
         return response;
     }
-
+    
     // ================= 项目成员列表 =================
     @Override
     public ProjectMembersPageResultDTO findProjectMembers(ProjectMembersQueryDTO queryDTO) {
@@ -104,7 +104,7 @@ public class ProjectServiceImpl implements ProjectService {
         List<ProjectMemberDTO> members = projectMapper.selectProjectMembers(queryDTO);
         Long total = projectMapper.countProjectMembers(queryDTO);
         ProjectMembersSummaryDTO summary = projectMapper.selectProjectMembersSummary(queryDTO.getProjectId());
-
+        
         ProjectMembersPageResultDTO result = new ProjectMembersPageResultDTO();
         result.setTotal(total);
         result.setItems(members);
@@ -113,7 +113,7 @@ public class ProjectServiceImpl implements ProjectService {
         result.setSummary(summary);
         return result;
     }
-
+    
     @Override
     public Boolean checkProjectCodeExists(String projectCode, Integer excludeId) {
         return null;
@@ -134,19 +134,19 @@ public class ProjectServiceImpl implements ProjectService {
         result.setPageSize(queryDTO.getPageSize());
         return result;
     }
-
+    
     // ================= 项目 CRUD =================
     @Override
     public Project getProjectById(Integer projectId) {
         if (projectId == null) { throw new IllegalArgumentException("项目ID不能为空"); }
         return projectMapper.selectById(projectId);
     }
-
+    
     @Override
     public Project getProjectByCode(String projectCode) {
         throw new UnsupportedOperationException("项目编码查询功能暂不支持");
     }
-
+    
     @Override
     public Integer createProject(Project project) {
         validateProject(project);
@@ -155,7 +155,7 @@ public class ProjectServiceImpl implements ProjectService {
         if (result > 0) { return project.getProjectId(); }
         throw new RuntimeException("创建项目失败");
     }
-
+    
     @Override
     public AddProjectResponseDTO addProject(AddProjectDTO addProjectDTO, Integer creatorId) {
         return null;
@@ -184,7 +184,7 @@ public class ProjectServiceImpl implements ProjectService {
         if (responseDTO == null) { throw new RuntimeException("获取项目详情失败"); }
         return responseDTO;
     }
-
+    
     @Override
     public Boolean updateProject(Project project) {
         if (project.getProjectId() == null) { throw new IllegalArgumentException("项目ID不能为空"); }
@@ -193,7 +193,7 @@ public class ProjectServiceImpl implements ProjectService {
         int result = projectMapper.updateById(project);
         return result > 0;
     }
-
+    
     @Override
     public Boolean deleteProject(Integer projectId, Integer deletedBy) {
         if (projectId == null) { throw new IllegalArgumentException("项目ID不能为空"); }
@@ -202,7 +202,7 @@ public class ProjectServiceImpl implements ProjectService {
         int result = projectMapper.deleteById(projectId, deletedBy);
         return result > 0;
     }
-
+    
     @Override
     public ProjectDeleteResultDTO safeDeleteProject(Integer projectId, Integer deletedBy, Boolean forceDelete) {
         ProjectDeleteResultDTO result = new ProjectDeleteResultDTO();
@@ -243,7 +243,7 @@ public class ProjectServiceImpl implements ProjectService {
         }
         return result;
     }
-
+    
     @Override
     public ProjectRelationCheckDTO checkProjectRelations(Integer projectId) {
         ProjectRelationCheckDTO result = new ProjectRelationCheckDTO();
@@ -269,7 +269,7 @@ public class ProjectServiceImpl implements ProjectService {
         }
         return result;
     }
-
+    
     // ================= 最近编辑项目 =================
     @Override
     public RecentProjectsResponseDTO getRecentProjects(RecentProjectsQueryDTO queryDTO, Integer currentUserId) {
@@ -402,7 +402,7 @@ public class ProjectServiceImpl implements ProjectService {
         dtoRes.setUserInfo(ui);
         return dtoRes;
     }
-
+    
     @Override
     @Transactional(rollbackFor = Exception.class)
     public ProjectMemberDTO updateProjectMember(Integer projectId, Integer userId, UpdateProjectMemberDTO dto, Integer operatorId) {
@@ -412,7 +412,7 @@ public class ProjectServiceImpl implements ProjectService {
         Project project = projectMapper.selectById(projectId);
         if (project == null || Boolean.TRUE.equals(project.getIsDeleted())) {
             throw new IllegalArgumentException("项目不存在");
-        }
+    }
         User user = userMapper.selectUserById(userId);
         if (user == null) throw new IllegalArgumentException("用户不存在");
         ProjectMember relation = projectMemberMapper.findByProjectAndUser(projectId, userId);
@@ -441,7 +441,7 @@ public class ProjectServiceImpl implements ProjectService {
             update.setStatus(dto.getStatus());
             if ("removed".equalsIgnoreCase(dto.getStatus())) {
                 update.setLeaveTime(java.sql.Timestamp.valueOf(LocalDateTime.now()));
-            }
+        }
         }
         update.setAdditionalRoles(dto.getAdditionalRoles());
         update.setCustomPermissions(dto.getCustomPermissions());
@@ -463,13 +463,13 @@ public class ProjectServiceImpl implements ProjectService {
         res.setUserInfo(ui);
         return res;
     }
-
+    
     // ================= 私有方法 =================
     private void validateModuleListQuery(ModuleListQueryDTO queryDTO) {
         if (queryDTO == null) { throw new IllegalArgumentException("查询参数不能为空"); }
         if (queryDTO.getProjectId() == null) { throw new IllegalArgumentException("项目ID不能为空"); }
     }
-
+    
     private void setModuleQueryDefaultValues(ModuleListQueryDTO queryDTO) {
         if (!StringUtils.hasText(queryDTO.getStructure())) { queryDTO.setStructure(Constants.DEFAULT_MODULE_STRUCTURE); }
         if (!StringUtils.hasText(queryDTO.getStatus())) { queryDTO.setStatus(Constants.DEFAULT_MODULE_STATUS); }
@@ -480,7 +480,7 @@ public class ProjectServiceImpl implements ProjectService {
         if (!ModuleSortFieldEnum.isValidSortField(queryDTO.getSortBy())) { queryDTO.setSortBy(Constants.DEFAULT_MODULE_SORT_BY); }
         if (!SortOrderEnum.isValidSortOrder(queryDTO.getSortOrder())) { queryDTO.setSortOrder(Constants.DEFAULT_SORT_ORDER); }
     }
-
+    
     private List<ModuleDTO> buildModuleTree(List<ModuleDTO> modules) {
         if (modules == null || modules.isEmpty()) { return new ArrayList<>(); }
         java.util.Map<Integer, ModuleDTO> moduleMap = new java.util.HashMap<>();
@@ -496,14 +496,14 @@ public class ProjectServiceImpl implements ProjectService {
         }
         return rootModules;
     }
-
+    
     private void addLevelAndPathInfo(List<ModuleDTO> modules) {
         if (modules == null || modules.isEmpty()) { return; }
         java.util.Map<Integer, ModuleDTO> moduleMap = new java.util.HashMap<>();
         for (ModuleDTO module : modules) { moduleMap.put(module.getModuleId(), module); }
         for (ModuleDTO module : modules) { calculateLevelAndPath(module, moduleMap); }
     }
-
+    
     private void calculateLevelAndPath(ModuleDTO module, java.util.Map<Integer, ModuleDTO> moduleMap) {
         if (module.getParentModuleId() == null) {
             module.setLevel(1); module.setPath(module.getName());
@@ -518,7 +518,7 @@ public class ProjectServiceImpl implements ProjectService {
             }
         }
     }
-
+    
     private void validateProjectMembersQuery(ProjectMembersQueryDTO queryDTO) {
         if (queryDTO == null) { throw new IllegalArgumentException("查询参数不能为空"); }
         if (queryDTO.getProjectId() == null) { throw new IllegalArgumentException("项目ID不能为空"); }
@@ -527,7 +527,7 @@ public class ProjectServiceImpl implements ProjectService {
             throw new IllegalArgumentException("每页条数必须在1-" + Constants.MAX_PAGE_SIZE + "之间");
         }
     }
-
+    
     private void setDefaultValues(ProjectMembersQueryDTO queryDTO) {
         if (queryDTO.getPage() == null) { queryDTO.setPage(Constants.DEFAULT_PAGE); }
         if (queryDTO.getPageSize() == null) { queryDTO.setPageSize(Constants.DEFAULT_PAGE_SIZE); }
@@ -535,7 +535,7 @@ public class ProjectServiceImpl implements ProjectService {
         if (!StringUtils.hasText(queryDTO.getSortBy())) { queryDTO.setSortBy(Constants.DEFAULT_MEMBER_SORT_BY); }
         if (!StringUtils.hasText(queryDTO.getSortOrder())) { queryDTO.setSortOrder(Constants.DEFAULT_SORT_ORDER); }
     }
-
+    
     private void validateEditProject(Integer projectId, UpdateProjectDTO updateProjectDTO, Integer updatedBy) {
         if (projectId == null) { throw new IllegalArgumentException("项目ID不能为空"); }
         if (updateProjectDTO == null) { throw new IllegalArgumentException("项目信息不能为空"); }
@@ -552,7 +552,7 @@ public class ProjectServiceImpl implements ProjectService {
             throw new IllegalArgumentException("项目描述长度不能超过" + Constants.PROJECT_DESCRIPTION_MAX_LENGTH + "个字符");
         }
     }
-
+    
     private void validateProject(Project project) {
         if (project == null) {
             throw new IllegalArgumentException("项目信息不能为空");
@@ -564,7 +564,7 @@ public class ProjectServiceImpl implements ProjectService {
             throw new IllegalArgumentException("创建人ID不能为空");
         }
     }
-
+    
     private void setProjectDefaults(Project project) {
         if (project.getIsDeleted() == null) {
             project.setIsDeleted(false);
@@ -576,7 +576,7 @@ public class ProjectServiceImpl implements ProjectService {
             project.setUpdatedAt(LocalDateTime.now());
         }
     }
-
+    
     private void validateAddProject(AddProjectDTO addProjectDTO, Integer creatorId) {
         if (addProjectDTO == null) { throw new IllegalArgumentException("项目信息不能为空"); }
         if (!StringUtils.hasText(addProjectDTO.getName())) { throw new IllegalArgumentException("项目名称不能为空"); }
@@ -618,7 +618,7 @@ public class ProjectServiceImpl implements ProjectService {
             }
         }
     }
-
+    
     private void setRecentProjectsDefaultValues(RecentProjectsQueryDTO queryDTO) {
         if (!StringUtils.hasText(queryDTO.getTimeRange())) { queryDTO.setTimeRange(Constants.DEFAULT_RECENT_PROJECTS_TIME_RANGE); }
         if (queryDTO.getIncludeStats() == null) { queryDTO.setIncludeStats(false); }
@@ -627,17 +627,17 @@ public class ProjectServiceImpl implements ProjectService {
         if (queryDTO.getPage() == null || queryDTO.getPage() < 1) { queryDTO.setPage(Constants.DEFAULT_PAGE); }
         if (queryDTO.getPageSize() == null || queryDTO.getPageSize() < 1) { queryDTO.setPageSize(Constants.DEFAULT_RECENT_PROJECTS_PAGE_SIZE); }
     }
-
+    
     private boolean hasRecentProjectsPermission(Integer userId) { return true; }
-
+    
     private boolean isValidTimeRange(String timeRange) {
         return "1d".equals(timeRange) || "7d".equals(timeRange) || "30d".equals(timeRange);
     }
-
+    
     private boolean isValidRecentProjectsSortField(String sortField) {
         return "last_accessed".equalsIgnoreCase(sortField) || "updated_at".equalsIgnoreCase(sortField) || "created_at".equalsIgnoreCase(sortField);
     }
-
+    
     private TimeRangeDTO calculateTimeRange(String timeRange) {
         LocalDateTime endTime = LocalDateTime.now();
         LocalDateTime startTime = switch (timeRange) {
@@ -651,7 +651,7 @@ public class ProjectServiceImpl implements ProjectService {
         timeRangeDTO.setDays((int) java.time.Duration.between(startTime, endTime).toDays());
         return timeRangeDTO;
     }
-
+    
     private boolean isSystemProject(Project project) { return project.getName().contains("系统"); }
 
     public Boolean checkProjectNameExists(String projectName, Integer excludeId) {

@@ -39,4 +39,9 @@
         </foreach>
     </insert>
 
+
+    <select id="countByRoleId" resultType="int">
+        SELECT COUNT(1) FROM UserRoles WHERE role_id = #{roleId}
+    </select>
+
 </mapper>

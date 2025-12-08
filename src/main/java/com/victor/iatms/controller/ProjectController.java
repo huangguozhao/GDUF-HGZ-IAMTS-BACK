@@ -11,6 +11,8 @@ import com.victor.iatms.entity.dto.ProjectListQueryDTO;
 import com.victor.iatms.entity.dto.ProjectMembersPageResultDTO;
 import com.victor.iatms.entity.dto.AddProjectMemberDTO;
 import com.victor.iatms.entity.dto.UpdateProjectMemberDTO;
+import com.victor.iatms.entity.dto.AddProjectMemberDTO;
+import com.victor.iatms.entity.dto.UpdateProjectMemberDTO;
 import com.victor.iatms.entity.dto.ProjectMembersQueryDTO;
 import com.victor.iatms.entity.dto.ProjectPageResultDTO;
 import com.victor.iatms.entity.dto.ProjectRelationCheckDTO;
@@ -530,4 +532,28 @@ public class ProjectController {
             return ResponseVO.serverError("查询项目统计数据失败：" + e.getMessage());
         }
     }
+
+    /**
+     * 3.9 添加项目成员
+     */
+    @PostMapping("/{projectId}/members")
+    @GlobalInterceptor(checkLogin = true, checkAdmin = true)
+    public ResponseVO<com.victor.iatms.entity.dto.ProjectMemberDTO> addProjectMember(@PathVariable("projectId") Integer projectId, @RequestBody AddProjectMemberDTO dto, jakarta.servlet.http.HttpServletRequest request) {
+        Integer operatorId = (Integer) request.getAttribute("userId");
+        com.victor.iatms.entity.dto.ProjectMemberDTO result = projectService.addProjectMember(projectId, dto, operatorId);
+        return ResponseVO.success("成员已成功添加到项目", result);
+    }
+
+    /**
+     * 3.10 更新项目成员角色/权限
+     */
+    @PutMapping("/{projectId}/members/{userId}")
+    @GlobalInterceptor(checkLogin = true, checkAdmin = true)
+    public ResponseVO<com.victor.iatms.entity.dto.ProjectMemberDTO> updateProjectMember(@PathVariable("projectId") Integer projectId, @PathVariable("userId") Integer userId, @RequestBody UpdateProjectMemberDTO dto, jakarta.servlet.http.HttpServletRequest request) {
+        Integer operatorId = (Integer) request.getAttribute("userId");
+        com.victor.iatms.entity.dto.ProjectMemberDTO result = projectService.updateProjectMember(projectId, userId, dto, operatorId);
+        return ResponseVO.success("成员角色更新成功", result);
+    }
+
+    
 }
