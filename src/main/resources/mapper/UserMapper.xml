@@ -40,7 +40,7 @@
                 AND email LIKE CONCAT('%', #{email}, '%')
             </if>
         </where>
-        LIMIT #{page}, #{pageSize}
+        LIMIT #{pageSize} OFFSET #{offset}
     </select>
 
     <select id="countUsers" resultType="long">

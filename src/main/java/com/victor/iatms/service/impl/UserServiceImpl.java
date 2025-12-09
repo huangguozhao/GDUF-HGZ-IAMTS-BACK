@@ -123,9 +123,14 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public PaginationResultVO<User> findUserListByPage(UserQueryDTO userQueryDTO) {
+        int page = userQueryDTO.getPage() == null || userQueryDTO.getPage() < 1 ? 1 : userQueryDTO.getPage();
+        int pageSize = userQueryDTO.getPageSize() == null || userQueryDTO.getPageSize() < 1 ? 10 : userQueryDTO.getPageSize();
+        int offset = (page - 1) * pageSize;
+        userQueryDTO.setOffset(offset);
+
         long count = userMapper.countUsers(userQueryDTO);
         List<User> userList = userMapper.selectUsers(userQueryDTO);
-        return new PaginationResultVO<>(count, userList, userQueryDTO.getPage(), userQueryDTO.getPageSize());
+        return new PaginationResultVO<>(count, userList, page, pageSize);
     }
 
     @Override

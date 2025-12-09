@@ -79,3 +79,10 @@
 2025-12-08 22:12:59.332 [main] INFO  o.s.scheduling.quartz.SchedulerFactoryBean - Starting Quartz Scheduler now
 2025-12-08 22:12:59.332 [main] INFO  org.quartz.core.QuartzScheduler - Scheduler quartzScheduler_$_NON_CLUSTERED started.
 2025-12-08 22:12:59.345 [main] INFO  com.victor.iatms.IatmsApplication - Started IatmsApplication in 8.978 seconds (process running for 12.21)
+2025-12-08 22:39:49.148 [SpringApplicationShutdownHook] INFO  org.quartz.core.QuartzScheduler - Scheduler quartzScheduler_$_NON_CLUSTERED paused.
+2025-12-08 22:39:49.272 [SpringApplicationShutdownHook] INFO  o.s.boot.web.embedded.tomcat.GracefulShutdown - Commencing graceful shutdown. Waiting for active requests to complete
+2025-12-08 22:39:49.913 [tomcat-shutdown] INFO  o.s.boot.web.embedded.tomcat.GracefulShutdown - Graceful shutdown complete
+2025-12-08 22:39:50.318 [SpringApplicationShutdownHook] INFO  o.s.scheduling.quartz.SchedulerFactoryBean - Shutting down Quartz Scheduler
+2025-12-08 22:39:50.318 [SpringApplicationShutdownHook] INFO  org.quartz.core.QuartzScheduler - Scheduler quartzScheduler_$_NON_CLUSTERED shutting down.
+2025-12-08 22:39:50.318 [SpringApplicationShutdownHook] INFO  org.quartz.core.QuartzScheduler - Scheduler quartzScheduler_$_NON_CLUSTERED paused.
+2025-12-08 22:39:50.320 [SpringApplicationShutdownHook] INFO  org.quartz.core.QuartzScheduler - Scheduler quartzScheduler_$_NON_CLUSTERED shutdown complete.

@@ -29,6 +29,8 @@ public class UserQueryDTO {
      * 分页查询的每页记录数，默认为 10
      */
     private Integer pageSize = 10;
+
+    private Integer offset;
 }
 
 

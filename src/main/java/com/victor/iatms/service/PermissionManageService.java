@@ -8,3 +8,6 @@ public interface PermissionManageService {
     PaginationResultVO<PermissionListItemDTO> listPermissions(PermissionListQueryDTO queryDTO);
 }
 
+
+
+
