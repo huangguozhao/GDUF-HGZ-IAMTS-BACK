@@ -31,6 +31,24 @@ public class UserQueryDTO {
     private Integer pageSize = 10;
 
     private Integer offset;
+
+    /**
+     * 状态筛选（active/pending/inactive）
+     */
+    private String status;
+
+    /**
+     * 角色/职位筛选
+     */
+    private String position;
+
+    /**
+     * 创建时间开始日期
+     */
+    private String startDate;
+
+    /**
+     * 创建时间结束日期
+     */
+    private String endDate;
 }
-
-

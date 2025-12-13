@@ -28,9 +28,7 @@
         last_login_time, position, description, status, created_at, updated_at, is_deleted, deleted_at, deleted_by
     </sql>
 
-    <select id="selectUsers" resultMap="BaseResultMap">
-        SELECT <include refid="Base_Column_List" />
-        FROM Users
+    <sql id="Query_Conditions">
         <where>
             is_deleted = FALSE
             <if test="name != null and name != ''">
@@ -39,22 +37,32 @@
             <if test="email != null and email != ''">
                 AND email LIKE CONCAT('%', #{email}, '%')
             </if>
+            <if test="status != null and status != ''">
+                AND status = #{status}
+            </if>
+            <if test="position != null and position != ''">
+                AND position = #{position}
+            </if>
+            <if test="startDate != null and startDate != ''">
+                AND created_at &gt;= #{startDate}
+            </if>
+            <if test="endDate != null and endDate != ''">
+                AND created_at &lt;= #{endDate}
+            </if>
         </where>
+    </sql>
+
+    <select id="selectUsers" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List" />
+        FROM Users
+        <include refid="Query_Conditions" />
         LIMIT #{pageSize} OFFSET #{offset}
     </select>
 
     <select id="countUsers" resultType="long">
         SELECT count(*)
         FROM Users
-        <where>
-            is_deleted = FALSE
-            <if test="name != null and name != ''">
-                AND name LIKE CONCAT('%', #{name}, '%')
-            </if>
-            <if test="email != null and email != ''">
-                AND email LIKE CONCAT('%', #{email}, '%')
-            </if>
-        </where>
+        <include refid="Query_Conditions" />
     </select>
 
     <select id="selectUserByEmail" resultMap="BaseResultMap">
