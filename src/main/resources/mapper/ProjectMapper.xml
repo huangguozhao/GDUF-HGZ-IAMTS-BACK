@@ -487,11 +487,11 @@
             pm.status,
             pm.join_time,
             pm.last_active_time,
-            COALESCE(task_stats.assigned_tasks, 0) as assigned_tasks,
-            COALESCE(task_stats.completed_tasks, 0) as completed_tasks,
+            pm.assigned_tasks as assigned_tasks,
+            pm.completed_tasks as completed_tasks,
             CASE 
-                WHEN COALESCE(task_stats.assigned_tasks, 0) = 0 THEN 0.0
-                ELSE ROUND(COALESCE(task_stats.completed_tasks, 0) * 100.0 / COALESCE(task_stats.assigned_tasks, 0), 1)
+                WHEN COALESCE(pm.assigned_tasks, 0) = 0 THEN 0.0
+                ELSE ROUND(COALESCE(pm.completed_tasks, 0) * 100.0 / COALESCE(pm.assigned_tasks, 0), 1)
             END as completion_rate,
             pm.additional_roles,
             pm.created_by,
@@ -507,15 +507,6 @@
         FROM ProjectMembers pm
         LEFT JOIN Users u ON pm.user_id = u.user_id
         LEFT JOIN Users creator ON pm.created_by = creator.user_id
-        LEFT JOIN (
-            SELECT 
-                assignee_id,
-                COUNT(*) as assigned_tasks,
-                SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed_tasks
-            FROM Tasks 
-            WHERE project_id = #{projectId} AND is_deleted = FALSE
-            GROUP BY assignee_id
-        ) task_stats ON pm.user_id = task_stats.assignee_id
         WHERE pm.project_id = #{projectId}
         <if test="status != null and status != ''">
             AND pm.status = #{status}
