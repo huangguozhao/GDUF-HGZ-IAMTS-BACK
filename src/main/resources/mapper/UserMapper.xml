@@ -31,12 +31,21 @@
     <sql id="Query_Conditions">
         <where>
             is_deleted = FALSE
-            <if test="name != null and name != ''">
-                AND name LIKE CONCAT('%', #{name}, '%')
-            </if>
-            <if test="email != null and email != ''">
-                AND email LIKE CONCAT('%', #{email}, '%')
-            </if>
+            <choose>
+                <when test="(name != null and name != '') or (email != null and email != '')">
+                    AND (
+                        <if test="name != null and name != ''">
+                            name LIKE CONCAT('%', #{name}, '%')
+                        </if>
+                        <if test="(name != null and name != '') and (email != null and email != '')">
+                            OR 
+                        </if>
+                        <if test="email != null and email != ''">
+                            email LIKE CONCAT('%', #{email}, '%')
+                        </if>
+                    )
+                </when>
+            </choose>
             <if test="status != null and status != ''">
                 AND status = #{status}
             </if>

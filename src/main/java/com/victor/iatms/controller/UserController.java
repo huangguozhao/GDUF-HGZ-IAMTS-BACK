@@ -14,6 +14,7 @@ import com.victor.iatms.entity.vo.PaginationResultVO;
 import com.victor.iatms.entity.vo.ResponseVO;
 import com.victor.iatms.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -40,6 +41,22 @@ public class UserController {
     public ResponseVO<PaginationResultVO<User>> getUserList(UserQueryDTO userQueryDTO) {
         PaginationResultVO<User> userList = userService.findUserListByPage(userQueryDTO);
         return ResponseVO.success("success", userList);
+    }
+    
+    /**
+     * 3.10 根据用户名或邮箱模糊查询用户
+     */
+    @GetMapping("/search")
+    @GlobalInterceptor(checkLogin = true)
+    public ResponseVO<List<User>> searchUsers(@RequestParam(value = "keyword", required = false) String keyword) {
+        UserQueryDTO queryDTO = new UserQueryDTO();
+        // 这里假设keyword可以同时匹配name和email
+        queryDTO.setName(keyword);
+        queryDTO.setEmail(keyword);
+        queryDTO.setPageSize(100); // 设置一个较大的分页大小，确保能返回所有匹配的用户
+        
+        PaginationResultVO<User> result = userService.findUserListByPage(queryDTO);
+        return ResponseVO.success("success", result.getItems());
     }
 
     /**
