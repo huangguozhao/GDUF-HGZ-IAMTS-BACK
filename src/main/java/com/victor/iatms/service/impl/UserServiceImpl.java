@@ -283,4 +283,39 @@ public class UserServiceImpl implements UserService {
         List<UserProjectItemDTO> items = projectMemberMapper.selectUserProjects(queryDTO.getUserId(), queryDTO.getStatus(), queryDTO.getProjectRole(), offset, pageSize);
         return new PaginationResultVO<>(total == null ? 0 : total, items, page, pageSize);
     }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void updateUserProject(Integer userId, Integer projectId, UpdateUserProjectDTO dto, Integer operatorId) {
+        // 用户校验
+        User user = userMapper.selectUserById(userId);
+        if (user == null) {
+            throw new BusinessException("用户不存在");
+        }
+        // 项目校验
+        Project project = projectMapper.selectById(projectId);
+        if (project == null || Boolean.TRUE.equals(project.getIsDeleted())) {
+            throw new BusinessException("项目不存在");
+        }
+        // 关系校验
+        ProjectMember existingMember = projectMemberMapper.findByProjectAndUser(projectId, userId);
+        if (existingMember == null) {
+            throw new BusinessException("用户不在该项目中");
+        }
+        if ("removed".equalsIgnoreCase(existingMember.getStatus())) {
+            throw new BusinessException("用户已被从项目中移除，无法更新信息");
+        }
+
+        // 更新成员信息
+        existingMember.setPermissionLevel(dto.getPermissionLevel() != null ? dto.getPermissionLevel() : existingMember.getPermissionLevel());
+        existingMember.setProjectRole(dto.getProjectRole() != null ? dto.getProjectRole() : existingMember.getProjectRole());
+        existingMember.setStatus(dto.getStatus() != null ? dto.getStatus() : existingMember.getStatus());
+        existingMember.setAdditionalRoles(dto.getAdditionalRoles() != null ? dto.getAdditionalRoles() : existingMember.getAdditionalRoles());
+        existingMember.setCustomPermissions(dto.getCustomPermissions() != null ? dto.getCustomPermissions() : existingMember.getCustomPermissions());
+        existingMember.setNotes(dto.getNotes() != null ? dto.getNotes() : existingMember.getNotes());
+        existingMember.setUpdatedBy(operatorId);
+        existingMember.setUpdatedAt(java.sql.Timestamp.valueOf(LocalDateTime.now()));
+
+        projectMemberMapper.updateMember(existingMember);
+    }
 }

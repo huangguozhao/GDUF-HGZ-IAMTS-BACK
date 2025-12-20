@@ -7,6 +7,7 @@ import com.victor.iatms.entity.dto.UpdateUserDTO;
 import com.victor.iatms.entity.dto.UpdateUserStatusDTO;
 import com.victor.iatms.entity.dto.UserProjectItemDTO;
 import com.victor.iatms.entity.dto.UserProjectsQueryDTO;
+import com.victor.iatms.entity.dto.UpdateUserProjectDTO;
 import com.victor.iatms.entity.dto.UserQueryDTO;
 import com.victor.iatms.entity.po.User;
 import com.victor.iatms.entity.vo.PaginationResultVO;
@@ -127,5 +128,19 @@ public class UserController {
         query.setPageSize(pageSize);
         PaginationResultVO<UserProjectItemDTO> result = userService.findUserProjects(query);
         return ResponseVO.success("success", result);
+    }
+
+    /**
+     * 3.9 更新用户项目成员信息
+     */
+    @PutMapping("/{userId}/projects/{projectId}")
+    @GlobalInterceptor(checkLogin = true, checkAdmin = true)
+    public ResponseVO<Object> updateUserProject(@PathVariable("userId") Integer userId,
+                                                @PathVariable("projectId") Integer projectId,
+                                                @RequestBody UpdateUserProjectDTO updateUserProjectDTO,
+                                                HttpServletRequest request) {
+        Integer operatorId = (Integer) request.getAttribute("userId");
+        userService.updateUserProject(userId, projectId, updateUserProjectDTO, operatorId);
+        return ResponseVO.success("用户项目成员信息更新成功", null);
     }
 }

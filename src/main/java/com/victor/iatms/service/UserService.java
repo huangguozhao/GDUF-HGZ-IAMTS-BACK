@@ -14,6 +14,7 @@ import com.victor.iatms.entity.po.User;
 import com.victor.iatms.entity.dto.AssignUserProjectDTO;
 import com.victor.iatms.entity.dto.UserProjectsQueryDTO;
 import com.victor.iatms.entity.dto.UserProjectItemDTO;
+import com.victor.iatms.entity.dto.UpdateUserProjectDTO;
 
 /**
  * 用户服务接口
@@ -97,4 +98,7 @@ public interface UserService {
 
     // 3.8 分页获取用户项目列表
     PaginationResultVO<UserProjectItemDTO> findUserProjects(UserProjectsQueryDTO queryDTO);
+    
+    // 3.9 更新用户项目成员信息
+    void updateUserProject(Integer userId, Integer projectId, UpdateUserProjectDTO dto, Integer operatorId);
 }
