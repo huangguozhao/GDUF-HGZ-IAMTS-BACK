@@ -1,8 +1,6 @@
 package com.victor.iatms.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.victor.iatms.entity.dto.*;
 import com.victor.iatms.entity.po.ScheduledTaskExecution;
 import com.victor.iatms.entity.po.ScheduledTestTask;
@@ -177,8 +175,7 @@ public class ScheduledTaskServiceImpl implements ScheduledTaskService {
 
     @Override
     public PaginationResultVO<ScheduledTaskDTO> listScheduledTasks(ScheduledTaskQueryDTO query, Integer userId) {
-        Page<ScheduledTestTask> page = new Page<>(query.getPage(), query.getPageSize());
-        
+        // 构建查询条件
         LambdaQueryWrapper<ScheduledTestTask> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(ScheduledTestTask::getIsDeleted, false);
         wrapper.eq(ScheduledTestTask::getCreatedBy, userId);
@@ -202,15 +199,24 @@ public class ScheduledTaskServiceImpl implements ScheduledTaskService {
             wrapper.eq(ScheduledTestTask::getExecutionEnvironment, query.getExecutionEnvironment());
         }
         
-        wrapper.orderByDesc(ScheduledTestTask::getCreatedAt);
+        // 先查询总数
+        Long total = scheduledTaskMapper.selectCount(wrapper);
         
-        IPage<ScheduledTestTask> result = scheduledTaskMapper.selectPage(page, wrapper);
+        // 计算分页偏移量
+        int offset = (query.getPage() - 1) * query.getPageSize();
+        
+        // 添加分页条件并排序
+        wrapper.orderByDesc(ScheduledTestTask::getCreatedAt);
+        wrapper.last("LIMIT " + query.getPageSize() + " OFFSET " + offset);
+        
+        // 查询分页数据
+        List<ScheduledTestTask> records = scheduledTaskMapper.selectList(wrapper);
         
         PaginationResultVO<ScheduledTaskDTO> vo = new PaginationResultVO<>();
         vo.setPage(query.getPage());
         vo.setPageSize(query.getPageSize());
-        vo.setTotal(result.getTotal());
-        vo.setItems(result.getRecords().stream().map(this::convertToDTO).toList());
+        vo.setTotal(total.intValue());
+        vo.setItems(records.stream().map(this::convertToDTO).toList());
         
         return vo;
     }
@@ -422,19 +428,28 @@ public class ScheduledTaskServiceImpl implements ScheduledTaskService {
 
     @Override
     public PaginationResultVO<ScheduledTaskExecutionDTO> getExecutionHistory(Long taskId, int page, int size) {
-        Page<ScheduledTaskExecution> pageObj = new Page<>(page, size);
-        
+        // 构建查询条件
         LambdaQueryWrapper<ScheduledTaskExecution> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(ScheduledTaskExecution::getTaskId, taskId);
-        wrapper.orderByDesc(ScheduledTaskExecution::getCreatedAt);
         
-        IPage<ScheduledTaskExecution> result = scheduledTaskExecutionMapper.selectPage(pageObj, wrapper);
+        // 先查询总数
+        Long total = scheduledTaskExecutionMapper.selectCount(wrapper);
+        
+        // 计算分页偏移量
+        int offset = (page - 1) * size;
+        
+        // 添加分页条件并排序
+        wrapper.orderByDesc(ScheduledTaskExecution::getCreatedAt);
+        wrapper.last("LIMIT " + size + " OFFSET " + offset);
+        
+        // 查询分页数据
+        List<ScheduledTaskExecution> records = scheduledTaskExecutionMapper.selectList(wrapper);
         
         PaginationResultVO<ScheduledTaskExecutionDTO> vo = new PaginationResultVO<>();
         vo.setPage(page);
         vo.setPageSize(size);
-        vo.setTotal(result.getTotal());
-        vo.setItems(result.getRecords().stream().map(this::convertExecutionToDTO).toList());
+        vo.setTotal(total.intValue());
+        vo.setItems(records.stream().map(this::convertExecutionToDTO).toList());
         
         return vo;
     }
