@@ -55,6 +55,7 @@ public class ScheduledTaskServiceImpl implements ScheduledTaskService {
                 .description(dto.getDescription())
                 .taskType(dto.getTaskType())
                 .targetId(dto.getTargetId())
+                .targetName(dto.getTargetName())
                 .triggerType(dto.getTriggerType())
                 .cronExpression(dto.getCronExpression())
                 .simpleRepeatInterval(dto.getSimpleRepeatInterval())
@@ -584,7 +585,8 @@ public class ScheduledTaskServiceImpl implements ScheduledTaskService {
                 triggerBuilder.withSchedule(scheduleBuilder);
             }
             case "daily" -> {
-                String cron = String.format("0 %d %d * * ?", 
+                // Quartz cron 表达式：秒 分 时 日 月 周，日用 ? 代替
+                String cron = String.format("0 %d %d ? * *", 
                         task.getDailyMinute() != null ? task.getDailyMinute() : 0,
                         task.getDailyHour() != null ? task.getDailyHour() : 0);
                 triggerBuilder.withSchedule(CronScheduleBuilder.cronSchedule(cron)
@@ -592,7 +594,9 @@ public class ScheduledTaskServiceImpl implements ScheduledTaskService {
             }
             case "weekly" -> {
                 if (StringUtils.hasText(task.getWeeklyDays())) {
-                    String cron = String.format("0 %d %d * * %s", 
+                    // Quartz cron 表达式：秒 分 时 日 月 周
+                    // 当指定周时，日应该用 ? 代替，避免日和周冲突
+                    String cron = String.format("0 %d %d ? * %s", 
                             task.getDailyMinute() != null ? task.getDailyMinute() : 0,
                             task.getDailyHour() != null ? task.getDailyHour() : 0,
                             task.getWeeklyDays());
@@ -602,6 +606,7 @@ public class ScheduledTaskServiceImpl implements ScheduledTaskService {
             }
             case "monthly" -> {
                 if (task.getMonthlyDay() != null) {
+                    // Quartz cron 表达式：秒 分 时 日 月 周
                     String cron = String.format("0 %d %d %d * ?", 
                             task.getDailyMinute() != null ? task.getDailyMinute() : 0,
                             task.getDailyHour() != null ? task.getDailyHour() : 0,

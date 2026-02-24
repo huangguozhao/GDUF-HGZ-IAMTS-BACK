@@ -27,6 +27,8 @@ public class CreateScheduledTaskDTO {
     @NotNull(message = "目标ID不能为空")
     private Integer targetId;
 
+    private String targetName;
+
     @NotBlank(message = "触发器类型不能为空")
     private String triggerType; // cron, simple, daily, weekly, monthly
 
