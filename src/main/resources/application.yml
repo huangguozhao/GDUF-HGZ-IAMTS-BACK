@@ -46,25 +46,20 @@ spring:
         socketFactory:
           fallback: false
         debug: true # 开启调试日志，方便排查问题
-# Quartz Configuration (暂时禁用，避免启动错误)
-# 如果需要使用定时任务，请先执行 quartz_tables.sql 创建必要的数据库表
-#  quartz:
-#    job-store-type: jdbc
-#    jdbc:
-#      initialize-schema: always
-#    properties:
-#      org:
-#        quartz:
-#          scheduler:
-#            instanceName: IATMScheduler
-#            instanceId: AUTO
-#          threadPool:
-#            threadCount: 10
-#          jobStore:
-#            class: org.quartz.impl.jdbcjobstore.JobStoreTX
-#            driverDelegateClass: org.quartz.impl.jdbcjobstore.StdJDBCDelegate
-#            tablePrefix: QRTZ_
-#            isClustered: false
+
+# Quartz Configuration (使用数据库存储)
+  quartz:
+    job-store-type: jdbc
+    jdbc:
+      initialize-schema: always
+    # 必须指定数据源名称，这样Quartz才能找到
+    properties:
+      org:
+        quartz:
+          jobStore:
+            dataSource: quartzDataSource
+          threadPool:
+            threadCount: 10
 
   servlet:
     multipart:

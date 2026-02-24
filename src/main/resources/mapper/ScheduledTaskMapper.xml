@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.victor.iatms.mappers.ScheduledTaskMapper">
+
+    <!-- 结果映射 -->
+    <resultMap id="BaseResultMap" type="com.victor.iatms.entity.po.ScheduledTestTask">
+        <id column="task_id" property="taskId"/>
+        <result column="task_name" property="taskName"/>
+        <result column="description" property="description"/>
+        <result column="task_type" property="taskType"/>
+        <result column="target_id" property="targetId"/>
+        <result column="target_name" property="targetName"/>
+        <result column="trigger_type" property="triggerType"/>
+        <result column="cron_expression" property="cronExpression"/>
+        <result column="simple_repeat_interval" property="simpleRepeatInterval"/>
+        <result column="simple_repeat_count" property="simpleRepeatCount"/>
+        <result column="daily_hour" property="dailyHour"/>
+        <result column="daily_minute" property="dailyMinute"/>
+        <result column="weekly_days" property="weeklyDays"/>
+        <result column="monthly_day" property="monthlyDay"/>
+        <result column="execution_environment" property="executionEnvironment"/>
+        <result column="base_url" property="baseUrl"/>
+        <result column="timeout_seconds" property="timeoutSeconds"/>
+        <result column="concurrency" property="concurrency"/>
+        <result column="execution_strategy" property="executionStrategy"/>
+        <result column="retry_enabled" property="retryEnabled"/>
+        <result column="max_retry_attempts" property="maxRetryAttempts"/>
+        <result column="retry_delay_ms" property="retryDelayMs"/>
+        <result column="notify_on_success" property="notifyOnSuccess"/>
+        <result column="notify_on_failure" property="notifyOnFailure"/>
+        <result column="notification_recipients" property="notificationRecipients"/>
+        <result column="skip_if_previous_failed" property="skipIfPreviousFailed"/>
+        <result column="max_duration_seconds" property="maxDurationSeconds"/>
+        <result column="is_enabled" property="isEnabled"/>
+        <result column="is_deleted" property="isDeleted"/>
+        <result column="total_executions" property="totalExecutions"/>
+        <result column="successful_executions" property="successfulExecutions"/>
+        <result column="failed_executions" property="failedExecutions"/>
+        <result column="skipped_executions" property="skippedExecutions"/>
+        <result column="next_trigger_time" property="nextTriggerTime"/>
+        <result column="last_execution_time" property="lastExecutionTime"/>
+        <result column="last_execution_status" property="lastExecutionStatus"/>
+        <result column="created_by" property="createdBy"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_by" property="updatedBy"/>
+        <result column="updated_at" property="updatedAt"/>
+        <result column="deleted_by" property="deletedBy"/>
+        <result column="deleted_at" property="deletedAt"/>
+    </resultMap>
+
+    <!-- 通用查询列 -->
+    <sql id="Base_Column_List">
+        task_id, task_name, description, task_type, target_id, target_name,
+        trigger_type, cron_expression, simple_repeat_interval, simple_repeat_count,
+        daily_hour, daily_minute, weekly_days, monthly_day,
+        execution_environment, base_url, timeout_seconds, concurrency, execution_strategy,
+        retry_enabled, max_retry_attempts, retry_delay_ms,
+        notify_on_success, notify_on_failure, notification_recipients,
+        skip_if_previous_failed, max_duration_seconds,
+        is_enabled, is_deleted,
+        total_executions, successful_executions, failed_executions, skipped_executions,
+        next_trigger_time, last_execution_time, last_execution_status,
+        created_by, created_at, updated_by, updated_at, deleted_by, deleted_at
+    </sql>
+
+    <!-- 根据ID查询 -->
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM ScheduledTestTasks
+        WHERE task_id = #{taskId}
+        AND is_deleted = 0
+    </select>
+
+    <!-- 逻辑删除 -->
+    <update id="deleteByPrimaryKey">
+        UPDATE ScheduledTestTasks
+        SET is_deleted = 1,
+            deleted_by = #{userId},
+            deleted_at = NOW()
+        WHERE task_id = #{taskId}
+    </update>
+
+    <!-- 更新启用状态 -->
+    <update id="updateEnabledStatus">
+        UPDATE ScheduledTestTasks
+        SET is_enabled = #{isEnabled},
+            updated_by = #{userId},
+            updated_at = NOW()
+        WHERE task_id = #{taskId}
+    </update>
+
+    <!-- 更新执行统计 -->
+    <update id="updateExecutionStatistics">
+        UPDATE ScheduledTestTasks
+        SET total_executions = #{totalExecutions},
+            successful_executions = #{successfulExecutions},
+            failed_executions = #{failedExecutions},
+            skipped_executions = #{skippedExecutions},
+            updated_at = NOW()
+        WHERE task_id = #{taskId}
+    </update>
+
+    <!-- 更新下次触发时间 -->
+    <update id="updateNextTriggerTime">
+        UPDATE ScheduledTestTasks
+        SET next_trigger_time = #{nextTriggerTime},
+            updated_at = NOW()
+        WHERE task_id = #{taskId}
+    </update>
+
+    <!-- 更新最后执行状态 -->
+    <update id="updateLastExecutionStatus">
+        UPDATE ScheduledTestTasks
+        SET last_execution_time = #{lastExecutionTime},
+            last_execution_status = #{lastExecutionStatus},
+            updated_at = NOW()
+        WHERE task_id = #{taskId}
+    </update>
+
+    <!-- 统计用户任务数量 -->
+    <select id="countByCreatedBy" resultType="int">
+        SELECT COUNT(*)
+        FROM ScheduledTestTasks
+        WHERE created_by = #{userId}
+        AND is_deleted = 0
+    </select>
+
+    <!-- 条件查询任务列表 -->
+    <select id="selectTaskList" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM ScheduledTestTasks
+        WHERE is_deleted = 0
+        <if test="taskName != null and taskName != ''">
+            AND task_name LIKE CONCAT('%', #{taskName}, '%')
+        </if>
+        <if test="taskType != null and taskType != ''">
+            AND task_type = #{taskType}
+        </if>
+        <if test="targetId != null">
+            AND target_id = #{targetId}
+        </if>
+        <if test="triggerType != null and triggerType != ''">
+            AND trigger_type = #{triggerType}
+        </if>
+        <if test="isEnabled != null">
+            AND is_enabled = #{isEnabled}
+        </if>
+        <if test="executionEnvironment != null and executionEnvironment != ''">
+            AND execution_environment = #{executionEnvironment}
+        </if>
+        <if test="createdBy != null">
+            AND created_by = #{createdBy}
+        </if>
+        <if test="sortBy != null and sortOrder != null">
+            ORDER BY ${sortBy} ${sortOrder}
+        </if>
+        <if test="sortBy == null">
+            ORDER BY created_at DESC
+        </if>
+    </select>
+
+</mapper>
+

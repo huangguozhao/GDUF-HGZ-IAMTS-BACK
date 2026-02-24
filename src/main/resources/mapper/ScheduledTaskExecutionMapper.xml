@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.victor.iatms.mappers.ScheduledTaskExecutionMapper">
+
+    <!-- 结果映射 -->
+    <resultMap id="BaseResultMap" type="com.victor.iatms.entity.po.ScheduledTaskExecution">
+        <id column="execution_id" property="executionId"/>
+        <result column="task_id" property="taskId"/>
+        <result column="test_execution_record_id" property="testExecutionRecordId"/>
+        <result column="quartz_job_id" property="quartzJobId"/>
+        <result column="status" property="status"/>
+        <result column="scheduled_time" property="scheduledTime"/>
+        <result column="actual_start_time" property="actualStartTime"/>
+        <result column="actual_end_time" property="actualEndTime"/>
+        <result column="duration_seconds" property="durationSeconds"/>
+        <result column="delay_seconds" property="delaySeconds"/>
+        <result column="total_cases" property="totalCases"/>
+        <result column="passed_cases" property="passedCases"/>
+        <result column="failed_cases" property="failedCases"/>
+        <result column="skipped_cases" property="skippedCases"/>
+        <result column="success_rate" property="successRate"/>
+        <result column="error_message" property="errorMessage"/>
+        <result column="stack_trace" property="stackTrace"/>
+        <result column="retry_count" property="retryCount"/>
+        <result column="is_retry" property="isRetry"/>
+        <result column="original_execution_id" property="originalExecutionId"/>
+        <result column="notification_sent" property="notificationSent"/>
+        <result column="notification_channels" property="notificationChannels"/>
+        <result column="notification_timestamp" property="notificationTimestamp"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+    </resultMap>
+
+    <!-- 通用查询列 -->
+    <sql id="Base_Column_List">
+        execution_id, task_id, test_execution_record_id, quartz_job_id, status,
+        scheduled_time, actual_start_time, actual_end_time, duration_seconds, delay_seconds,
+        total_cases, passed_cases, failed_cases, skipped_cases, success_rate,
+        error_message, stack_trace,
+        retry_count, is_retry, original_execution_id,
+        notification_sent, notification_channels, notification_timestamp,
+        created_at, updated_at
+    </sql>
+
+    <!-- 根据ID查询 -->
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM ScheduledTaskExecutions
+        WHERE execution_id = #{executionId}
+    </select>
+
+    <!-- 根据任务ID查询执行记录 -->
+    <select id="selectByTaskId" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM ScheduledTaskExecutions
+        WHERE task_id = #{taskId}
+        ORDER BY created_at DESC
+    </select>
+
+    <!-- 查询任务最近的执行记录 -->
+    <select id="selectRecentByTaskId" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM ScheduledTaskExecutions
+        WHERE task_id = #{taskId}
+        ORDER BY created_at DESC
+        LIMIT #{limit}
+    </select>
+
+    <!-- 更新执行状态 -->
+    <update id="updateStatus">
+        UPDATE ScheduledTaskExecutions
+        SET status = #{status},
+            updated_at = NOW()
+        WHERE execution_id = #{executionId}
+    </update>
+
+    <!-- 更新执行结果 -->
+    <update id="updateExecutionResult">
+        UPDATE ScheduledTaskExecutions
+        SET status = #{status},
+            actual_start_time = #{actualStartTime},
+            actual_end_time = #{actualEndTime},
+            duration_seconds = #{durationSeconds},
+            total_cases = #{totalCases},
+            passed_cases = #{passedCases},
+            failed_cases = #{failedCases},
+            skipped_cases = #{skippedCases},
+            success_rate = #{successRate},
+            error_message = #{errorMessage},
+            updated_at = NOW()
+        WHERE execution_id = #{executionId}
+    </update>
+
+    <!-- 统计任务执行记录数量 -->
+    <select id="countByTaskId" resultType="int">
+        SELECT COUNT(*)
+        FROM ScheduledTaskExecutions
+        WHERE task_id = #{taskId}
+    </select>
+
+    <!-- 统计任务的平均执行时长 -->
+    <select id="selectAvgDurationByTaskId" resultType="java.math.BigDecimal">
+        SELECT AVG(duration_seconds)
+        FROM ScheduledTaskExecutions
+        WHERE task_id = #{taskId}
+        AND status = 'success'
+        AND duration_seconds IS NOT NULL
+    </select>
+
+    <!-- 统计任务的最大执行时长 -->
+    <select id="selectMaxDurationByTaskId" resultType="java.lang.Integer">
+        SELECT MAX(duration_seconds)
+        FROM ScheduledTaskExecutions
+        WHERE task_id = #{taskId}
+        AND status = 'success'
+        AND duration_seconds IS NOT NULL
+    </select>
+
+    <!-- 统计任务的最小执行时长 -->
+    <select id="selectMinDurationByTaskId" resultType="java.lang.Integer">
+        SELECT MIN(duration_seconds)
+        FROM ScheduledTaskExecutions
+        WHERE task_id = #{taskId}
+        AND status = 'success'
+        AND duration_seconds IS NOT NULL
+    </select>
+
+    <!-- 查询任务在某时间范围内的执行记录 -->
+    <select id="selectByTaskIdAndTimeRange" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM ScheduledTaskExecutions
+        WHERE task_id = #{taskId}
+        AND scheduled_time BETWEEN #{startTime} AND #{endTime}
+        ORDER BY scheduled_time DESC
+    </select>
+
+    <!-- 更新通知状态 -->
+    <update id="updateNotificationStatus">
+        UPDATE ScheduledTaskExecutions
+        SET notification_sent = #{notificationSent},
+            notification_channels = #{notificationChannels},
+            notification_timestamp = #{notificationTimestamp},
+            updated_at = NOW()
+        WHERE execution_id = #{executionId}
+    </update>
+
+    <!-- 按日期统计执行记录 -->
+    <select id="selectDailyStatistics" resultType="map">
+        SELECT
+            DATE(created_at) as date,
+            COUNT(*) as execution_count,
+            SUM(CASE WHEN status = 'success' THEN 1 ELSE 0 END) as passed_count,
+            SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END) as failed_count,
+            SUM(CASE WHEN status = 'skipped' THEN 1 ELSE 0 END) as skipped_count,
+            AVG(CASE WHEN status = 'success' THEN duration_seconds ELSE NULL END) as avg_duration
+        FROM ScheduledTaskExecutions
+        WHERE task_id = #{taskId}
+        AND created_at BETWEEN #{startDate} AND #{endDate}
+        GROUP BY DATE(created_at)
+        ORDER BY date ASC
+    </select>
+
+</mapper>
+
