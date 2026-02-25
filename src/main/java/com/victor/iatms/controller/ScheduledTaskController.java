@@ -134,6 +134,10 @@ public class ScheduledTaskController {
 
             PaginationResultVO<ScheduledTaskDTO> result = scheduledTaskService.listScheduledTasks(query, userId);
             return ResponseVO.success("查询成功", result);
+        } catch (RuntimeException e) {
+            // 认证失败等业务异常返回 authError
+            log.warn("查询任务列表业务异常: {}", e.getMessage());
+            return ResponseVO.authError(e.getMessage());
         } catch (Exception e) {
             log.error("查询任务列表失败", e);
             return ResponseVO.serverError("查询任务列表失败: " + e.getMessage());
