@@ -5,7 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
+import java.time.LocalDate;
 
 /**
  * 定时任务查询参数DTO
@@ -28,6 +28,10 @@ public class ScheduledTaskQueryDTO {
     private Boolean isEnabled;
     private String executionEnvironment;
     private Integer createdBy;
+
+    // 创建时间筛选
+    private LocalDate startDate;
+    private LocalDate endDate;
 
     // 排序
     private String sortBy;

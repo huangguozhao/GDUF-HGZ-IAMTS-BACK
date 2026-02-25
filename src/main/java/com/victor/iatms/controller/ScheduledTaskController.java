@@ -117,6 +117,8 @@ public class ScheduledTaskController {
             @RequestParam(value = "trigger_type", required = false) String triggerType,
             @RequestParam(value = "is_enabled", required = false) Boolean isEnabled,
             @RequestParam(value = "execution_environment", required = false) String executionEnvironment,
+            @RequestParam(value = "start_date", required = false) String startDate,
+            @RequestParam(value = "end_date", required = false) String endDate,
             HttpServletRequest request) {
         try {
             Integer userId = getCurrentUserId(request);
@@ -131,6 +133,14 @@ public class ScheduledTaskController {
             query.setIsEnabled(isEnabled);
             query.setExecutionEnvironment(executionEnvironment);
             query.setCreatedBy(userId);
+
+            // 设置日期范围筛选
+            if (startDate != null && !startDate.isEmpty()) {
+                query.setStartDate(java.time.LocalDate.parse(startDate));
+            }
+            if (endDate != null && !endDate.isEmpty()) {
+                query.setEndDate(java.time.LocalDate.parse(endDate));
+            }
 
             PaginationResultVO<ScheduledTaskDTO> result = scheduledTaskService.listScheduledTasks(query, userId);
             return ResponseVO.success("查询成功", result);

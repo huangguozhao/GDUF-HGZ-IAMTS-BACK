@@ -198,6 +198,14 @@ public class ScheduledTaskServiceImpl implements ScheduledTaskService {
         if (StringUtils.hasText(query.getExecutionEnvironment())) {
             wrapper.eq(ScheduledTestTask::getExecutionEnvironment, query.getExecutionEnvironment());
         }
+
+        // 创建时间范围筛选
+        if (query.getStartDate() != null) {
+            wrapper.ge(ScheduledTestTask::getCreatedAt, query.getStartDate().atStartOfDay());
+        }
+        if (query.getEndDate() != null) {
+            wrapper.le(ScheduledTestTask::getCreatedAt, query.getEndDate().plusDays(1).atStartOfDay());
+        }
         
         // 先查询总数
         Long total = scheduledTaskMapper.selectCount(wrapper);
