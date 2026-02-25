@@ -125,3 +125,20 @@ management:
   endpoint:
     health:
       show-details: when-authorized
+
+# DeepSeek AI Configuration
+deepseek:
+  api:
+    # DeepSeek API密钥(从DeepSeek平台获取: https://platform.deepseek.com/)
+    key: ${DEEPSEEK_API_KEY:your-api-key-here}
+    # API基础URL
+    base-url: https://api.deepseek.com
+    # 使用的模型 (deepseek-chat / deepseek-coder)
+    model: deepseek-chat
+    # 请求超时时间(毫秒)
+    timeout: 30000
+    # 最大token数
+    max-tokens: 2000
+  # 诊断功能开关
+  diagnosis:
+    enabled: true
