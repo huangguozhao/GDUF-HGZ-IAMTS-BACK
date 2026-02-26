@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.victor.iatms.mappers.TaskMapper">
+
+    <!-- 任务结果映射 -->
+    <resultMap id="TaskMap" type="com.victor.iatms.entity.po.Task">
+        <id column="task_id" property="taskId"/>
+        <result column="task_type" property="taskType"/>
+        <result column="task_title" property="taskTitle"/>
+        <result column="task_description" property="taskDescription"/>
+        <result column="priority" property="priority"/>
+        <result column="severity" property="severity"/>
+        <result column="status" property="status"/>
+        <result column="progress" property="progress"/>
+        <result column="due_date" property="dueDate"/>
+        <result column="start_date" property="startDate"/>
+        <result column="completed_date" property="completedDate"/>
+        <result column="assignee_id" property="assigneeId"/>
+        <result column="assignee_name" property="assigneeName"/>
+        <result column="assigner_id" property="assignerId"/>
+        <result column="assigner_name" property="assignerName"/>
+        <result column="project_id" property="projectId"/>
+        <result column="project_name" property="projectName"/>
+        <result column="test_case_id" property="testCaseId"/>
+        <result column="execution_id" property="executionId"/>
+        <result column="report_id" property="reportId"/>
+        <result column="tags" property="tags"/>
+        <result column="remarks" property="remarks"/>
+        <result column="is_deleted" property="isDeleted"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="created_by" property="createdBy"/>
+        <result column="updated_at" property="updatedAt"/>
+        <result column="updated_by" property="updatedBy"/>
+        <result column="deleted_at" property="deletedAt"/>
+        <result column="deleted_by" property="deletedBy"/>
+    </resultMap>
+
+    <!-- 待办任务DTO映射 -->
+    <resultMap id="PendingTaskDTOMap" type="com.victor.iatms.entity.dto.PendingTaskDTO">
+        <id column="task_id" property="taskId"/>
+        <result column="task_type" property="type"/>
+        <result column="task_title" property="title"/>
+        <result column="priority" property="priority"/>
+        <result column="due_date" property="dueDate"/>
+        <result column="assignee_name" property="assigner"/>
+        <result column="progress" property="progress"/>
+    </resultMap>
+
+    <!-- 插入任务 -->
+    <insert id="insert" parameterType="com.victor.iatms.entity.po.Task" useGeneratedKeys="true" keyProperty="taskId">
+        INSERT INTO Tasks (
+            task_type, task_title, task_description, priority, severity, status, progress,
+            due_date, start_date, completed_date,
+            assignee_id, assignee_name, assigner_id, assigner_name,
+            project_id, project_name, test_case_id, execution_id, report_id,
+            tags, remarks, created_at, created_by, updated_at, updated_by
+        ) VALUES (
+            #{taskType}, #{taskTitle}, #{taskDescription}, #{priority}, #{severity}, #{status}, #{progress},
+            #{dueDate}, #{startDate}, #{completedDate},
+            #{assigneeId}, #{assigneeName}, #{assignerId}, #{assignerName},
+            #{projectId}, #{projectName}, #{testCaseId}, #{executionId}, #{reportId},
+            #{tags}, #{remarks}, NOW(), #{createdBy}, NOW(), #{updatedBy}
+        )
+    </insert>
+
+    <!-- 更新任务 -->
+    <update id="update" parameterType="com.victor.iatms.entity.po.Task">
+        UPDATE Tasks SET
+            task_type = #{taskType},
+            task_title = #{taskTitle},
+            task_description = #{taskDescription},
+            priority = #{priority},
+            severity = #{severity},
+            status = #{status},
+            progress = #{progress},
+            due_date = #{dueDate},
+            start_date = #{startDate},
+            completed_date = #{completedDate},
+            assignee_id = #{assigneeId},
+            assignee_name = #{assigneeName},
+            assigner_id = #{assignerId},
+            assigner_name = #{assignerName},
+            project_id = #{projectId},
+            project_name = #{projectName},
+            test_case_id = #{testCaseId},
+            execution_id = #{executionId},
+            report_id = #{reportId},
+            tags = #{tags},
+            remarks = #{remarks},
+            updated_at = NOW()
+        WHERE task_id = #{taskId} AND is_deleted = FALSE
+    </update>
+
+    <!-- 根据ID查询任务 -->
+    <select id="selectById" resultMap="TaskMap">
+        SELECT * FROM Tasks
+        WHERE task_id = #{taskId} AND is_deleted = FALSE
+    </select>
+
+    <!-- 软删除任务 -->
+    <update id="deleteById">
+        UPDATE Tasks SET
+            is_deleted = TRUE,
+            deleted_at = NOW()
+        WHERE task_id = #{taskId}
+    </update>
+
+    <!-- 获取用户的待处理任务 -->
+    <select id="getUserPendingTasks" resultMap="PendingTaskDTOMap">
+        SELECT 
+            task_id,
+            task_type,
+            task_title,
+            priority,
+            due_date,
+            assignee_name,
+            progress
+        FROM Tasks
+        WHERE assignee_id = #{userId}
+        AND status IN ('pending', 'in_progress')
+        AND is_deleted = FALSE
+        ORDER BY priority ASC, due_date ASC
+    </select>
+
+    <!-- 获取所有待处理任务 -->
+    <select id="getAllPendingTasks" resultMap="PendingTaskDTOMap">
+        SELECT 
+            task_id,
+            task_type,
+            task_title,
+            priority,
+            due_date,
+            assignee_name,
+            progress
+        FROM Tasks
+        WHERE status IN ('pending', 'in_progress')
+        AND is_deleted = FALSE
+        ORDER BY priority ASC, due_date ASC
+    </select>
+
+    <!-- 统计用户的待处理任务数量 -->
+    <select id="countUserPendingTasks" resultType="int">
+        SELECT COUNT(*) FROM Tasks
+        WHERE assignee_id = #{userId}
+        AND status IN ('pending', 'in_progress')
+        AND is_deleted = FALSE
+    </select>
+
+    <!-- 根据项目ID查询任务列表 -->
+    <select id="selectByProjectId" resultMap="TaskMap">
+        SELECT * FROM Tasks
+        WHERE project_id = #{projectId} AND is_deleted = FALSE
+        ORDER BY priority ASC, created_at DESC
+    </select>
+
+    <!-- 根据执行记录ID查询任务 -->
+    <select id="selectByExecutionId" resultMap="TaskMap">
+        SELECT * FROM Tasks
+        WHERE execution_id = #{executionId} AND is_deleted = FALSE
+        LIMIT 1
+    </select>
+
+    <!-- 更新任务状态 -->
+    <update id="updateStatus">
+        UPDATE Tasks SET
+            status = #{status},
+            updated_at = NOW()
+        WHERE task_id = #{taskId}
+    </update>
+
+    <!-- 更新任务进度 -->
+    <update id="updateProgress">
+        UPDATE Tasks SET
+            progress = #{progress},
+            updated_at = NOW()
+        WHERE task_id = #{taskId}
+    </update>
+
+</mapper>
+

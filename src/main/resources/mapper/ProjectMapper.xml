@@ -709,8 +709,8 @@
                 COUNT(*) AS access_count
             FROM ProjectAccessLogs
             WHERE user_id = #{currentUserId}
-                AND access_time &gt;= #{startTime}
-                AND access_time &lt;= #{endTime}
+                AND access_time &gt;= #{timeRange.startTime}
+                AND access_time &lt;= #{timeRange.endTime}
             GROUP BY project_id
         ) pal ON p.project_id = pal.project_id
         LEFT JOIN (
@@ -735,11 +735,11 @@
                 activity_user_name,
                 ROW_NUMBER() OVER (PARTITION BY project_id ORDER BY activity_timestamp DESC) as rn
             FROM ProjectActivityLogs
-            WHERE activity_timestamp &gt;= #{startTime}
-                AND activity_timestamp &lt;= #{endTime}
+            WHERE activity_timestamp &gt;= #{timeRange.startTime}
+                AND activity_timestamp &lt;= #{timeRange.endTime}
         ) la ON p.project_id = la.project_id AND la.rn = 1
         WHERE p.is_deleted = FALSE
-            AND (pal.project_id IS NOT NULL OR p.updated_at &gt;= #{startTime})
+            AND (pal.project_id IS NOT NULL OR p.updated_at &gt;= #{timeRange.startTime})
         ORDER BY 
         <choose>
             <when test="queryDTO.sortBy == 'last_accessed'">
@@ -776,12 +776,12 @@
                 MAX(access_time) AS last_accessed
             FROM ProjectAccessLogs
             WHERE user_id = #{currentUserId}
-                AND access_time &gt;= #{startTime}
-                AND access_time &lt;= #{endTime}
+                AND access_time &gt;= #{timeRange.startTime}
+                AND access_time &lt;= #{timeRange.endTime}
             GROUP BY project_id
         ) pal ON p.project_id = pal.project_id
         WHERE p.is_deleted = FALSE
-            AND (pal.project_id IS NOT NULL OR p.updated_at &gt;= #{startTime})
+            AND (pal.project_id IS NOT NULL OR p.updated_at &gt;= #{timeRange.startTime})
     </select>
 
     <!-- 最近编辑的项目项结果映射 -->
