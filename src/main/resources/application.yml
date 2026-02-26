@@ -130,7 +130,9 @@ management:
 deepseek:
   api:
     # DeepSeek API密钥(从DeepSeek平台获取: https://platform.deepseek.com/)
-    key: ${DEEPSEEK_API_KEY:your-api-key-here}
+    # 请将 your-api-key-here 替换为你真实的API Key
+    # 例如: sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+    key: sk-8e0101a67f0a45ca9c14761025f2639e
     # API基础URL
     base-url: https://api.deepseek.com
     # 使用的模型 (deepseek-chat / deepseek-coder)

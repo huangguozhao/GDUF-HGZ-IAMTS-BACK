@@ -19,6 +19,12 @@ public class AIDiagnosisResponseDTO {
     private String diagnosisId;
 
     /**
+     * 执行记录ID（用于关联诊断结果）
+     */
+    @JsonProperty("execution_id")
+    private Long executionId;
+
+    /**
      * 诊断类型
      */
     @JsonProperty("diagnosis_type")

@@ -175,6 +175,23 @@
         LIMIT 1
     </select>
 
+    <!-- 根据执行ID查询所有用例结果（接口/模块级别诊断用） -->
+    <select id="findTestCaseResultsByExecutionId" resultType="com.victor.iatms.entity.po.TestCaseResult">
+        SELECT 
+            result_id, report_id, execution_id, task_type, ref_id, full_name, status, duration,
+            start_time, end_time, failure_message, failure_trace, failure_type, error_code,
+            steps_json, parameters_json, attachments_json, logs_link, screenshot_link, video_link,
+            environment, browser, os, device, tags_json, severity, priority, retry_count, flaky,
+            case_id, case_code, case_name, module_name, api_name, suite_name, package_name,
+            epic_name, feature_name, story_name, test_layer, test_type, flaky_count, last_flaky_time,
+            history_trend, custom_labels, root_cause_analysis, impact_assessment, retest_result, retest_notes,
+            created_at, is_deleted, deleted_at, deleted_by
+        FROM TestCaseResults
+        WHERE execution_id = #{executionId}
+        AND is_deleted = FALSE
+        ORDER BY created_at
+    </select>
+
     <!-- 鏍规嵁鎶ュ憡ID鏌ヨ鎶ュ憡姹囨€?-->
     <select id="findTestReportSummaryById" resultType="com.victor.iatms.entity.po.TestReportSummary">
         SELECT 

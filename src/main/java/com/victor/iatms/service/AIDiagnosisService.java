@@ -16,6 +16,14 @@ public interface AIDiagnosisService {
     AIDiagnosisResponseDTO diagnose(AIDiagnosisRequestDTO request);
 
     /**
+     * 根据执行记录ID执行AI诊断（会自动从数据库查询完整数据）
+     * @param executionId 执行记录ID
+     * @param userId 用户ID
+     * @return 诊断结果
+     */
+    AIDiagnosisResponseDTO diagnoseByExecutionId(Long executionId, Integer userId);
+
+    /**
      * 测试失败诊断
      * @param errorMessage 错误信息
      * @param errorLog 错误日志

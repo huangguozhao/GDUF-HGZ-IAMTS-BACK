@@ -33,7 +33,8 @@ public class AIDiagnosisController {
     public ResponseVO<AIDiagnosisResponseDTO> diagnose(
             @RequestBody @Validated AIDiagnosisRequestDTO request) {
         try {
-            log.info("收到AI诊断请求，类型: {}", request.getDiagnosisType());
+            log.info("收到AI诊断请求，类型: {}, executionId: {}, description: {}", 
+                request.getDiagnosisType(), request.getExecutionId(), request.getDescription());
             AIDiagnosisResponseDTO result = aiDiagnosisService.diagnose(request);
             return ResponseVO.success(result);
         } catch (Exception e) {

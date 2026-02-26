@@ -62,6 +62,13 @@ public interface TestExecutionMapper {
     TestCaseResult findTestCaseResultByExecutionId(@Param("executionId") Long executionId);
 
     /**
+     * 根据执行ID查询所有用例结果（用于接口/模块级别的诊断）
+     * @param executionId 执行ID
+     * @return 测试结果列表
+     */
+    List<TestCaseResult> findTestCaseResultsByExecutionId(@Param("executionId") Long executionId);
+
+    /**
      * 根据报告ID查询报告汇总
      * @param reportId 报告ID
      * @return 报告汇总
