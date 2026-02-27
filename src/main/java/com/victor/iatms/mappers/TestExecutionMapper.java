@@ -506,22 +506,13 @@ public interface TestExecutionMapper {
          * @param endTime 结束时间
          * @return 执行统计信息
          */
-        com.victor.iatms.entity.dto.ExecutionStatsDTO getUserExecutionStats(
-            @Param("userId") Integer userId,
-            @Param("startTime") java.time.LocalDateTime startTime,
-            @Param("endTime") java.time.LocalDateTime endTime);
+        com.victor.iatms.entity.dto.ExecutionStatsDTO getUserExecutionStats();
 
         /**
          * 获取用户项目统计概览
-         * @param userId 用户ID
-         * @param startTime 开始时间
-         * @param endTime 结束时间
          * @return 项目统计概览
          */
-        List<com.victor.iatms.entity.dto.ProjectStatsDTO> getUserProjectStats(
-            @Param("userId") Integer userId,
-            @Param("startTime") java.time.LocalDateTime startTime,
-            @Param("endTime") java.time.LocalDateTime endTime);
+        List<com.victor.iatms.entity.dto.ProjectStatsDTO> getUserProjectStats();
 
         /**
          * 获取用户最近活动记录

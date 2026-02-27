@@ -186,24 +186,16 @@ public interface ProjectMapper {
     /**
      * 分页查询最近编辑的项目列表
      * @param queryDTO 查询参数
-     * @param currentUserId 当前用户ID
-     * @param timeRange 时间范围
      * @return 最近编辑的项目列表
      */
-    List<RecentProjectItemDTO> selectRecentProjects(@Param("queryDTO") RecentProjectsQueryDTO queryDTO, 
-                                                    @Param("currentUserId") Integer currentUserId,
-                                                    @Param("timeRange") TimeRangeDTO timeRange);
+    List<RecentProjectItemDTO> selectRecentProjects(@Param("queryDTO") RecentProjectsQueryDTO queryDTO);
     
     /**
      * 统计最近编辑的项目总数
      * @param queryDTO 查询参数
-     * @param currentUserId 当前用户ID
-     * @param timeRange 时间范围
      * @return 总数
      */
-    Long countRecentProjects(@Param("queryDTO") RecentProjectsQueryDTO queryDTO, 
-                            @Param("currentUserId") Integer currentUserId,
-                            @Param("timeRange") TimeRangeDTO timeRange);
+    Long countRecentProjects(@Param("queryDTO") RecentProjectsQueryDTO queryDTO);
     
     /**
      * 根据项目编码查询项目

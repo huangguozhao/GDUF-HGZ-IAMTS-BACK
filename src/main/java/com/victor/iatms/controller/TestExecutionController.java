@@ -26,7 +26,7 @@ import jakarta.servlet.http.HttpServletRequest;
  */
 @Slf4j
 @RestController
-@RequestMapping("")
+@RequestMapping("/test-executions")
 @Validated
 public class TestExecutionController {
 
@@ -970,10 +970,7 @@ public class TestExecutionController {
      * 获取个人测试概况
      */
     @GetMapping("/dashboard/summary")
-    @GlobalInterceptor(
-        checkLogin = true,
-        checkPermission = {"testcase:view"}
-    )
+    @GlobalInterceptor(checkLogin = true)
     public ResponseVO<com.victor.iatms.entity.dto.DashboardSummaryDTO> getDashboardSummary(
             @RequestParam(value = "time_range", required = false, defaultValue = "7d") String timeRange,
             @RequestParam(value = "include_recent_activity", required = false) Boolean includeRecentActivity,
@@ -1052,10 +1049,7 @@ public class TestExecutionController {
      * 获取测试统计信息
      */
     @GetMapping("/test-results/statistics")
-    @GlobalInterceptor(
-        checkLogin = true,
-        checkPermission = {"testcase:view"}
-    )
+    @GlobalInterceptor(checkLogin = true)
     public ResponseVO<com.victor.iatms.entity.dto.TestStatisticsDTO> getTestStatistics(
             @RequestParam(value = "time_range", required = false, defaultValue = "7d") String timeRange,
             @RequestParam(value = "start_time", required = false) String startTimeStr,

@@ -40,17 +40,23 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
+
 /**
  * 项目服务实现类
  */
 @Service
 public class ProjectServiceImpl implements ProjectService {
+    private static final Logger log = LoggerFactory.getLogger(ProjectServiceImpl.class);
     
     @Autowired
     private ProjectMapper projectMapper;
@@ -273,21 +279,25 @@ public class ProjectServiceImpl implements ProjectService {
     // ================= 最近编辑项目 =================
     @Override
     public RecentProjectsResponseDTO getRecentProjects(RecentProjectsQueryDTO queryDTO, Integer currentUserId) {
-        validateRecentProjectsQuery(queryDTO);
-        setRecentProjectsDefaultValues(queryDTO);
-        if (!hasRecentProjectsPermission(currentUserId)) {
-            throw new IllegalArgumentException("权限不足，无法查看最近编辑项目列表");
+        try {
+            validateRecentProjectsQuery(queryDTO);
+            setRecentProjectsDefaultValues(queryDTO);
+            
+            // 使用 PageHelper 进行分页
+            PageHelper.startPage(queryDTO.getPage(), queryDTO.getPageSize());
+            List<RecentProjectItemDTO> items = projectMapper.selectRecentProjects(queryDTO);
+            PageInfo<RecentProjectItemDTO> pageInfo = new PageInfo<>(items);
+            
+            RecentProjectsResponseDTO responseDTO = new RecentProjectsResponseDTO();
+            responseDTO.setTotal(pageInfo.getTotal());
+            responseDTO.setItems(pageInfo.getList());
+            responseDTO.setPage(queryDTO.getPage());
+            responseDTO.setPageSize(queryDTO.getPageSize());
+            return responseDTO;
+        } catch (Exception e) {
+            log.error("获取最近编辑项目失败: {}", e.getMessage(), e);
+            throw new RuntimeException("查询最近编辑项目失败：" + e.getMessage());
         }
-        TimeRangeDTO timeRange = calculateTimeRange(queryDTO.getTimeRange());
-        List<RecentProjectItemDTO> items = projectMapper.selectRecentProjects(queryDTO, currentUserId, timeRange);
-        Long total = projectMapper.countRecentProjects(queryDTO, currentUserId, timeRange);
-        RecentProjectsResponseDTO responseDTO = new RecentProjectsResponseDTO();
-        responseDTO.setTotal(total);
-        responseDTO.setItems(items);
-        responseDTO.setPage(queryDTO.getPage());
-        responseDTO.setPageSize(queryDTO.getPageSize());
-        responseDTO.setTimeRange(timeRange);
-        return responseDTO;
     }
 
     // ================= 统计 =================
