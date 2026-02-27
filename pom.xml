@@ -183,6 +183,12 @@
             <artifactId>poi-scratchpad</artifactId>
             <version>5.2.4</version>
         </dependency>
+        <!-- OSHI - 系统监控工具 -->
+        <dependency>
+            <groupId>com.github.oshi</groupId>
+            <artifactId>oshi-core</artifactId>
+            <version>6.4.8</version>
+        </dependency>
     </dependencies>
 
     <build>

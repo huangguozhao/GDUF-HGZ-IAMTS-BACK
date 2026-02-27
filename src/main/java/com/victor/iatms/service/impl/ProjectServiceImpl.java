@@ -35,7 +35,9 @@ import com.victor.iatms.mappers.ProjectMapper;
 import com.victor.iatms.mappers.ProjectMemberMapper;
 import com.victor.iatms.mappers.TestExecutionMapper;
 import com.victor.iatms.mappers.UserMapper;
+import com.victor.iatms.mappers.LogMapper;
 import com.victor.iatms.service.ProjectService;
+import com.victor.iatms.utils.LogService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -69,6 +71,12 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Autowired
     private UserMapper userMapper;
+
+    @Autowired
+    private LogMapper logMapper;
+
+    @Autowired
+    private LogService logService;
 
     // ================= 模块列表 =================
     @Override
@@ -158,7 +166,20 @@ public class ProjectServiceImpl implements ProjectService {
         validateProject(project);
         setProjectDefaults(project);
         int result = projectMapper.insert(project);
-        if (result > 0) { return project.getProjectId(); }
+        if (result > 0) {
+            // 记录创建项目日志
+            if (project.getCreatorId() != null) {
+                logService.logSuccess(
+                    project.getCreatorId(),
+                    LogService.OP_CREATE_PROJECT,
+                    project.getProjectId(),
+                    project.getName(),
+                    LogService.TARGET_PROJECT,
+                    "创建了项目: " + project.getName()
+                );
+            }
+            return project.getProjectId();
+        }
         throw new RuntimeException("创建项目失败");
     }
     
@@ -186,6 +207,17 @@ public class ProjectServiceImpl implements ProjectService {
         if (updateProjectDTO.getDescription() != null) { projectToUpdate.setDescription(updateProjectDTO.getDescription()); }
         int result = projectMapper.updateById(projectToUpdate);
         if (result <= 0) { throw new RuntimeException("更新项目失败"); }
+
+        // 记录编辑项目日志
+        logService.logSuccess(
+            updatedBy,
+            LogService.OP_UPDATE_PROJECT,
+            projectId,
+            existingProject.getName(),
+            LogService.TARGET_PROJECT,
+            "更新了项目: " + existingProject.getName()
+        );
+
         UpdateProjectResponseDTO responseDTO = projectMapper.selectProjectForUpdate(projectId);
         if (responseDTO == null) { throw new RuntimeException("获取项目详情失败"); }
         return responseDTO;

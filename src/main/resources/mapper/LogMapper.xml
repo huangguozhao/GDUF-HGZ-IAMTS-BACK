@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.victor.iatms.mappers.LogMapper">
+
+    <!-- 插入日志 -->
+    <insert id="insert" parameterType="com.victor.iatms.entity.po.Log" useGeneratedKeys="true" keyProperty="logId">
+        INSERT INTO Logs (
+            user_id,
+            operation_type,
+            target_id,
+            target_name,
+            target_type,
+            description,
+            status,
+            request_method,
+            request_path,
+            ip_address,
+            user_agent,
+            execution_time,
+            error_message,
+            timestamp,
+            is_deleted,
+            created_at
+        ) VALUES (
+            #{userId},
+            #{operationType},
+            #{targetId},
+            #{targetName},
+            #{targetType},
+            #{description},
+            #{status},
+            #{requestMethod},
+            #{requestPath},
+            #{ipAddress},
+            #{userAgent},
+            #{executionTime},
+            #{errorMessage},
+            #{timestamp},
+            #{isDeleted},
+            #{createdAt}
+        )
+    </insert>
+
+    <!-- 获取用户最近活动 -->
+    <select id="getUserRecentActivity" resultType="com.victor.iatms.entity.po.Log">
+        SELECT
+            log_id as logId,
+            user_id as userId,
+            operation_type as operationType,
+            target_id as targetId,
+            target_name as targetName,
+            target_type as targetType,
+            description,
+            status,
+            request_method as requestMethod,
+            request_path as requestPath,
+            ip_address as ipAddress,
+            user_agent as userAgent,
+            execution_time as executionTime,
+            error_message as errorMessage,
+            timestamp,
+            is_deleted as isDeleted,
+            created_at as createdAt,
+            deleted_at as deletedAt
+        FROM Logs
+        WHERE user_id = #{userId}
+        AND is_deleted = FALSE
+        ORDER BY timestamp DESC
+        <if test="limit != null">
+            LIMIT #{limit}
+        </if>
+    </select>
+
+    <!-- 获取所有用户的最近活动 -->
+    <select id="getRecentActivity" resultType="com.victor.iatms.entity.po.Log">
+        SELECT
+            log_id as logId,
+            user_id as userId,
+            operation_type as operationType,
+            target_id as targetId,
+            target_name as targetName,
+            target_type as targetType,
+            description,
+            status,
+            request_method as requestMethod,
+            request_path as requestPath,
+            ip_address as ipAddress,
+            user_agent as userAgent,
+            execution_time as executionTime,
+            error_message as errorMessage,
+            timestamp,
+            is_deleted as isDeleted,
+            created_at as createdAt,
+            deleted_at as deletedAt
+        FROM Logs
+        WHERE is_deleted = FALSE
+        ORDER BY timestamp DESC
+        <if test="limit != null">
+            LIMIT #{limit}
+        </if>
+    </select>
+
+</mapper>
+

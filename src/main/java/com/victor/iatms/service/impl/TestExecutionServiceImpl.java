@@ -29,6 +29,7 @@ import com.victor.iatms.entity.po.TestSuite;
 import com.victor.iatms.entity.po.TestExecutionRecord;
 import com.victor.iatms.mappers.TestExecutionMapper;
 import com.victor.iatms.mappers.TestExecutionRecordMapper;
+import com.victor.iatms.mappers.LogMapper;
 import com.victor.iatms.redis.RedisComponet;
 import com.victor.iatms.service.TestExecutionService;
 import com.victor.iatms.utils.DateUtil;
@@ -58,6 +59,9 @@ public class TestExecutionServiceImpl implements TestExecutionService {
 
     @Autowired
     private TestExecutionRecordMapper testExecutionRecordMapper;
+
+    @Autowired
+    private LogMapper logMapper;
 
     @Autowired
     private TestCaseExecutor testCaseExecutor;
@@ -3483,8 +3487,28 @@ public class TestExecutionServiceImpl implements TestExecutionService {
                 dashboardSummary.setProjectStats(new java.util.ArrayList<>());
             }
 
-            // 6. 获取最近活动记录（简化，不查数据库）
-            dashboardSummary.setRecentActivity(new java.util.ArrayList<>());
+            // 6. 获取最近活动记录
+            try {
+                List<com.victor.iatms.entity.po.Log> logs = logMapper.getUserRecentActivity(userId, 10);
+                List<com.victor.iatms.entity.dto.RecentActivityDTO> recentActivities = new java.util.ArrayList<>();
+
+                if (logs != null) {
+                    for (com.victor.iatms.entity.po.Log log : logs) {
+                        com.victor.iatms.entity.dto.RecentActivityDTO activity = new com.victor.iatms.entity.dto.RecentActivityDTO();
+                        activity.setActivityId(log.getLogId());
+                        activity.setType(log.getOperationType());
+                        activity.setDescription(log.getDescription());
+                        activity.setTargetId(log.getTargetId());
+                        activity.setTargetName(log.getTargetName());
+                        activity.setTimestamp(log.getTimestamp() != null ? log.getTimestamp().toString() : null);
+                        recentActivities.add(activity);
+                    }
+                }
+                dashboardSummary.setRecentActivity(recentActivities);
+            } catch (Exception e) {
+                log.warn("获取最近活动失败: {}", e.getMessage());
+                dashboardSummary.setRecentActivity(new java.util.ArrayList<>());
+            }
 
             // 7. 获取待办事项（简化，不查数据库）
             dashboardSummary.setPendingTasks(new java.util.ArrayList<>());
@@ -3501,6 +3525,24 @@ public class TestExecutionServiceImpl implements TestExecutionService {
             // 9. 获取系统状态信息
             try {
                 com.victor.iatms.entity.dto.SystemStatusDTO systemStatus = testExecutionMapper.getSystemStatus();
+
+                // 补充实时系统监控数据
+                if (systemStatus == null) {
+                    systemStatus = new com.victor.iatms.entity.dto.SystemStatusDTO();
+                }
+
+                // 设置真实的CPU、内存、磁盘使用率
+                systemStatus.setCpuUsage(com.victor.iatms.utils.SystemMonitorUtils.getCpuUsage());
+                systemStatus.setMemoryUsage(com.victor.iatms.utils.SystemMonitorUtils.getMemoryUsage());
+                systemStatus.setDiskUsage(com.victor.iatms.utils.SystemMonitorUtils.getDiskUsage());
+                systemStatus.setOsName(com.victor.iatms.utils.SystemMonitorUtils.getOsName());
+                systemStatus.setUptime(com.victor.iatms.utils.SystemMonitorUtils.getUptime());
+
+                // 如果数据库中没有健康状态，则使用实时计算的健康状态
+                if (systemStatus.getSystemHealth() == null) {
+                    systemStatus.setSystemHealth(com.victor.iatms.utils.SystemMonitorUtils.getSystemHealth());
+                }
+
                 dashboardSummary.setSystemStatus(systemStatus);
             } catch (Exception e) {
                 log.warn("获取系统状态失败: {}", e.getMessage());

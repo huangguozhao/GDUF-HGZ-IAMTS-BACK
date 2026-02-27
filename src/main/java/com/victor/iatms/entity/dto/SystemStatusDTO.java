@@ -10,6 +10,24 @@ import lombok.Data;
 public class SystemStatusDTO {
 
     /**
+     * CPU使用率 (0-100)
+     */
+    @JsonProperty("cpu_usage")
+    private Integer cpuUsage;
+
+    /**
+     * 内存使用率 (0-100)
+     */
+    @JsonProperty("memory_usage")
+    private Integer memoryUsage;
+
+    /**
+     * 磁盘使用率 (0-100)
+     */
+    @JsonProperty("disk_usage")
+    private Integer diskUsage;
+
+    /**
      * 总用例数
      */
     @JsonProperty("total_cases")
@@ -32,6 +50,18 @@ public class SystemStatusDTO {
      */
     @JsonProperty("system_health")
     private String systemHealth;
+
+    /**
+     * 服务器操作系统
+     */
+    @JsonProperty("os_name")
+    private String osName;
+
+    /**
+     * 服务器运行时间（秒）
+     */
+    @JsonProperty("uptime")
+    private Long uptime;
 }
 
 
