@@ -4,20 +4,25 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.victor.iatms.entity.po.TestCaseResult;
 import com.victor.iatms.service.AIDiagnosisService;
+import com.victor.iatms.utils.DeepSeekUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
 
 /**
  * AI诊断Service实现类
- * 基于规则的智能诊断系统
+ * 基于DeepSeek大模型的智能诊断系统
  */
 @Slf4j
 @Service
 public class AIDiagnosisServiceImpl implements AIDiagnosisService {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
+
+    @Autowired
+    private DeepSeekUtils deepSeekUtils;
 
     @Override
     public Map<String, Object> diagnose(String failureMessage, String failureType, Integer responseStatus,
@@ -30,9 +35,272 @@ public class AIDiagnosisServiceImpl implements AIDiagnosisService {
     public Map<String, Object> diagnose(String failureMessage, String failureType, Integer responseStatus,
                                          String responseBody, String apiPath, String apiMethod, String caseName,
                                          List<TestCaseResult> allCaseResults) {
-        log.info("开始AI诊断: failureMessage={}, failureType={}, responseStatus={}, caseResultsCount={}", 
+        log.info("开始AI诊断: failureMessage={}, failureType={}, responseStatus={}, caseResultsCount={}",
                  failureMessage, failureType, responseStatus, allCaseResults != null ? allCaseResults.size() : 0);
 
+        // 首先尝试调用DeepSeek API进行AI诊断
+        Map<String, Object> aiDiagnosisResult = callDeepSeekDiagnosis(failureMessage, failureType,
+                responseStatus, responseBody, apiPath, apiMethod, caseName, allCaseResults);
+
+        // 如果AI诊断成功，返回结果
+        if (aiDiagnosisResult != null && !aiDiagnosisResult.isEmpty()) {
+            log.info("AI诊断成功，使用DeepSeek返回的结果");
+            return aiDiagnosisResult;
+        }
+
+        // AI诊断失败时，使用规则引擎作为兜底
+        log.warn("AI诊断失败或返回为空，使用规则引擎兜底");
+        return diagnoseWithRules(failureMessage, failureType, responseStatus, responseBody, apiPath, apiMethod, caseName, allCaseResults);
+    }
+
+    /**
+     * 调用DeepSeek API进行AI诊断
+     */
+    private Map<String, Object> callDeepSeekDiagnosis(String failureMessage, String failureType, Integer responseStatus,
+                                                       String responseBody, String apiPath, String apiMethod, String caseName,
+                                                       List<TestCaseResult> allCaseResults) {
+        try {
+            // 构建系统提示词
+            String systemPrompt = buildSystemPrompt();
+
+            // 构建用户消息
+            String userMessage = buildUserMessage(failureMessage, failureType, responseStatus,
+                    responseBody, apiPath, apiMethod, caseName, allCaseResults);
+
+            log.info("准备调用DeepSeek API进行AI诊断...");
+            String aiResponse = deepSeekUtils.chat(systemPrompt, userMessage);
+
+            if (aiResponse == null || aiResponse.isEmpty()) {
+                log.error("DeepSeek API返回为空");
+                return null;
+            }
+
+            log.info("DeepSeek API返回: {}", aiResponse);
+
+            // 解析AI返回的JSON结果
+            return parseAIResponse(aiResponse);
+
+        } catch (Exception e) {
+            log.error("调用DeepSeek API进行AI诊断时发生异常: ", e);
+            return null;
+        }
+    }
+    
+    /**
+     * 构建系统提示词
+     */
+    private String buildSystemPrompt() {
+        return "你是一个专业的API测试诊断专家。你的任务是根据测试执行失败的信息，分析失败原因，并提供详细的诊断结果和修复建议。\n\n" +
+                "请以JSON格式返回诊断结果，格式如下：\n" +
+                "{\n" +
+                "  \"severity\": \"high/medium/low\",  // 问题严重程度\n" +
+                "  \"rootCause\": \"根本原因描述\",      // 根本原因分析\n" +
+                "  \"issues\": [                       // 发现的问题列表\n" +
+                "    {\n" +
+                "      \"title\": \"问题标题\",\n" +
+                "      \"severity\": \"high/medium/low\",\n" +
+                "      \"description\": \"问题详细描述\"\n" +
+                "    }\n" +
+                "  ],\n" +
+                "  \"suggestions\": [                  // 修复建议列表\n" +
+                "    {\n" +
+                "      \"title\": \"建议标题\",\n" +
+                "      \"content\": \"建议详细说明\",\n" +
+                "      \"priority\": \"high/medium/low\"\n" +
+                "    }\n" +
+                "  ],\n" +
+                "  \"analysis\": [                     // 分析过程记录\n" +
+                "    \"分析步骤1\",\n" +
+                "    \"分析步骤2\"\n" +
+                "  ],\n" +
+                "  \"batchInfo\": {                     // 批量测试信息（如果有）\n" +
+                "    \"total\": 0,\n" +
+                "    \"passed\": 0,\n" +
+                "    \"failed\": 0,\n" +
+                "    \"broken\": 0,\n" +
+                "    \"skipped\": 0,\n" +
+                "    \"failedCases\": []               // 失败用例详情\n" +
+                "  }\n" +
+                "}\n\n" +
+                "请确保返回的是有效的JSON格式，不要包含其他文字说明。";
+    }
+
+    /**
+     * 构建用户消息
+     */
+    private String buildUserMessage(String failureMessage, String failureType, Integer responseStatus,
+                                     String responseBody, String apiPath, String apiMethod, String caseName,
+                                     List<TestCaseResult> allCaseResults) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("请分析以下API测试失败信息：\n\n");
+
+        // 批量测试信息
+        if (allCaseResults != null && !allCaseResults.isEmpty()) {
+            sb.append("【批量测试结果统计】\n");
+            int passedCount = 0, failedCount = 0, brokenCount = 0, skippedCount = 0;
+            for (TestCaseResult cr : allCaseResults) {
+                String status = cr.getStatus();
+                if ("passed".equals(status)) passedCount++;
+                else if ("failed".equals(status)) failedCount++;
+                else if ("broken".equals(status)) brokenCount++;
+                else if ("skipped".equals(status)) skippedCount++;
+            }
+            sb.append("总用例数: ").append(allCaseResults.size()).append("\n");
+            sb.append("通过: ").append(passedCount).append(", 失败: ").append(failedCount);
+            sb.append(", 异常: ").append(brokenCount).append(", 跳过: ").append(skippedCount).append("\n\n");
+
+            // 失败用例详情
+            if (failedCount > 0 || brokenCount > 0) {
+                sb.append("【失败用例详情】\n");
+                for (TestCaseResult cr : allCaseResults) {
+                    if ("failed".equals(cr.getStatus()) || "broken".equals(cr.getStatus())) {
+                        sb.append("- 用例: ").append(cr.getCaseName()).append(" [").append(cr.getCaseCode()).append("]\n");
+                        sb.append("  状态: ").append(cr.getStatus()).append("\n");
+                        sb.append("  耗时: ").append(cr.getDuration()).append("ms\n");
+                        if (cr.getFailureMessage() != null) {
+                            sb.append("  失败原因: ").append(cr.getFailureMessage()).append("\n");
+                        }
+                        if (cr.getFailureType() != null) {
+                            sb.append("  失败类型: ").append(cr.getFailureType()).append("\n");
+                        }
+                        sb.append("\n");
+                    }
+                }
+            }
+        }
+
+        // 当前测试用例信息
+        sb.append("【当前测试用例信息】\n");
+        sb.append("用例名称: ").append(caseName != null ? caseName : "未知").append("\n");
+        sb.append("API路径: ").append(apiPath != null ? apiPath : "未知").append("\n");
+        sb.append("请求方法: ").append(apiMethod != null ? apiMethod : "未知").append("\n\n");
+
+        // 失败信息
+        sb.append("【失败信息】\n");
+        sb.append("失败消息: ").append(failureMessage != null ? failureMessage : "无").append("\n");
+        sb.append("失败类型: ").append(failureType != null ? failureType : "未知").append("\n");
+        sb.append("响应状态码: ").append(responseStatus != null ? responseStatus : "无").append("\n");
+
+        // 响应体
+        if (responseBody != null && !responseBody.isEmpty()) {
+            sb.append("响应体: ").append(responseBody).append("\n");
+        }
+
+        sb.append("\n请根据以上信息进行诊断分析。");
+        return sb.toString();
+    }
+
+    /**
+     * 解析AI返回的JSON响应
+     */
+    private Map<String, Object> parseAIResponse(String aiResponse) {
+        Map<String, Object> result = new HashMap<>();
+        try {
+            // 预处理：去除markdown代码块标记（如 ```json 和 ```）
+            String jsonStr = aiResponse.trim();
+            if (jsonStr.startsWith("```")) {
+                // 找到第一个换行位置
+                int firstNewline = jsonStr.indexOf('\n');
+                if (firstNewline > 0) {
+                    // 去除开头的 ```json 或 ``` 等语言标记
+                    jsonStr = jsonStr.substring(firstNewline + 1);
+                }
+            }
+            // 去除结尾的 ```
+            if (jsonStr.endsWith("```")) {
+                jsonStr = jsonStr.substring(0, jsonStr.length() - 3).trim();
+            }
+
+            log.debug("预处理后的JSON字符串: {}", jsonStr);
+
+            // 尝试解析JSON
+            JsonNode jsonNode = objectMapper.readTree(jsonStr);
+
+            // 提取severity
+            if (jsonNode.has("severity")) {
+                result.put("severity", jsonNode.get("severity").asText());
+            } else {
+                result.put("severity", "medium");
+            }
+
+            // 提取rootCause
+            if (jsonNode.has("rootCause")) {
+                result.put("rootCause", jsonNode.get("rootCause").asText());
+            } else {
+                result.put("rootCause", "AI分析中");
+            }
+
+            // 提取issues
+            List<Map<String, String>> issues = new ArrayList<>();
+            if (jsonNode.has("issues")) {
+                JsonNode issuesNode = jsonNode.get("issues");
+                if (issuesNode.isArray()) {
+                    for (JsonNode issueNode : issuesNode) {
+                        Map<String, String> issue = new HashMap<>();
+                        if (issueNode.has("title")) issue.put("title", issueNode.get("title").asText());
+                        if (issueNode.has("severity")) issue.put("severity", issueNode.get("severity").asText());
+                        if (issueNode.has("description")) issue.put("description", issueNode.get("description").asText());
+                        issues.add(issue);
+                    }
+                }
+            }
+            result.put("issues", issues);
+
+            // 提取suggestions
+            List<Map<String, String>> suggestions = new ArrayList<>();
+            if (jsonNode.has("suggestions")) {
+                JsonNode suggestionsNode = jsonNode.get("suggestions");
+                if (suggestionsNode.isArray()) {
+                    for (JsonNode suggestionNode : suggestionsNode) {
+                        Map<String, String> suggestion = new HashMap<>();
+                        if (suggestionNode.has("title")) suggestion.put("title", suggestionNode.get("title").asText());
+                        if (suggestionNode.has("content")) suggestion.put("content", suggestionNode.get("content").asText());
+                        if (suggestionNode.has("priority")) suggestion.put("priority", suggestionNode.get("priority").asText());
+                        suggestions.add(suggestion);
+                    }
+                }
+            }
+            result.put("suggestions", suggestions);
+
+            // 提取analysis
+            List<String> analysis = new ArrayList<>();
+            if (jsonNode.has("analysis")) {
+                JsonNode analysisNode = jsonNode.get("analysis");
+                if (analysisNode.isArray()) {
+                    for (JsonNode aNode : analysisNode) {
+                        analysis.add(aNode.asText());
+                    }
+                }
+            }
+            result.put("analysis", analysis);
+
+            // 提取batchInfo
+            if (jsonNode.has("batchInfo")) {
+                result.put("batchInfo", objectMapper.convertValue(jsonNode.get("batchInfo"), Map.class));
+            }
+
+            return result;
+
+        } catch (Exception e) {
+            log.error("解析AI响应JSON失败: ", e);
+            // 如果解析失败，尝试将整个响应作为文本处理
+            result.put("severity", "medium");
+            result.put("rootCause", "AI分析完成");
+            result.put("issues", new ArrayList<>());
+            result.put("suggestions", new ArrayList<>());
+            List<String> analysis = new ArrayList<>();
+            analysis.add("AI诊断结果: " + aiResponse);
+            result.put("analysis", analysis);
+            return result;
+        }
+    }
+
+    /**
+     * 规则引擎诊断（兜底方案）
+     */
+    private Map<String, Object> diagnoseWithRules(String failureMessage, String failureType, Integer responseStatus,
+                                                    String responseBody, String apiPath, String apiMethod, String caseName,
+                                                    List<TestCaseResult> allCaseResults) {
         Map<String, Object> result = new HashMap<>();
         List<Map<String, String>> issues = new ArrayList<>();
         List<Map<String, String>> suggestions = new ArrayList<>();

@@ -141,7 +141,7 @@ deepseek:
     # 使用的模型 (deepseek-chat / deepseek-coder)
     model: deepseek-chat
     # 请求超时时间(毫秒)
-    timeout: 30000
+    timeout: 300000
     # 最大token数
     max-tokens: 2000
   # 诊断功能开关
