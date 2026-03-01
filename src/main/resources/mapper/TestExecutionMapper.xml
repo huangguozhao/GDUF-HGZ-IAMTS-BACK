@@ -185,7 +185,7 @@
             history_trend, custom_labels, root_cause_analysis, impact_assessment, retest_result, retest_notes,
             created_at, is_deleted, deleted_at, deleted_by
         FROM TestCaseResults
-        WHERE execution_id = #{executionId}
+        WHERE execution_record_id = #{executionId}
         AND is_deleted = FALSE
         ORDER BY created_at
     </select>
