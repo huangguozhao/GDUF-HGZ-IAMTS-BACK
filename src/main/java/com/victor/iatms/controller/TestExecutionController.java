@@ -12,6 +12,7 @@ import com.victor.iatms.entity.dto.ProjectExecutionResultDTO;
 import com.victor.iatms.entity.dto.ApiExecutionResultDTO;
 import com.victor.iatms.entity.dto.TestSuiteExecutionResultDTO;
 import com.victor.iatms.entity.vo.ResponseVO;
+import com.victor.iatms.exception.AuthException;
 import com.victor.iatms.service.TestExecutionService;
 import com.victor.iatms.utils.JwtUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -51,29 +52,13 @@ public class TestExecutionController {
             @PathVariable("case_id") Integer caseId,
             @RequestBody ExecuteTestCaseDTO executeDTO,
             HttpServletRequest request) {
-        try {
-            // 获取当前用户ID
-            Integer userId = getCurrentUserId(request);
+        // 获取当前用户ID
+        Integer userId = getCurrentUserId(request);
 
-            // 调用服务层方法
-            ExecutionResultDTO result = testExecutionService.executeTestCase(caseId, executeDTO, userId);
+        // 调用服务层方法
+        ExecutionResultDTO result = testExecutionService.executeTestCase(caseId, executeDTO, userId);
 
-            return ResponseVO.success("用例执行完成", result);
-
-        } catch (RuntimeException e) {
-            String errorMsg = e.getMessage();
-            if ("测试用例不存在或未启用".equals(errorMsg)) {
-                return ResponseVO.notFound(errorMsg);
-            } else if ("关联的接口不存在或已禁用".equals(errorMsg)) {
-                return ResponseVO.paramError(errorMsg);
-            } else if ("执行测试用例失败".equals(errorMsg)) {
-                return ResponseVO.serverError("执行测试用例失败，请稍后重试");
-            } else {
-                return ResponseVO.serverError("系统异常，请稍后重试");
-            }
-        } catch (Exception e) {
-            return ResponseVO.serverError("系统异常，请稍后重试");
-        }
+        return ResponseVO.success("用例执行完成", result);
     }
 
     /**
@@ -103,6 +88,8 @@ public class TestExecutionController {
 
             return ResponseVO.success("用例执行任务已提交", result);
 
+        } catch (AuthException e) {
+            return ResponseVO.authError(e.getMessage());
         } catch (RuntimeException e) {
             String errorMsg = e.getMessage();
             if ("测试用例不存在或未启用".equals(errorMsg)) {
@@ -139,6 +126,8 @@ public class TestExecutionController {
 
             return ResponseVO.success("获取任务状态成功", result);
 
+        } catch (AuthException e) {
+            return ResponseVO.authError(e.getMessage());
         } catch (RuntimeException e) {
             String errorMsg = e.getMessage();
             if ("任务不存在".equals(errorMsg)) {
@@ -175,6 +164,8 @@ public class TestExecutionController {
                 return ResponseVO.paramError("任务取消失败");
             }
 
+        } catch (AuthException e) {
+            return ResponseVO.authError(e.getMessage());
         } catch (RuntimeException e) {
             String errorMsg = e.getMessage();
             if ("任务不存在".equals(errorMsg)) {
@@ -207,6 +198,8 @@ public class TestExecutionController {
 
             return ResponseVO.success("获取执行结果成功", result);
 
+        } catch (AuthException e) {
+            return ResponseVO.authError(e.getMessage());
         } catch (RuntimeException e) {
             String errorMsg = e.getMessage();
             if ("执行记录不存在".equals(errorMsg)) {
@@ -239,6 +232,8 @@ public class TestExecutionController {
 
             return ResponseVO.success("获取执行日志成功", logs);
 
+        } catch (AuthException e) {
+            return ResponseVO.authError(e.getMessage());
         } catch (RuntimeException e) {
             String errorMsg = e.getMessage();
             if ("执行记录不存在".equals(errorMsg)) {
@@ -271,6 +266,8 @@ public class TestExecutionController {
 
             return ResponseVO.success("测试报告生成成功", reportId);
 
+        } catch (AuthException e) {
+            return ResponseVO.authError(e.getMessage());
         } catch (RuntimeException e) {
             String errorMsg = e.getMessage();
             if ("执行记录不存在".equals(errorMsg)) {
@@ -311,6 +308,8 @@ public class TestExecutionController {
 
             return ResponseVO.success("模块测试执行完成", result);
 
+        } catch (AuthException e) {
+            return ResponseVO.authError(e.getMessage());
         } catch (RuntimeException e) {
             String errorMsg = e.getMessage();
             if ("模块不存在".equals(errorMsg)) {
@@ -356,6 +355,8 @@ public class TestExecutionController {
 
             return ResponseVO.success("模块测试执行任务已提交", result);
 
+        } catch (AuthException e) {
+            return ResponseVO.authError(e.getMessage());
         } catch (RuntimeException e) {
             String errorMsg = e.getMessage();
             if ("模块不存在".equals(errorMsg)) {
@@ -394,6 +395,8 @@ public class TestExecutionController {
 
             return ResponseVO.success("获取任务状态成功", result);
 
+        } catch (AuthException e) {
+            return ResponseVO.authError(e.getMessage());
         } catch (RuntimeException e) {
             String errorMsg = e.getMessage();
             if ("任务不存在".equals(errorMsg)) {
@@ -430,6 +433,8 @@ public class TestExecutionController {
                 return ResponseVO.paramError("任务取消失败");
             }
 
+        } catch (AuthException e) {
+            return ResponseVO.authError(e.getMessage());
         } catch (RuntimeException e) {
             String errorMsg = e.getMessage();
             if ("任务不存在".equals(errorMsg)) {
@@ -468,6 +473,8 @@ public class TestExecutionController {
 
             return ResponseVO.success("项目测试执行完成", result);
 
+        } catch (AuthException e) {
+            return ResponseVO.authError(e.getMessage());
         } catch (RuntimeException e) {
             String errorMsg = e.getMessage();
             if ("项目不存在".equals(errorMsg)) {
@@ -513,6 +520,8 @@ public class TestExecutionController {
 
             return ResponseVO.success("项目测试执行任务已提交", result);
 
+        } catch (AuthException e) {
+            return ResponseVO.authError(e.getMessage());
         } catch (RuntimeException e) {
             String errorMsg = e.getMessage();
             if ("项目不存在".equals(errorMsg)) {
@@ -551,6 +560,8 @@ public class TestExecutionController {
 
             return ResponseVO.success("获取任务状态成功", result);
 
+        } catch (AuthException e) {
+            return ResponseVO.authError(e.getMessage());
         } catch (RuntimeException e) {
             String errorMsg = e.getMessage();
             if ("任务不存在".equals(errorMsg)) {
@@ -587,6 +598,8 @@ public class TestExecutionController {
                 return ResponseVO.paramError("任务取消失败");
             }
 
+        } catch (AuthException e) {
+            return ResponseVO.authError(e.getMessage());
         } catch (RuntimeException e) {
             String errorMsg = e.getMessage();
             if ("任务不存在".equals(errorMsg)) {
@@ -625,6 +638,8 @@ public class TestExecutionController {
 
             return ResponseVO.success("接口测试执行完成", result);
 
+        } catch (AuthException e) {
+            return ResponseVO.authError(e.getMessage());
         } catch (RuntimeException e) {
             log.error("执行接口测试失败", e);
             String errorMsg = e.getMessage();
@@ -674,6 +689,8 @@ public class TestExecutionController {
 
             return ResponseVO.success("接口测试执行任务已提交", result);
 
+        } catch (AuthException e) {
+            return ResponseVO.authError(e.getMessage());
         } catch (RuntimeException e) {
             String errorMsg = e.getMessage();
             if ("接口不存在".equals(errorMsg)) {
@@ -712,6 +729,8 @@ public class TestExecutionController {
 
             return ResponseVO.success("获取任务状态成功", result);
 
+        } catch (AuthException e) {
+            return ResponseVO.authError(e.getMessage());
         } catch (RuntimeException e) {
             String errorMsg = e.getMessage();
             if ("任务不存在".equals(errorMsg)) {
@@ -748,6 +767,8 @@ public class TestExecutionController {
                 return ResponseVO.paramError("任务取消失败");
             }
 
+        } catch (AuthException e) {
+            return ResponseVO.authError(e.getMessage());
         } catch (RuntimeException e) {
             String errorMsg = e.getMessage();
             if ("任务不存在".equals(errorMsg)) {
@@ -786,6 +807,8 @@ public class TestExecutionController {
 
             return ResponseVO.success("测试套件执行完成", result);
 
+        } catch (AuthException e) {
+            return ResponseVO.authError(e.getMessage());
         } catch (RuntimeException e) {
             String errorMsg = e.getMessage();
             if ("测试套件不存在".equals(errorMsg)) {
@@ -833,6 +856,8 @@ public class TestExecutionController {
 
             return ResponseVO.success("测试套件执行任务已提交", result);
 
+        } catch (AuthException e) {
+            return ResponseVO.authError(e.getMessage());
         } catch (RuntimeException e) {
             String errorMsg = e.getMessage();
             if ("测试套件不存在".equals(errorMsg)) {
@@ -873,6 +898,8 @@ public class TestExecutionController {
 
             return ResponseVO.success("获取任务状态成功", result);
 
+        } catch (AuthException e) {
+            return ResponseVO.authError(e.getMessage());
         } catch (RuntimeException e) {
             String errorMsg = e.getMessage();
             if ("任务不存在".equals(errorMsg)) {
@@ -909,6 +936,8 @@ public class TestExecutionController {
                 return ResponseVO.paramError("任务取消失败");
             }
 
+        } catch (AuthException e) {
+            return ResponseVO.authError(e.getMessage());
         } catch (RuntimeException e) {
             String errorMsg = e.getMessage();
             if ("任务不存在".equals(errorMsg)) {
@@ -950,6 +979,8 @@ public class TestExecutionController {
 
             return ResponseVO.success("success", detail);
 
+        } catch (AuthException e) {
+            return ResponseVO.authError(e.getMessage());
         } catch (RuntimeException e) {
             String errorMsg = e.getMessage();
             if ("测试结果不存在".equals(errorMsg)) {
@@ -989,6 +1020,8 @@ public class TestExecutionController {
 
             return ResponseVO.success("success", dashboardSummary);
 
+        } catch (AuthException e) {
+            return ResponseVO.authError(e.getMessage());
         } catch (RuntimeException e) {
             String errorMsg = e.getMessage();
             if ("认证失败，请重新登录".equals(errorMsg)) {
@@ -1031,6 +1064,8 @@ public class TestExecutionController {
 
             return ResponseVO.success("success", weeklyExecution);
 
+        } catch (AuthException e) {
+            return ResponseVO.authError(e.getMessage());
         } catch (RuntimeException e) {
             String errorMsg = e.getMessage();
             if ("认证失败，请重新登录".equals(errorMsg)) {
@@ -1096,6 +1131,8 @@ public class TestExecutionController {
 
             return ResponseVO.success("success", statistics);
 
+        } catch (AuthException e) {
+            return ResponseVO.authError(e.getMessage());
         } catch (RuntimeException e) {
             String errorMsg = e.getMessage();
             if (errorMsg != null && (errorMsg.contains("时间") || errorMsg.contains("参数"))) {
@@ -1181,6 +1218,8 @@ public class TestExecutionController {
 
             return ResponseVO.success("success", result);
 
+        } catch (AuthException e) {
+            return ResponseVO.authError(e.getMessage());
         } catch (RuntimeException e) {
             String errorMsg = e.getMessage();
             if (errorMsg != null && (errorMsg.contains("无效的") || errorMsg.contains("格式错误") 
@@ -1203,24 +1242,26 @@ public class TestExecutionController {
         String authHeader = request.getHeader("Authorization");
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            throw new RuntimeException("认证失败，请重新登录");
+            throw new AuthException("认证失败，请重新登录");
         }
 
         String token = authHeader.substring(7);
 
         try {
             if (!jwtUtils.validateToken(token)) {
-                throw new RuntimeException("认证失败，请重新登录");
+                throw new AuthException("认证失败，请重新登录");
             }
 
             Integer userId = jwtUtils.getUserIdFromToken(token);
             if (userId == null) {
-                throw new RuntimeException("认证失败，请重新登录");
+                throw new AuthException("认证失败，请重新登录");
             }
 
             return userId;
+        } catch (AuthException e) {
+            throw e;
         } catch (Exception e) {
-            throw new RuntimeException("认证失败，请重新登录");
+            throw new AuthException("认证失败，请重新登录", e);
         }
     }
 }

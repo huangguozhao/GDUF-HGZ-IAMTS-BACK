@@ -42,6 +42,11 @@ public class ApiExecutionResultDTO {
     private Long reportId;
     private String detailUrl;
 
+    // 执行信息（新增）
+    private String executionType; // 执行类型：manual, scheduled, triggered
+    private String environment; // 执行环境
+    private String executionScope; // 执行范围：api
+
     @Data
     public static class CaseResult {
         private Integer caseId;

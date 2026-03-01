@@ -7,6 +7,7 @@ import com.victor.iatms.entity.dto.TestExecutionRecordStatisticsDTO;
 import com.victor.iatms.entity.dto.UpdateTestExecutionRecordDTO;
 import com.victor.iatms.entity.query.TestExecutionRecordQuery;
 import com.victor.iatms.entity.vo.ResponseVO;
+import com.victor.iatms.exception.AuthException;
 import com.victor.iatms.service.TestExecutionRecordService;
 import com.victor.iatms.utils.JwtUtils;
 import jakarta.servlet.http.HttpServletRequest;
@@ -313,24 +314,26 @@ public class TestExecutionRecordController {
         String authHeader = request.getHeader("Authorization");
         
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            throw new RuntimeException("认证失败，请重新登录");
+            throw new AuthException("认证失败，请重新登录");
         }
         
         String token = authHeader.substring(7);
         
         try {
             if (!jwtUtils.validateToken(token)) {
-                throw new RuntimeException("认证失败，请重新登录");
+                throw new AuthException("认证失败，请重新登录");
             }
             
             Integer userId = jwtUtils.getUserIdFromToken(token);
             if (userId == null) {
-                throw new RuntimeException("认证失败，请重新登录");
+                throw new AuthException("认证失败，请重新登录");
             }
             
             return userId;
+        } catch (AuthException e) {
+            throw e;
         } catch (Exception e) {
-            throw new RuntimeException("认证失败，请重新登录");
+            throw new AuthException("认证失败，请重新登录", e);
         }
     }
 }

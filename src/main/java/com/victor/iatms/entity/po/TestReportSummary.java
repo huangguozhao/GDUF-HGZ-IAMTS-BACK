@@ -1,6 +1,8 @@
 package com.victor.iatms.entity.po;
 
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.Data;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -9,6 +11,7 @@ import java.time.LocalDateTime;
  * 测试报告汇总表实体类
  */
 @Data
+@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class TestReportSummary {
     
     /**

@@ -39,6 +39,13 @@ public class TestCaseExecutor {
         executionDTO.setExecutionStartTime(startTime);
 
         try {
+            // 0. 检查API信息是否存在
+            if (executionDTO.getApiInfo() == null) {
+                executionDTO.setExecutionStatus(ExecutionStatusEnum.FAILED.getCode());
+                executionDTO.setFailureMessage("关联的接口不存在或已禁用");
+                return executionDTO;
+            }
+
             // 1. 验证前置条件
             if (!validatePreConditions(executionDTO)) {
                 executionDTO.setExecutionStatus(ExecutionStatusEnum.SKIPPED.getCode());

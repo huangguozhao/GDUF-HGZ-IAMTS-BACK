@@ -168,6 +168,34 @@ public class TestCaseController {
     }
     
     /**
+     * 获取测试用例详情
+     * 
+     * @param caseId 测试用例ID
+     * @return 测试用例详情
+     */
+    @GetMapping("/{caseId}")
+    @GlobalInterceptor(checkLogin = true)
+    public ResponseVO<UpdateTestCaseResponseDTO> getTestCaseDetail(@PathVariable("caseId") Integer caseId) {
+        try {
+            // TODO: 从当前用户上下文获取用户ID
+            Integer currentUserId = 1; // 临时硬编码，实际应该从认证上下文获取
+
+            UpdateTestCaseResponseDTO result = testCaseService.getTestCaseDetail(caseId, currentUserId);
+            return ResponseVO.success("查询成功", result);
+
+        } catch (IllegalArgumentException e) {
+            if (e.getMessage().contains("测试用例不存在") ||
+                e.getMessage().contains("测试用例已被删除")) {
+                return ResponseVO.notFound(e.getMessage());
+            } else {
+                return ResponseVO.paramError(e.getMessage());
+            }
+        } catch (Exception e) {
+            return ResponseVO.serverError("查询测试用例详情失败：" + e.getMessage());
+        }
+    }
+    
+    /**
      * 复制测试用例
      * 
      * @param caseId 源测试用例ID

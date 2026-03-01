@@ -64,4 +64,12 @@ public interface TestCaseService {
      * @return 复制后的测试用例信息
      */
     CopyTestCaseResponseDTO copyTestCase(Integer sourceCaseId, CopyTestCaseRequestDTO requestDTO, Integer currentUserId);
+    
+    /**
+     * 获取测试用例详情
+     * @param caseId 测试用例ID
+     * @param currentUserId 当前操作用户ID
+     * @return 测试用例详情
+     */
+    UpdateTestCaseResponseDTO getTestCaseDetail(Integer caseId, Integer currentUserId);
 }

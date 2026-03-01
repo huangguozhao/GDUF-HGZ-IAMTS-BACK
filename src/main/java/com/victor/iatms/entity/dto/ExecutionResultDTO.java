@@ -23,9 +23,39 @@ public class ExecutionResultDTO {
     private Integer caseId;
 
     /**
+     * 用例编码
+     */
+    private String caseCode;
+
+    /**
      * 用例名称
      */
     private String caseName;
+
+    /**
+     * 关联接口ID
+     */
+    private Integer apiId;
+
+    /**
+     * 关联接口名称
+     */
+    private String apiName;
+
+    /**
+     * 执行范围类型：api, module, project, test_suite, test_case
+     */
+    private String executionScope;
+
+    /**
+     * 执行类型：manual（手动）, scheduled（定时）, triggered（触发）
+     */
+    private String executionType;
+
+    /**
+     * 测试环境
+     */
+    private String environment;
 
     /**
      * 执行状态

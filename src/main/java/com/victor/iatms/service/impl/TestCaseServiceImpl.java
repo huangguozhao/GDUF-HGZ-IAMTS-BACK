@@ -838,6 +838,41 @@ public class TestCaseServiceImpl implements TestCaseService {
     }
     
     /**
+     * 获取测试用例详情
+     */
+    @Override
+    public UpdateTestCaseResponseDTO getTestCaseDetail(Integer caseId, Integer currentUserId) {
+        // 参数校验
+        if (caseId == null) {
+            throw new IllegalArgumentException("测试用例ID不能为空");
+        }
+        
+        // 查询测试用例
+        TestCase testCase = testCaseMapper.selectById(caseId);
+        if (testCase == null) {
+            throw new IllegalArgumentException("测试用例不存在");
+        }
+        
+        // 检查是否被删除
+        if (testCase.getIsDeleted()) {
+            throw new IllegalArgumentException("测试用例已被删除");
+        }
+        
+        // 构建返回结果
+        UpdateTestCaseResponseDTO responseDTO = new UpdateTestCaseResponseDTO();
+        responseDTO.setCaseId(testCase.getCaseId());
+        responseDTO.setCaseCode(testCase.getCaseCode());
+        responseDTO.setApiId(testCase.getApiId());
+        responseDTO.setName(testCase.getName());
+        responseDTO.setPriority(testCase.getPriority());
+        responseDTO.setSeverity(testCase.getSeverity());
+        responseDTO.setIsEnabled(testCase.getIsEnabled());
+        responseDTO.setUpdatedAt(testCase.getUpdatedAt());
+        
+        return responseDTO;
+    }
+    
+    /**
      * 验证复制测试用例请求参数
      */
     private void validateCopyTestCaseRequest(Integer sourceCaseId, CopyTestCaseRequestDTO requestDTO) {

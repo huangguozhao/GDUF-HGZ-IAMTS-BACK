@@ -4,6 +4,7 @@ import com.victor.iatms.annotation.GlobalInterceptor;
 import com.victor.iatms.entity.dto.*;
 import com.victor.iatms.entity.vo.PaginationResultVO;
 import com.victor.iatms.entity.vo.ResponseVO;
+import com.victor.iatms.exception.AuthException;
 import com.victor.iatms.service.ScheduledTaskService;
 import com.victor.iatms.utils.JwtUtils;
 import jakarta.servlet.http.HttpServletRequest;
@@ -144,6 +145,8 @@ public class ScheduledTaskController {
 
             PaginationResultVO<ScheduledTaskDTO> result = scheduledTaskService.listScheduledTasks(query, userId);
             return ResponseVO.success("查询成功", result);
+        } catch (AuthException e) {
+            return ResponseVO.authError(e.getMessage());
         } catch (RuntimeException e) {
             // 认证失败等业务异常返回 authError
             log.warn("查询任务列表业务异常: {}", e.getMessage());
@@ -269,24 +272,26 @@ public class ScheduledTaskController {
         String authHeader = request.getHeader("Authorization");
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            throw new RuntimeException("认证失败，请重新登录");
+            throw new AuthException("认证失败，请重新登录");
         }
 
         String token = authHeader.substring(7);
 
         try {
             if (!jwtUtils.validateToken(token)) {
-                throw new RuntimeException("认证失败，请重新登录");
+                throw new AuthException("认证失败，请重新登录");
             }
 
             Integer userId = jwtUtils.getUserIdFromToken(token);
             if (userId == null) {
-                throw new RuntimeException("认证失败，请重新登录");
+                throw new AuthException("认证失败，请重新登录");
             }
 
             return userId;
+        } catch (AuthException e) {
+            throw e;
         } catch (Exception e) {
-            throw new RuntimeException("认证失败，请重新登录");
+            throw new AuthException("认证失败，请重新登录", e);
         }
     }
 }

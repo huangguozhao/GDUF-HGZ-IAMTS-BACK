@@ -45,12 +45,10 @@
             a.tags AS 'apiInfo.tags',
             a.examples AS 'apiInfo.examples'
         FROM TestCases tc
-        LEFT JOIN Apis a ON tc.api_id = a.api_id
+        LEFT JOIN Apis a ON tc.api_id = a.api_id AND a.is_deleted = FALSE
         WHERE tc.case_id = #{caseId}
         AND tc.is_deleted = FALSE
         AND tc.is_enabled = TRUE
-        AND a.is_deleted = FALSE
-        AND a.status = 'active'
     </select>
 
     <!-- 鎻掑叆娴嬭瘯缁撴灉 -->

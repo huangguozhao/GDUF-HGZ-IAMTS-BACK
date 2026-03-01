@@ -127,7 +127,7 @@ public class TestExecutionServiceImpl implements TestExecutionService {
             testExecutionRecordMapper.updateExecutionRecord(executionRecord);
 
             // 9. 构建返回结果
-            return buildExecutionResult(result, executionId, reportId);
+            return buildExecutionResult(result, executionId, reportId, executionRecord);
 
         } catch (Exception e) {
             log.error("执行测试用例失败: {}", e.getMessage(), e);
@@ -149,6 +149,13 @@ public class TestExecutionServiceImpl implements TestExecutionService {
             failureResult.setEndTime(LocalDateTime.now());
             failureResult.setDuration(0L);
             failureResult.setLogsLink("/api/test-results/" + failureResult.getExecutionId() + "/logs");
+            // 兜底：失败时至少有1个断言失败
+            failureResult.setAssertionsPassed(0);
+            failureResult.setAssertionsFailed(1);
+            // 添加执行信息和执行范围
+            failureResult.setExecutionScope("test_case");
+            failureResult.setExecutionType(executeDTO != null ? executeDTO.getExecutionType() : "manual");
+            failureResult.setEnvironment(executeDTO != null ? executeDTO.getEnvironment() : null);
             
             return failureResult;
         }
@@ -303,6 +310,20 @@ public class TestExecutionServiceImpl implements TestExecutionService {
             executionDTO.setVariables(new HashMap<>());
         }
 
+        // 设置自定义BaseUrl（覆盖接口默认URL）
+        if (executeDTO.getBaseUrl() != null && !executeDTO.getBaseUrl().trim().isEmpty()) {
+            if (executionDTO.getApiInfo() != null) {
+                executionDTO.getApiInfo().setBaseUrl(executeDTO.getBaseUrl());
+            }
+        }
+
+        // 设置超时时间
+        if (executeDTO.getTimeout() != null) {
+            if (executionDTO.getApiInfo() != null) {
+                executionDTO.getApiInfo().setTimeoutSeconds(executeDTO.getTimeout());
+            }
+        }
+
         // 设置执行时间
         executionDTO.setExecutionStartTime(LocalDateTime.now());
     }
@@ -422,10 +443,11 @@ public class TestExecutionServiceImpl implements TestExecutionService {
     /**
      * 构建执行结果
      */
-    private ExecutionResultDTO buildExecutionResult(TestCaseExecutionDTO executionDTO, Long executionId, Long reportId) {
+    private ExecutionResultDTO buildExecutionResult(TestCaseExecutionDTO executionDTO, Long executionId, Long reportId, TestExecutionRecord executionRecord) {
         ExecutionResultDTO result = new ExecutionResultDTO();
         result.setExecutionId(executionId);
         result.setCaseId(executionDTO.getCaseId());
+        result.setCaseCode(executionDTO.getCaseCode());
         result.setCaseName(executionDTO.getName());
         result.setStatus(executionDTO.getExecutionStatus());
         result.setDuration(executionDTO.getExecutionDuration());
@@ -437,6 +459,17 @@ public class TestExecutionServiceImpl implements TestExecutionService {
         result.setFailureTrace(executionDTO.getFailureTrace());
         result.setLogsLink("/api/test-results/" + executionId + "/logs");
         result.setReportId(reportId);
+
+        // 添加接口信息
+        if (executionDTO.getApiInfo() != null) {
+            result.setApiId(executionDTO.getApiInfo().getApiId());
+            result.setApiName(executionDTO.getApiInfo().getName());
+        }
+
+        // 添加执行范围和执行类型
+        result.setExecutionScope(executionRecord != null ? executionRecord.getExecutionScope() : "test_case");
+        result.setExecutionType(executionRecord != null ? executionRecord.getExecutionType() : "manual");
+        result.setEnvironment(executionRecord != null ? executionRecord.getEnvironment() : null);
         
         // 添加响应信息
         result.setResponseBody(executionDTO.getHttpResponseBody());
@@ -446,7 +479,7 @@ public class TestExecutionServiceImpl implements TestExecutionService {
         result.setExtractedVariables(executionDTO.getExtractedValues());
 
         // 转换断言结果为详细格式
-        if (executionDTO.getAssertionResults() != null) {
+        if (executionDTO.getAssertionResults() != null && !executionDTO.getAssertionResults().isEmpty()) {
             int passedCount = 0;
             int failedCount = 0;
             List<ExecutionResultDTO.AssertionDetailDTO> assertionDetails = new java.util.ArrayList<>();
@@ -479,6 +512,23 @@ public class TestExecutionServiceImpl implements TestExecutionService {
             result.setAssertionDetails(assertionDetails);
             
             log.info("构建执行结果 - 断言统计: 通过={}, 失败={}", passedCount, failedCount);
+        } else {
+            // 兜底逻辑：当没有断言结果时，根据执行状态设置默认的断言统计
+            if (result.getAssertionsPassed() == null) {
+                result.setAssertionsPassed(0);
+            }
+            if (result.getAssertionsFailed() == null) {
+                // 如果执行失败，至少有1个断言失败
+                if ("failed".equals(result.getStatus()) || "broken".equals(result.getStatus())) {
+                    result.setAssertionsFailed(1);
+                } else if ("passed".equals(result.getStatus())) {
+                    result.setAssertionsFailed(0);
+                } else {
+                    result.setAssertionsFailed(0);
+                }
+            }
+            log.info("构建执行结果 - 无断言结果，使用兜底逻辑: status={}, assertionsPassed={}, assertionsFailed={}", 
+                    result.getStatus(), result.getAssertionsPassed(), result.getAssertionsFailed());
         }
 
         return result;
@@ -519,6 +569,21 @@ public class TestExecutionServiceImpl implements TestExecutionService {
         result.setFailureMessage(testCaseResult.getFailureMessage());
         result.setLogsLink(testCaseResult.getLogsLink());
         result.setReportId(testCaseResult.getReportId());
+
+        // 兜底逻辑：当没有断言结果时，根据执行状态设置默认的断言统计
+        if (result.getAssertionsPassed() == null) {
+            result.setAssertionsPassed(0);
+        }
+        if (result.getAssertionsFailed() == null) {
+            // 如果执行失败，至少有1个断言失败
+            if ("failed".equals(result.getStatus()) || "broken".equals(result.getStatus())) {
+                result.setAssertionsFailed(1);
+            } else if ("passed".equals(result.getStatus())) {
+                result.setAssertionsFailed(0);
+            } else {
+                result.setAssertionsFailed(0);
+            }
+        }
 
         return result;
     }
@@ -1781,6 +1846,11 @@ public class TestExecutionServiceImpl implements TestExecutionService {
         result.setSummary(summary);
         result.setReportId(reportId);
         result.setDetailUrl("/api/test-results/" + executionRecordId + "/details");
+        
+        // 添加执行信息（新增）
+        result.setExecutionScope("api");
+        result.setExecutionType(executeDTO != null && executeDTO.getExecutionType() != null ? executeDTO.getExecutionType() : "manual");
+        result.setEnvironment(executeDTO != null && executeDTO.getEnvironment() != null ? executeDTO.getEnvironment() : "test");
         
         return result;
     }
