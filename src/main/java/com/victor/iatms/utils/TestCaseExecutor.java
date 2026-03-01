@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.victor.iatms.entity.dto.TestCaseExecutionDTO;
 import com.victor.iatms.entity.enums.ExecutionStatusEnum;
+import com.victor.iatms.entity.po.EnvironmentConfig;
+import com.victor.iatms.mappers.EnvironmentConfigMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -26,6 +28,9 @@ public class TestCaseExecutor {
 
     @Autowired
     private AssertionUtils assertionUtils;
+
+    @Autowired
+    private EnvironmentConfigMapper environmentConfigMapper;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -85,6 +90,9 @@ public class TestCaseExecutor {
                 
                 log.warn("测试用例执行失败 - 网络错误: 用例ID={}, 用例名称={}, 错误类型={}, 错误信息={}", 
                     executionDTO.getCaseId(), executionDTO.getName(), failureType, response.getErrorMessage());
+                
+                // 设置结束时间和耗时
+                setExecutionEndTime(executionDTO, startTime);
                 
                 return executionDTO;
             }
@@ -178,7 +186,7 @@ public class TestCaseExecutor {
             executionDTO.setExtractedValues(extractedValues);
 
             // 7. 判断执行状态
-            ExecutionStatusEnum status = determineExecutionStatus(response, assertionResults);
+            ExecutionStatusEnum status = determineExecutionStatus(response, assertionResults, executionDTO);
             executionDTO.setExecutionStatus(status.getCode());
 
             // 8. 记录执行日志
@@ -191,6 +199,9 @@ public class TestCaseExecutor {
             executionDTO.setFailureMessage(e.getMessage());
             executionDTO.setFailureTrace(getStackTrace(e));
             executionDTO.setFailureType("execution_error");
+            
+            // 设置结束时间和耗时
+            setExecutionEndTime(executionDTO, startTime);
         }
 
         LocalDateTime endTime = LocalDateTime.now();
@@ -198,6 +209,15 @@ public class TestCaseExecutor {
         executionDTO.setExecutionDuration(java.time.Duration.between(startTime, endTime).toMillis());
 
         return executionDTO;
+    }
+
+    /**
+     * 设置执行结束时间和耗时
+     */
+    private void setExecutionEndTime(TestCaseExecutionDTO executionDTO, LocalDateTime startTime) {
+        LocalDateTime endTime = LocalDateTime.now();
+        executionDTO.setExecutionEndTime(endTime);
+        executionDTO.setExecutionDuration(java.time.Duration.between(startTime, endTime).toMillis());
     }
 
     /**
@@ -321,12 +341,13 @@ public class TestCaseExecutor {
     private HttpRequestInfo buildHttpRequest(TestCaseExecutionDTO executionDTO) {
         TestCaseExecutionDTO.ApiInfoDTO apiInfo = executionDTO.getApiInfo();
         
-        // 1. 构建URL
-        String baseUrl = executionDTO.getApiInfo().getBaseUrl();
-        String fullUrl = baseUrl + apiInfo.getPath();
+        // 1. 构建URL，优先使用环境配置
+        String fullUrl = buildFullUrl(executionDTO);
         
         // 应用变量替换
         fullUrl = applyVariables(fullUrl, executionDTO.getVariables());
+
+        log.info("最终请求URL: {}", fullUrl);
 
         // 2. 构建请求头（接口默认 + 用例覆盖）
         Map<String, String> headers = new HashMap<>();
@@ -414,6 +435,118 @@ public class TestCaseExecutor {
         log.info("最终请求体: {}", body);
 
         return new HttpRequestInfo(apiInfo.getMethod(), fullUrl, headers, body, timeout);
+    }
+
+    /**
+     * 确保URL包含协议前缀，如果没有则自动添加 http://
+     */
+    private String ensureProtocol(String url) {
+        if (url == null || url.trim().isEmpty()) {
+            return "http://localhost:8080";  // 默认本地服务
+        }
+        
+        url = url.trim();
+        
+        // 如果已经包含协议前缀，直接返回
+        if (url.startsWith("http://") || url.startsWith("https://")) {
+            return url;
+        }
+        
+        // 没有协议前缀，自动添加 http://
+        log.warn("URL缺少协议前缀，自动添加http://: {}", url);
+        return "http://" + url;
+    }
+
+    /**
+     * 根据环境配置构建完整URL
+     * 优先级：
+     * 1. 如果用户手动输入了baseUrl，使用手动输入的
+     * 2. 否则从环境配置中获取（domain + protocol + port）
+     * 3. 如果环境配置不完整，使用接口默认的baseUrl
+     */
+    private String buildFullUrl(TestCaseExecutionDTO executionDTO) {
+        TestCaseExecutionDTO.ApiInfoDTO apiInfo = executionDTO.getApiInfo();
+        String apiPath = apiInfo.getPath();
+        
+        // 1. 优先使用用户手动输入的baseUrl（已通过executeDTO设置到apiInfo.baseUrl中）
+        String manualBaseUrl = apiInfo.getBaseUrl();
+        if (manualBaseUrl != null && !manualBaseUrl.trim().isEmpty()) {
+            String fullUrl = ensureProtocol(manualBaseUrl) + apiPath;
+            log.info("使用用户输入的BaseUrl: {}", fullUrl);
+            return fullUrl;
+        }
+        
+        // 2. 尝试从环境配置中获取
+        String environment = executionDTO.getEnvironment();
+        if (environment != null && !environment.trim().isEmpty()) {
+            try {
+                Integer envId = Integer.parseInt(environment);
+                EnvironmentConfig envConfig = environmentConfigMapper.selectById(envId);
+                if (envConfig != null) {
+                    String fullUrl = buildUrlFromEnvironment(envConfig, apiPath);
+                    if (fullUrl != null) {
+                        log.info("使用环境配置的URL: {}", fullUrl);
+                        return fullUrl;
+                    }
+                }
+            } catch (NumberFormatException e) {
+                log.warn("环境ID格式错误: {}", environment);
+            }
+        }
+        
+        // 3. 使用接口默认的baseUrl
+        String defaultBaseUrl = apiInfo.getBaseUrl();
+        if (defaultBaseUrl != null && !defaultBaseUrl.trim().isEmpty()) {
+            String fullUrl = ensureProtocol(defaultBaseUrl) + apiPath;
+            log.info("使用接口默认的BaseUrl: {}", fullUrl);
+            return fullUrl;
+        }
+        
+        // 4. 兜底：使用localhost
+        log.warn("未找到有效的BaseUrl配置，使用默认localhost");
+        return "http://localhost:8080" + apiPath;
+    }
+
+    /**
+     * 根据环境配置构建URL
+     * 使用 protocol://domain:port 格式
+     */
+    private String buildUrlFromEnvironment(EnvironmentConfig envConfig, String apiPath) {
+        String protocol = envConfig.getProtocol();
+        String domain = envConfig.getDomain();
+        Integer port = envConfig.getPort();
+        
+        // 如果domain为空，尝试使用baseUrl
+        if ((domain == null || domain.trim().isEmpty()) && envConfig.getBaseUrl() != null) {
+            // 如果有baseUrl，直接使用并添加协议
+            String baseUrl = envConfig.getBaseUrl().trim();
+            if (!baseUrl.startsWith("http://") && !baseUrl.startsWith("https://")) {
+                baseUrl = (protocol != null ? protocol : "http") + "://" + baseUrl;
+            }
+            return baseUrl + apiPath;
+        }
+        
+        if (domain == null || domain.trim().isEmpty()) {
+            log.warn("环境配置中缺少domain信息");
+            return null;
+        }
+        
+        // 构建URL
+        StringBuilder url = new StringBuilder();
+        url.append(protocol != null ? protocol : "http").append("://");
+        url.append(domain.trim());
+        
+        // 添加端口（如果端口不为空且不是默认端口）
+        if (port != null) {
+            boolean isDefaultPort = (port == 80 && "http".equals(protocol)) || 
+                                    (port == 443 && "https".equals(protocol));
+            if (!isDefaultPort) {
+                url.append(":").append(port);
+            }
+        }
+        
+        url.append(apiPath);
+        return url.toString();
     }
 
     /**
@@ -511,10 +644,11 @@ public class TestCaseExecutor {
      * 重要：测试用例的通过/失败只看断言结果，不看业务结果或HTTP状态码
      * - 如果所有断言都通过 → 测试状态 = passed（即使HTTP返回4xx/5xx或业务失败）
      * - 如果有任何断言失败 → 测试状态 = failed
-     * - 如果没有断言 → 只要请求成功就是passed
+     * - 如果没有断言 → 检查HTTP状态码和响应体中的业务状态码
      */
     private ExecutionStatusEnum determineExecutionStatus(HttpClientUtils.HttpResponseResult response, 
-                                                        List<AssertionUtils.AssertionResult> assertionResults) {
+                                                        List<AssertionUtils.AssertionResult> assertionResults,
+                                                        TestCaseExecutionDTO executionDTO) {
         // 1. 如果有断言，只看断言结果
         if (assertionResults != null && !assertionResults.isEmpty()) {
             for (AssertionUtils.AssertionResult result : assertionResults) {
@@ -529,12 +663,51 @@ public class TestCaseExecutor {
         // 2. 如果没有断言，检查HTTP请求是否成功
         // 注意：这里的success指的是请求成功发送并收到响应，不是业务成功
         if (response.isSuccess() || response.getStatusCode() > 0) {
+            // 检查响应体中的业务状态码
+            if (response.getBody() != null && !response.getBody().isEmpty()) {
+                String businessError = checkBusinessStatusCode(response.getBody());
+                if (businessError != null) {
+                    // 响应体中存在业务错误码，标记为失败
+                    log.warn("检测到业务失败: {}", businessError);
+                    // 设置失败信息
+                    executionDTO.setFailureMessage("业务失败: " + businessError);
+                    executionDTO.setFailureType("BUSINESS_ERROR");
+                    return ExecutionStatusEnum.FAILED;
+                }
+            }
             // 只要收到了HTTP响应（无论是2xx、4xx还是5xx），就认为测试通过
             return ExecutionStatusEnum.PASSED;
         }
 
         // 3. 只有在网络错误、超时等情况下才算失败
         return ExecutionStatusEnum.FAILED;
+    }
+
+    /**
+     * 检查响应体中的业务状态码
+     * 支持标准的 {code: xxx, msg: xxx} 格式
+     * 返回错误信息，如果没有错误则返回null
+     */
+    private String checkBusinessStatusCode(String responseBody) {
+        try {
+            JsonNode rootNode = objectMapper.readTree(responseBody);
+            
+            // 检查是否存在code字段
+            if (rootNode.has("code")) {
+                JsonNode codeNode = rootNode.get("code");
+                int code = codeNode.asInt();
+                
+                // 检查是否是业务失败码（通常 1 表示成功，0 可能表示部分成功，负数或非1表示失败）
+                // 这里假设：code = 1 是成功，其他值都可能是失败
+                if (code != 1) {
+                    String msg = rootNode.has("msg") ? rootNode.get("msg").asText() : "未知错误";
+                    return String.format("code=%d, msg=%s", code, msg);
+                }
+            }
+        } catch (Exception e) {
+            log.debug("解析响应体失败: {}", e.getMessage());
+        }
+        return null;
     }
 
     /**
