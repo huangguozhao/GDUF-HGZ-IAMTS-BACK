@@ -29,6 +29,7 @@ import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Pattern;
 
 /**
@@ -860,14 +861,100 @@ public class TestCaseServiceImpl implements TestCaseService {
         
         // 构建返回结果
         UpdateTestCaseResponseDTO responseDTO = new UpdateTestCaseResponseDTO();
+        
+        // 基本信息
         responseDTO.setCaseId(testCase.getCaseId());
         responseDTO.setCaseCode(testCase.getCaseCode());
         responseDTO.setApiId(testCase.getApiId());
         responseDTO.setName(testCase.getName());
+        responseDTO.setDescription(testCase.getDescription());
         responseDTO.setPriority(testCase.getPriority());
         responseDTO.setSeverity(testCase.getSeverity());
+        responseDTO.setTestType(testCase.getTestType());
         responseDTO.setIsEnabled(testCase.getIsEnabled());
+        responseDTO.setIsTemplate(testCase.getIsTemplate());
+        responseDTO.setTemplateId(testCase.getTemplateId());
+        responseDTO.setVersion(testCase.getVersion());
+        responseDTO.setCreatedAt(testCase.getCreatedAt());
         responseDTO.setUpdatedAt(testCase.getUpdatedAt());
+        
+        // 标签（JSON数组）
+        if (StringUtils.hasText(testCase.getTags())) {
+            try {
+                responseDTO.setTags(JsonUtils.convertJsonArray2List(testCase.getTags(), String.class));
+            } catch (Exception e) {
+                logger.warn("解析tags失败: {}", e.getMessage());
+            }
+        }
+        
+        // 前置条件（JSON对象数组）
+        if (StringUtils.hasText(testCase.getPreConditions())) {
+            try {
+                responseDTO.setPreConditions((List<Map<String, Object>>) (List<?>) JsonUtils.convertJsonArray2List(testCase.getPreConditions(), java.util.LinkedHashMap.class));
+            } catch (Exception e) {
+                logger.warn("解析preConditions失败: {}", e.getMessage());
+            }
+        }
+        
+        // 测试步骤（JSON对象数组）
+        if (StringUtils.hasText(testCase.getTestSteps())) {
+            try {
+                responseDTO.setTestSteps((List<Map<String, Object>>) (List<?>) JsonUtils.convertJsonArray2List(testCase.getTestSteps(), java.util.LinkedHashMap.class));
+            } catch (Exception e) {
+                logger.warn("解析testSteps失败: {}", e.getMessage());
+            }
+        }
+        
+        // 请求参数覆盖（JSON对象）
+        if (StringUtils.hasText(testCase.getRequestOverride())) {
+            try {
+                responseDTO.setRequestOverride((Map<String, Object>) JsonUtils.convertJson2Obj(testCase.getRequestOverride(), java.util.LinkedHashMap.class));
+            } catch (Exception e) {
+                logger.warn("解析requestOverride失败: {}", e.getMessage());
+            }
+        }
+        
+        // 预期HTTP状态码
+        responseDTO.setExpectedHttpStatus(testCase.getExpectedHttpStatus());
+        
+        // 预期响应体
+        responseDTO.setExpectedResponseBody(testCase.getExpectedResponseBody());
+        
+        // 预期响应Schema（JSON对象）
+        if (StringUtils.hasText(testCase.getExpectedResponseSchema())) {
+            try {
+                responseDTO.setExpectedResponseSchema((Map<String, Object>) JsonUtils.convertJson2Obj(testCase.getExpectedResponseSchema(), java.util.LinkedHashMap.class));
+            } catch (Exception e) {
+                logger.warn("解析expectedResponseSchema失败: {}", e.getMessage());
+            }
+        }
+        
+        // 断言规则（JSON对象数组）
+        if (StringUtils.hasText(testCase.getAssertions())) {
+            try {
+                responseDTO.setAssertions((List<Map<String, Object>>) (List<?>) JsonUtils.convertJsonArray2List(testCase.getAssertions(), java.util.LinkedHashMap.class));
+            } catch (Exception e) {
+                logger.warn("解析assertions失败: {}", e.getMessage());
+            }
+        }
+        
+        // 提取器（JSON对象数组）
+        if (StringUtils.hasText(testCase.getExtractors())) {
+            try {
+                responseDTO.setExtractors((List<Map<String, Object>>) (List<?>) JsonUtils.convertJsonArray2List(testCase.getExtractors(), java.util.LinkedHashMap.class));
+            } catch (Exception e) {
+                logger.warn("解析extractors失败: {}", e.getMessage());
+            }
+        }
+        
+        // 验证器（JSON对象数组）
+        if (StringUtils.hasText(testCase.getValidators())) {
+            try {
+                responseDTO.setValidators((List<Map<String, Object>>) (List<?>) JsonUtils.convertJsonArray2List(testCase.getValidators(), java.util.LinkedHashMap.class));
+            } catch (Exception e) {
+                logger.warn("解析validators失败: {}", e.getMessage());
+            }
+        }
         
         return responseDTO;
     }

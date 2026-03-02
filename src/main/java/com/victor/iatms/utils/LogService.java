@@ -32,6 +32,24 @@ public class LogService {
     public static final String OP_UPDATE_TASK = "update_task";
     public static final String OP_GENERATE_REPORT = "generate_report";
     public static final String OP_SHARE_PROJECT = "share_project";
+    
+    // ==================== 测试执行相关操作类型 ====================
+    public static final String OP_EXECUTE_TEST_CASE = "execute_test_case";      // 执行测试用例
+    public static final String OP_EXECUTE_TEST_MODULE = "execute_test_module";  // 执行测试模块
+    public static final String OP_EXECUTE_TEST_PROJECT = "execute_test_project";// 执行测试项目
+    public static final String OP_EXECUTE_TEST_SUITE = "execute_test_suite";    // 执行测试套件
+    public static final String OP_CREATE_SCHEDULED_TASK = "create_scheduled_task";     // 创建定时任务
+    public static final String OP_UPDATE_SCHEDULED_TASK = "update_scheduled_task";     // 更新定时任务
+    public static final String OP_DELETE_SCHEDULED_TASK = "delete_scheduled_task";     // 删除定时任务
+    public static final String OP_EXECUTE_SCHEDULED_TASK = "execute_scheduled_task";   // 执行定时任务
+    public static final String OP_AI_DIAGNOSIS = "ai_diagnosis";               // AI诊断分析
+    public static final String OP_CREATE_API = "create_api";                   // 创建接口
+    public static final String OP_UPDATE_API = "update_api";                   // 更新接口
+    public static final String OP_DELETE_API = "delete_api";                   // 删除接口
+    public static final String OP_CREATE_ENVIRONMENT = "create_environment";   // 创建环境配置
+    public static final String OP_UPDATE_ENVIRONMENT = "update_environment";   // 更新环境配置
+    public static final String OP_DELETE_ENVIRONMENT = "delete_environment";   // 删除环境配置
+    public static final String OP_EXPORT_REPORT = "export_report";             // 导出报告
 
     // 目标类型常量
     public static final String TARGET_PROJECT = "project";

@@ -43,11 +43,24 @@ public class TestCaseExecutor {
         LocalDateTime startTime = LocalDateTime.now();
         executionDTO.setExecutionStartTime(startTime);
 
+        // ==================== 详细执行日志开始 ====================
+        log.info("╔═══════════════════════════════════════════════════════════════════╗");
+        log.info("║                    测试用例执行开始                                  ║");
+        log.info("╠═══════════════════════════════════════════════════════════════════╣");
+        log.info("║ 用例ID: {} | 用例名称: {}", executionDTO.getCaseId(), executionDTO.getName());
+        log.info("║ 接口路径: {} | 请求方法: {}", 
+            executionDTO.getApiInfo() != null ? executionDTO.getApiInfo().getPath() : "N/A",
+            executionDTO.getApiInfo() != null ? executionDTO.getApiInfo().getMethod() : "N/A");
+        log.info("║ 运行环境: {} | 预期状态码: {}", executionDTO.getEnvironment(), executionDTO.getExpectedHttpStatus());
+        log.info("╚═══════════════════════════════════════════════════════════════════╝");
+        // ==================== 详细执行日志结束 ====================
+
         try {
             // 0. 检查API信息是否存在
             if (executionDTO.getApiInfo() == null) {
                 executionDTO.setExecutionStatus(ExecutionStatusEnum.FAILED.getCode());
                 executionDTO.setFailureMessage("关联的接口不存在或已禁用");
+                log.warn("❌ 执行中止 - 关联的接口不存在或已禁用");
                 return executionDTO;
             }
 
@@ -55,13 +68,26 @@ public class TestCaseExecutor {
             if (!validatePreConditions(executionDTO)) {
                 executionDTO.setExecutionStatus(ExecutionStatusEnum.SKIPPED.getCode());
                 executionDTO.setFailureMessage("前置条件验证失败");
+                log.warn("⏭️ 用例跳过 - 前置条件验证失败");
                 return executionDTO;
             }
 
             // 2. 构建请求
+            log.info("📝 步骤1: 正在构建HTTP请求...");
             HttpRequestInfo requestInfo = buildHttpRequest(executionDTO);
+            log.debug("   请求构建完成 - URL: {}, Method: {}", requestInfo.getUrl(), requestInfo.getMethod());
 
             // 3. 发送HTTP请求
+            log.info("📤 步骤2: 正在发送HTTP请求...");
+            log.info("   ├─ URL: {}", requestInfo.getUrl());
+            log.info("   ├─ Method: {}", requestInfo.getMethod());
+            log.info("   ├─ Headers: {}", requestInfo.getHeaders());
+            if (requestInfo.getBody() != null && !requestInfo.getBody().isEmpty()) {
+                log.info("   ├─ Body: {}", truncateForLog(requestInfo.getBody(), 500));
+            }
+            log.info("   ├─ Timeout: {}ms", requestInfo.getTimeout());
+            
+            long requestStartTime = System.currentTimeMillis();
             HttpClientUtils.HttpResponseResult response = httpClientUtils.sendRequest(
                 requestInfo.getMethod(),
                 requestInfo.getUrl(),
@@ -69,6 +95,9 @@ public class TestCaseExecutor {
                 requestInfo.getBody(),
                 requestInfo.getTimeout()
             );
+            long requestDuration = System.currentTimeMillis() - requestStartTime;
+            
+            log.info("   └─ 响应耗时: {}ms", requestDuration);
 
             // 4. 检查网络错误和超时情况
             if (response.hasError()) {
@@ -88,8 +117,11 @@ public class TestCaseExecutor {
                 String networkErrorLog = generateNetworkErrorLog(executionDTO, requestInfo, response);
                 executionDTO.setExecutionLogs(networkErrorLog);
                 
-                log.warn("测试用例执行失败 - 网络错误: 用例ID={}, 用例名称={}, 错误类型={}, 错误信息={}", 
-                    executionDTO.getCaseId(), executionDTO.getName(), failureType, response.getErrorMessage());
+                log.error("❌ 测试失败 - 网络错误");
+                log.error("   ├─ 用例ID: {}", executionDTO.getCaseId());
+                log.error("   ├─ 用例名称: {}", executionDTO.getName());
+                log.error("   ├─ 错误类型: {}", failureType);
+                log.error("   └─ 错误信息: {}", response.getErrorMessage());
                 
                 // 设置结束时间和耗时
                 setExecutionEndTime(executionDTO, startTime);
@@ -98,19 +130,33 @@ public class TestCaseExecutor {
             }
 
             // 5. 记录响应信息
+            log.info("📥 步骤3: 收到HTTP响应");
+            log.info("   ├─ Status Code: {}", response.getStatusCode());
+            log.info("   ├─ Headers: {}", response.getHeaders());
+            String responseBody = response.getBody();
+            if (responseBody != null) {
+                log.info("   ├─ Body Length: {} bytes", responseBody.length());
+                log.info("   └─ Body Preview: {}", truncateForLog(responseBody, 300));
+            } else {
+                log.info("   └─ Body: (empty)");
+            }
+            
             executionDTO.setHttpResponseStatus(response.getStatusCode());
             executionDTO.setHttpResponseBody(response.getBody());
             executionDTO.setHttpResponseHeaders(response.getHeaders());
 
             // 5. 执行断言
+            log.info("🔍 步骤4: 执行断言验证");
             List<AssertionUtils.AssertionResult> assertionResults;
             
             // 5.1 如果没有明确的断言规则，自动生成基础断言
             String assertions = executionDTO.getAssertions();
             if (assertions == null || assertions.trim().isEmpty() || "null".equals(assertions)) {
-                log.info("未定义断言规则，自动生成基础断言");
+                log.info("   提示: 未定义断言规则，自动生成基础断言");
                 assertions = generateDefaultAssertions(executionDTO);
-                log.info("自动生成的断言: {}", assertions);
+                log.debug("   自动生成的断言: {}", assertions);
+            } else {
+                log.debug("   使用用户定义的断言规则");
             }
             
             // 5.2 执行断言
@@ -129,6 +175,10 @@ public class TestCaseExecutor {
             int passedCount = 0;
             int failedCount = 0;
             
+            log.info("   ╔════════════════════════════════════════════════════╗");
+            log.info("   ║              断言结果详情                          ║");
+            log.info("   ╠════════════════════════════════════════════════════╣");
+            
             for (int i = 0; i < assertionResults.size(); i++) {
                 AssertionUtils.AssertionResult result = assertionResults.get(i);
                 TestCaseExecutionDTO.AssertionResultDTO dto = new TestCaseExecutionDTO.AssertionResultDTO();
@@ -139,6 +189,19 @@ public class TestCaseExecutor {
                 dto.setErrorMessage(result.getErrorMessage());
                 convertedResults.add(dto);
                 
+                // 详细日志记录
+                String statusIcon = result.isPassed() ? "✅" : "❌";
+                log.info("   ║ {} 断言#{}: {}", statusIcon, i + 1, result.getAssertionType());
+                log.info("   ║    期望: {}", truncateForLog(String.valueOf(result.getExpectedValue()), 50));
+                log.info("   ║    实际: {}", truncateForLog(String.valueOf(result.getActualValue()), 50));
+                
+                if (!result.isPassed()) {
+                    log.info("   ║    错误: {}", truncateForLog(result.getErrorMessage(), 50));
+                    failedCount++;
+                } else {
+                    passedCount++;
+                }
+                
                 // 生成详细的断言日志
                 assertionLog.append(String.format("断言 #%d [%s]\n", i + 1, result.getAssertionType()));
                 assertionLog.append(String.format("  期望值: %s\n", result.getExpectedValue()));
@@ -147,9 +210,6 @@ public class TestCaseExecutor {
                 
                 if (!result.isPassed()) {
                     assertionLog.append(String.format("  错误: %s\n", result.getErrorMessage()));
-                    failedCount++;
-                } else {
-                    passedCount++;
                 }
                 assertionLog.append("\n");
             }
@@ -158,8 +218,9 @@ public class TestCaseExecutor {
                 assertionResults.size(), passedCount, failedCount));
             assertionLog.append("=====================================\n");
             
-            // 打印详细日志
-            log.info(assertionLog.toString());
+            log.info("   ╠════════════════════════════════════════════════════╣");
+            log.info("   ║  断言汇总: 通过 {} / 失败 {} / 总计 {} ", passedCount, failedCount, assertionResults.size());
+            log.info("   ╚════════════════════════════════════════════════════╝");
             
             executionDTO.setAssertionResults(convertedResults);
             
@@ -193,8 +254,27 @@ public class TestCaseExecutor {
             String executionLogs = generateExecutionLogs(executionDTO, requestInfo, response);
             executionDTO.setExecutionLogs(executionLogs);
 
+            // ==================== 执行完成日志 ====================
+            String statusIcon = "PASSED".equals(status.getCode()) ? "✅" : 
+                                ("FAILED".equals(status.getCode()) ? "❌" : "⏭️");
+            log.info("╔═══════════════════════════════════════════════════════════════════╗");
+            log.info("║                    测试用例执行完成                                ║");
+            log.info("╠═══════════════════════════════════════════════════════════════════╣");
+            log.info("║ 用例ID: {} | 用例名称: {}", executionDTO.getCaseId(), executionDTO.getName());
+            log.info("║ 执行状态: {} {}", statusIcon, status.getCode());
+            log.info("║ 总耗时: {}ms", executionDTO.getExecutionDuration());
+            log.info("║ 断言结果: 通过 {} / 失败 {} / 总计 {}", passedCount, failedCount, assertionResults.size());
+            log.info("╚═══════════════════════════════════════════════════════════════════╝");
+            // ==================== 执行完成日志结束 ====================
+
         } catch (Exception e) {
-            log.error("执行测试用例失败: {}", e.getMessage(), e);
+            log.error("╔═══════════════════════════════════════════════════════════════════╗");
+            log.error("║                    测试用例执行异常                                ║");
+            log.error("╠═══════════════════════════════════════════════════════════════════╣");
+            log.error("║ 用例ID: {} | 用例名称: {}", executionDTO.getCaseId(), executionDTO.getName());
+            log.error("║ 异常信息: {}", e.getMessage());
+            log.error("╚═══════════════════════════════════════════════════════════════════╝", e);
+            
             executionDTO.setExecutionStatus(ExecutionStatusEnum.FAILED.getCode());
             executionDTO.setFailureMessage(e.getMessage());
             executionDTO.setFailureTrace(getStackTrace(e));
@@ -886,5 +966,23 @@ public class TestCaseExecutor {
         public Map<String, String> getHeaders() { return headers; }
         public String getBody() { return body; }
         public int getTimeout() { return timeout; }
+    }
+
+    // ==================== 辅助方法 ====================
+
+    /**
+     * 截断日志字符串，避免日志过长
+     * @param content 原始内容
+     * @param maxLength 最大长度
+     * @return 截断后的内容
+     */
+    private String truncateForLog(String content, int maxLength) {
+        if (content == null) {
+            return "(null)";
+        }
+        if (content.length() <= maxLength) {
+            return content;
+        }
+        return content.substring(0, maxLength) + "... [truncated, total " + content.length() + " chars]";
     }
 }
