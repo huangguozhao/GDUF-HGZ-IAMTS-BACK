@@ -1728,6 +1728,9 @@ public class TestExecutionServiceImpl implements TestExecutionService {
         int passed = 0, failed = 0, skipped = 0, broken = 0;
         List<ApiExecutionResultDTO.CaseResult> caseResults = new ArrayList<>();
         
+        // 用于保存第一个测试用例的响应数据（用于展示）
+        final Map<String, Object>[] responseDataHolder = new Map[]{null};
+        
         // 3. 并发执行测试用例
         List<CompletableFuture<Void>> futures = new ArrayList<>();
         
@@ -1737,6 +1740,19 @@ public class TestExecutionServiceImpl implements TestExecutionService {
                     ExecuteTestCaseDTO caseExecuteDTO = convertToTestCaseExecuteDTO(executeDTO);
                     ExecutionResultDTO result = executeTestCase(testCase.getCaseId(), caseExecuteDTO, userId);
                     recordApiTestCaseResult(reportId, executionRecordId, testCase, result, userId);
+                    
+                    // 保存第一个测试用例的响应数据
+                    synchronized (responseDataHolder) {
+                        if (responseDataHolder[0] == null && result.getResponseStatus() != null) {
+                            responseDataHolder[0] = new HashMap<>();
+                            responseDataHolder[0].put("httpStatus", result.getResponseStatus());
+                            responseDataHolder[0].put("responseCode", result.getStatus());
+                            responseDataHolder[0].put("body", result.getResponseBody());
+                            responseDataHolder[0].put("headers", result.getResponseHeaders());
+                            responseDataHolder[0].put("assertionResults", result.getAssertionDetails());
+                            responseDataHolder[0].put("extractedVariables", result.getExtractedVariables());
+                        }
+                    }
                     
                     // 添加到结果列表
                     ApiExecutionResultDTO.CaseResult caseResult = new ApiExecutionResultDTO.CaseResult();
@@ -1810,6 +1826,17 @@ public class TestExecutionServiceImpl implements TestExecutionService {
             BigDecimal.ZERO);
         apiExecutionRecord.setStatus(failed + broken > 0 ? "failed" : "completed");
         apiExecutionRecord.setReportUrl("/api/reports/" + reportId);
+        
+        // 保存响应数据到executionConfig中，用于前端展示
+        if (responseDataHolder[0] != null) {
+            try {
+                Map<String, Object> executionConfig = new HashMap<>();
+                executionConfig.put("responseData", responseDataHolder[0]);
+                apiExecutionRecord.setExecutionConfig(new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(executionConfig));
+            } catch (Exception e) {
+                log.warn("保存响应数据到executionConfig失败: {}", e.getMessage());
+            }
+        }
         
         testExecutionRecordMapper.updateExecutionRecord(apiExecutionRecord);
         
@@ -3761,6 +3788,43 @@ public class TestExecutionServiceImpl implements TestExecutionService {
         
         if (reportId != null) {
             record.setReportUrl("/api/reports/" + reportId);
+        }
+        
+        // 保存响应数据到executionConfig中，用于前端展示
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            Map<String, Object> executionConfig = new HashMap<>();
+            
+            // 构建响应数据
+            Map<String, Object> responseData = new HashMap<>();
+            responseData.put("httpStatus", result.getHttpResponseStatus());
+            responseData.put("responseCode", result.getExecutionStatus());
+            responseData.put("body", result.getHttpResponseBody());
+            responseData.put("headers", result.getHttpResponseHeaders());
+            
+            // 转换断言结果
+            if (result.getAssertionResults() != null) {
+                List<Map<String, Object>> assertionResults = new ArrayList<>();
+                for (TestCaseExecutionDTO.AssertionResultDTO assertion : result.getAssertionResults()) {
+                    Map<String, Object> assertionMap = new HashMap<>();
+                    assertionMap.put("assertionType", assertion.getAssertionType());
+                    assertionMap.put("expectedValue", assertion.getExpectedValue());
+                    assertionMap.put("actualValue", assertion.getActualValue());
+                    assertionMap.put("passed", assertion.getPassed());
+                    assertionMap.put("message", assertion.getMessage());
+                    assertionMap.put("errorMessage", assertion.getErrorMessage());
+                    assertionResults.add(assertionMap);
+                }
+                responseData.put("assertionResults", assertionResults);
+            }
+            
+            // 添加提取的变量
+            responseData.put("extractedVariables", result.getExtractedValues());
+            
+            executionConfig.put("responseData", responseData);
+            record.setExecutionConfig(mapper.writeValueAsString(executionConfig));
+        } catch (Exception e) {
+            log.warn("保存响应数据到executionConfig失败: {}", e.getMessage());
         }
     }
 

@@ -52,13 +52,13 @@ public class TestExecutionController {
             @PathVariable("case_id") Integer caseId,
             @RequestBody ExecuteTestCaseDTO executeDTO,
             HttpServletRequest request) {
-        // 获取当前用户ID
-        Integer userId = getCurrentUserId(request);
+            // 获取当前用户ID
+            Integer userId = getCurrentUserId(request);
 
-        // 调用服务层方法
-        ExecutionResultDTO result = testExecutionService.executeTestCase(caseId, executeDTO, userId);
+            // 调用服务层方法
+            ExecutionResultDTO result = testExecutionService.executeTestCase(caseId, executeDTO, userId);
 
-        return ResponseVO.success("用例执行完成", result);
+            return ResponseVO.success("用例执行完成", result);
     }
 
     /**
