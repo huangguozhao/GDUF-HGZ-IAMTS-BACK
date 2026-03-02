@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.victor.iatms.mappers.NotificationSettingsMapper">
+
+    <resultMap id="BaseResultMap" type="com.victor.iatms.entity.po.NotificationSettings">
+        <id column="id" property="id"/>
+        <result column="email_enabled" property="emailEnabled"/>
+        <result column="sms_enabled" property="smsEnabled"/>
+        <result column="system_enabled" property="systemEnabled"/>
+        <result column="email_host" property="emailHost"/>
+        <result column="email_port" property="emailPort"/>
+        <result column="email_username" property="emailUsername"/>
+        <result column="email_password" property="emailPassword"/>
+        <result column="email_ssl" property="emailSsl"/>
+        <result column="email_from" property="emailFrom"/>
+        <result column="sms_provider" property="smsProvider"/>
+        <result column="sms_access_key" property="smsAccessKey"/>
+        <result column="sms_secret_key" property="smsSecretKey"/>
+        <result column="sms_sign_name" property="smsSignName"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+
+    <select id="selectNotificationSettings" resultMap="BaseResultMap">
+        SELECT * FROM notification_settings LIMIT 1
+    </select>
+
+    <update id="updateNotificationSettings" parameterType="com.victor.iatms.entity.po.NotificationSettings">
+        UPDATE notification_settings
+        <set>
+            <if test="emailEnabled != null">email_enabled = #{emailEnabled},</if>
+            <if test="smsEnabled != null">sms_enabled = #{smsEnabled},</if>
+            <if test="systemEnabled != null">system_enabled = #{systemEnabled},</if>
+            <if test="emailHost != null">email_host = #{emailHost},</if>
+            <if test="emailPort != null">email_port = #{emailPort},</if>
+            <if test="emailUsername != null">email_username = #{emailUsername},</if>
+            <if test="emailPassword != null">email_password = #{emailPassword},</if>
+            <if test="emailSsl != null">email_ssl = #{emailSsl},</if>
+            <if test="emailFrom != null">email_from = #{emailFrom},</if>
+            <if test="smsProvider != null">sms_provider = #{smsProvider},</if>
+            <if test="smsAccessKey != null">sms_access_key = #{smsAccessKey},</if>
+            <if test="smsSecretKey != null">sms_secret_key = #{smsSecretKey},</if>
+            <if test="smsSignName != null">sms_sign_name = #{smsSignName},</if>
+            update_time = NOW()
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <insert id="insertNotificationSettings" parameterType="com.victor.iatms.entity.po.NotificationSettings" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO notification_settings (
+            email_enabled, sms_enabled, system_enabled,
+            email_host, email_port, email_username, email_password, email_ssl, email_from,
+            sms_provider, sms_access_key, sms_secret_key, sms_sign_name,
+            create_time, update_time
+        ) VALUES (
+            #{emailEnabled}, #{smsEnabled}, #{systemEnabled},
+            #{emailHost}, #{emailPort}, #{emailUsername}, #{emailPassword}, #{emailSsl}, #{emailFrom},
+            #{smsProvider}, #{smsAccessKey}, #{smsSecretKey}, #{smsSignName},
+            NOW(), NOW()
+        )
+    </insert>
+
+</mapper>
+

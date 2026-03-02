@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.victor.iatms.mappers.IntegrationSettingsMapper">
+
+    <resultMap id="BaseResultMap" type="com.victor.iatms.entity.po.IntegrationSettings">
+        <id column="id" property="id"/>
+        <result column="integration_type" property="integrationType"/>
+        <result column="service_name" property="serviceName"/>
+        <result column="enabled" property="enabled"/>
+        <result column="api_version" property="apiVersion"/>
+        <result column="request_timeout" property="requestTimeout"/>
+        <result column="max_retries" property="maxRetries"/>
+        <result column="auth_type" property="authType"/>
+        <result column="auth_token" property="authToken"/>
+        <result column="username" property="username"/>
+        <result column="password" property="password"/>
+        <result column="response_format" property="responseFormat"/>
+        <result column="webhook_url" property="webhookUrl"/>
+        <result column="webhook_secret" property="webhookSecret"/>
+        <result column="jenkins_url" property="jenkinsUrl"/>
+        <result column="jenkins_username" property="jenkinsUsername"/>
+        <result column="jenkins_token" property="jenkinsToken"/>
+        <result column="git_url" property="gitUrl"/>
+        <result column="git_branch" property="gitBranch"/>
+        <result column="git_username" property="gitUsername"/>
+        <result column="git_token" property="gitToken"/>
+        <result column="extra_config" property="extraConfig"/>
+        <result column="description" property="description"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+
+    <select id="selectAllIntegrationSettings" resultMap="BaseResultMap">
+        SELECT * FROM integration_settings ORDER BY id
+    </select>
+
+    <select id="selectIntegrationSettingsByType" resultMap="BaseResultMap">
+        SELECT * FROM integration_settings WHERE integration_type = #{integrationType}
+    </select>
+
+    <update id="updateIntegrationSettings" parameterType="com.victor.iatms.entity.po.IntegrationSettings">
+        UPDATE integration_settings
+        <set>
+            <if test="serviceName != null">service_name = #{serviceName},</if>
+            <if test="enabled != null">enabled = #{enabled},</if>
+            <if test="apiVersion != null">api_version = #{apiVersion},</if>
+            <if test="requestTimeout != null">request_timeout = #{requestTimeout},</if>
+            <if test="maxRetries != null">max_retries = #{maxRetries},</if>
+            <if test="authType != null">auth_type = #{authType},</if>
+            <if test="authToken != null">auth_token = #{authToken},</if>
+            <if test="username != null">username = #{username},</if>
+            <if test="password != null">password = #{password},</if>
+            <if test="responseFormat != null">response_format = #{responseFormat},</if>
+            <if test="webhookUrl != null">webhook_url = #{webhookUrl},</if>
+            <if test="webhookSecret != null">webhook_secret = #{webhookSecret},</if>
+            <if test="jenkinsUrl != null">jenkins_url = #{jenkinsUrl},</if>
+            <if test="jenkinsUsername != null">jenkins_username = #{jenkinsUsername},</if>
+            <if test="jenkinsToken != null">jenkins_token = #{jenkinsToken},</if>
+            <if test="gitUrl != null">git_url = #{gitUrl},</if>
+            <if test="gitBranch != null">git_branch = #{gitBranch},</if>
+            <if test="gitUsername != null">git_username = #{gitUsername},</if>
+            <if test="gitToken != null">git_token = #{gitToken},</if>
+            <if test="extraConfig != null">extra_config = #{extraConfig},</if>
+            <if test="description != null">description = #{description},</if>
+            update_time = NOW()
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <insert id="insertIntegrationSettings" parameterType="com.victor.iatms.entity.po.IntegrationSettings" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO integration_settings (
+            integration_type, service_name, enabled, api_version, request_timeout,
+            max_retries, auth_type, auth_token, username, password, response_format,
+            webhook_url, webhook_secret, jenkins_url, jenkins_username, jenkins_token,
+            git_url, git_branch, git_username, git_token, extra_config, description,
+            create_time, update_time
+        ) VALUES (
+            #{integrationType}, #{serviceName}, #{enabled}, #{apiVersion}, #{requestTimeout},
+            #{maxRetries}, #{authType}, #{authToken}, #{username}, #{password}, #{responseFormat},
+            #{webhookUrl}, #{webhookSecret}, #{jenkinsUrl}, #{jenkinsUsername}, #{jenkinsToken},
+            #{gitUrl}, #{gitBranch}, #{gitUsername}, #{gitToken}, #{extraConfig}, #{description},
+            NOW(), NOW()
+        )
+    </insert>
+
+    <delete id="deleteIntegrationSettings" parameterType="int">
+        DELETE FROM integration_settings WHERE id = #{id}
+    </delete>
+
+</mapper>
+

@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.victor.iatms.mappers.SystemBasicSettingsMapper">
+
+    <resultMap id="BaseResultMap" type="com.victor.iatms.entity.po.SystemBasicSettings">
+        <id column="id" property="id"/>
+        <result column="system_name" property="systemName"/>
+        <result column="system_version" property="systemVersion"/>
+        <result column="system_id" property="systemId"/>
+        <result column="system_description" property="systemDescription"/>
+        <result column="deployment_mode" property="deploymentMode"/>
+        <result column="theme_color" property="themeColor"/>
+        <result column="custom_color" property="customColor"/>
+        <result column="layout" property="layout"/>
+        <result column="table_density" property="tableDensity"/>
+        <result column="language" property="language"/>
+        <result column="theme_mode" property="themeMode"/>
+        <result column="animation_enabled" property="animationEnabled"/>
+        <result column="default_homepage" property="defaultHomepage"/>
+        <result column="default_project_view" property="defaultProjectView"/>
+        <result column="default_page_size" property="defaultPageSize"/>
+        <result column="time_format" property="timeFormat"/>
+        <result column="auto_save" property="autoSave"/>
+        <result column="show_welcome_page" property="showWelcomePage"/>
+        <result column="remember_tabs" property="rememberTabs"/>
+        <result column="session_timeout" property="sessionTimeout"/>
+        <result column="max_failures" property="maxFailures"/>
+        <result column="lockout_duration" property="lockoutDuration"/>
+        <result column="two_factor_auth" property="twoFactorAuth"/>
+        <result column="ip_restriction" property="ipRestriction"/>
+        <result column="password_policy" property="passwordPolicy"/>
+        <result column="data_retention" property="dataRetention"/>
+        <result column="backup_strategy" property="backupStrategy"/>
+        <result column="log_level" property="logLevel"/>
+        <result column="log_path" property="logPath"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+
+    <select id="selectSystemBasicSettings" resultMap="BaseResultMap">
+        SELECT * FROM system_basic_settings LIMIT 1
+    </select>
+
+    <update id="updateSystemBasicSettings" parameterType="com.victor.iatms.entity.po.SystemBasicSettings">
+        UPDATE system_basic_settings
+        <set>
+            <if test="systemName != null">system_name = #{systemName},</if>
+            <if test="systemVersion != null">system_version = #{systemVersion},</if>
+            <if test="systemId != null">system_id = #{systemId},</if>
+            <if test="systemDescription != null">system_description = #{systemDescription},</if>
+            <if test="deploymentMode != null">deployment_mode = #{deploymentMode},</if>
+            <if test="themeColor != null">theme_color = #{themeColor},</if>
+            <if test="customColor != null">custom_color = #{customColor},</if>
+            <if test="layout != null">layout = #{layout},</if>
+            <if test="tableDensity != null">table_density = #{tableDensity},</if>
+            <if test="language != null">language = #{language},</if>
+            <if test="themeMode != null">theme_mode = #{themeMode},</if>
+            <if test="animationEnabled != null">animation_enabled = #{animationEnabled},</if>
+            <if test="defaultHomepage != null">default_homepage = #{defaultHomepage},</if>
+            <if test="defaultProjectView != null">default_project_view = #{defaultProjectView},</if>
+            <if test="defaultPageSize != null">default_page_size = #{defaultPageSize},</if>
+            <if test="timeFormat != null">time_format = #{timeFormat},</if>
+            <if test="autoSave != null">auto_save = #{autoSave},</if>
+            <if test="showWelcomePage != null">show_welcome_page = #{showWelcomePage},</if>
+            <if test="rememberTabs != null">remember_tabs = #{rememberTabs},</if>
+            <if test="sessionTimeout != null">session_timeout = #{sessionTimeout},</if>
+            <if test="maxFailures != null">max_failures = #{maxFailures},</if>
+            <if test="lockoutDuration != null">lockout_duration = #{lockoutDuration},</if>
+            <if test="twoFactorAuth != null">two_factor_auth = #{twoFactorAuth},</if>
+            <if test="ipRestriction != null">ip_restriction = #{ipRestriction},</if>
+            <if test="passwordPolicy != null">password_policy = #{passwordPolicy},</if>
+            <if test="dataRetention != null">data_retention = #{dataRetention},</if>
+            <if test="backupStrategy != null">backup_strategy = #{backupStrategy},</if>
+            <if test="logLevel != null">log_level = #{logLevel},</if>
+            <if test="logPath != null">log_path = #{logPath},</if>
+            update_time = NOW()
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <insert id="insertSystemBasicSettings" parameterType="com.victor.iatms.entity.po.SystemBasicSettings" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO system_basic_settings (
+            system_name, system_version, system_id, system_description, deployment_mode,
+            theme_color, custom_color, layout, table_density, language, theme_mode,
+            animation_enabled, default_homepage, default_project_view, default_page_size,
+            time_format, auto_save, show_welcome_page, remember_tabs, session_timeout,
+            max_failures, lockout_duration, two_factor_auth, ip_restriction, password_policy,
+            data_retention, backup_strategy, log_level, log_path, create_time, update_time
+        ) VALUES (
+            #{systemName}, #{systemVersion}, #{systemId}, #{systemDescription}, #{deploymentMode},
+            #{themeColor}, #{customColor}, #{layout}, #{tableDensity}, #{language}, #{themeMode},
+            #{animationEnabled}, #{defaultHomepage}, #{defaultProjectView}, #{defaultPageSize},
+            #{timeFormat}, #{autoSave}, #{showWelcomePage}, #{rememberTabs}, #{sessionTimeout},
+            #{maxFailures}, #{lockoutDuration}, #{twoFactorAuth}, #{ipRestriction}, #{passwordPolicy},
+            #{dataRetention}, #{backupStrategy}, #{logLevel}, #{logPath}, NOW(), NOW()
+        )
+    </insert>
+
+</mapper>
+
