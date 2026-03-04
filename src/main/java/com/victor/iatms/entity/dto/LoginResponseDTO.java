@@ -73,7 +73,12 @@ public class LoginResponseDTO {
          * 账户状态
          */
         private String status;
-        
+
+        /**
+         * 用户角色：admin-管理员，user-普通用户
+         */
+        private String role;
+
         /**
          * 最后登录时间
          */

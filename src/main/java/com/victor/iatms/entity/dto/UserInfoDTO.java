@@ -47,4 +47,9 @@ public class UserInfoDTO {
      * 用户状态
      */
     private String status;
+
+    /**
+     * 用户角色：admin-管理员，user-普通用户
+     */
+    private String role;
 }

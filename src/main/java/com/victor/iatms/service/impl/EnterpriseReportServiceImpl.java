@@ -44,7 +44,7 @@ public class EnterpriseReportServiceImpl implements EnterpriseReportService {
             
             // 获取详细测试结果数据
             ReportExportResponseDTO exportData = reportExportService.getReportExportData(
-                reportId, true, false, true);
+                reportId, true, false, true, null);
             
             // 生成HTML
             EnterpriseHTMLBuilder builder = new EnterpriseHTMLBuilder(enterpriseData, exportData);
