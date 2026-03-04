@@ -3,6 +3,7 @@ package com.victor.iatms.service.impl;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.victor.iatms.entity.po.TestCaseResult;
+import com.victor.iatms.mappers.TestExecutionMapper;
 import com.victor.iatms.service.AIDiagnosisService;
 import com.victor.iatms.utils.DeepSeekUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -10,6 +11,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * AI诊断Service实现类
@@ -20,37 +23,117 @@ import java.util.*;
 public class AIDiagnosisServiceImpl implements AIDiagnosisService {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
+    
+    private static final int MAX_CACHE_SIZE = 100;
+    private final Map<String, Map<String, Object>> diagnosisResultCache = new ConcurrentHashMap<>();
+    private final Map<String, Boolean> diagnosisStatusCache = new ConcurrentHashMap<>();
 
     @Autowired
     private DeepSeekUtils deepSeekUtils;
+    
+    @Autowired
+    private TestExecutionMapper testExecutionMapper;
 
     @Override
     public Map<String, Object> diagnose(String failureMessage, String failureType, Integer responseStatus,
                                          String responseBody, String apiPath, String apiMethod, String caseName) {
-        // 调用带allCaseResults参数的重载方法
-        return diagnose(failureMessage, failureType, responseStatus, responseBody, apiPath, apiMethod, caseName, new ArrayList<>());
+        return diagnose(failureMessage, failureType, responseStatus, responseBody, apiPath, apiMethod, caseName, null);
     }
 
     @Override
     public Map<String, Object> diagnose(String failureMessage, String failureType, Integer responseStatus,
                                          String responseBody, String apiPath, String apiMethod, String caseName,
-                                         List<TestCaseResult> allCaseResults) {
-        log.info("开始AI诊断: failureMessage={}, failureType={}, responseStatus={}, caseResultsCount={}",
-                 failureMessage, failureType, responseStatus, allCaseResults != null ? allCaseResults.size() : 0);
+                                         Long executionId) {
+        log.info("开始AI诊断: failureMessage={}, failureType={}, responseStatus={}, executionId={}",
+                 failureMessage, failureType, responseStatus, executionId);
 
-        // 首先尝试调用DeepSeek API进行AI诊断
-        Map<String, Object> aiDiagnosisResult = callDeepSeekDiagnosis(failureMessage, failureType,
-                responseStatus, responseBody, apiPath, apiMethod, caseName, allCaseResults);
-
-        // 如果AI诊断成功，返回结果
-        if (aiDiagnosisResult != null && !aiDiagnosisResult.isEmpty()) {
-            log.info("AI诊断成功，使用DeepSeek返回的结果");
-            return aiDiagnosisResult;
+        String diagnosisId = generateDiagnosisId(failureMessage, apiPath, caseName);
+        
+        Map<String, Object> ruleResult = diagnoseWithRules(failureMessage, failureType, responseStatus, 
+                responseBody, apiPath, apiMethod, caseName, null);
+        ruleResult.put("diagnosisId", diagnosisId);
+        ruleResult.put("aiStatus", "processing");
+        
+        cacheResult(diagnosisId, ruleResult);
+        
+        callDeepSeekDiagnosisAsync(diagnosisId, failureMessage, failureType,
+                responseStatus, responseBody, apiPath, apiMethod, caseName, executionId);
+        
+        return ruleResult;
+    }
+    
+    private String generateDiagnosisId(String failureMessage, String apiPath, String caseName) {
+        return UUID.nameUUIDFromBytes((failureMessage + apiPath + caseName + System.currentTimeMillis()).getBytes()).toString();
+    }
+    
+    private void cacheResult(String diagnosisId, Map<String, Object> result) {
+        if (diagnosisResultCache.size() >= MAX_CACHE_SIZE) {
+            String oldestKey = diagnosisResultCache.keySet().iterator().next();
+            diagnosisResultCache.remove(oldestKey);
+            diagnosisStatusCache.remove(oldestKey);
         }
-
-        // AI诊断失败时，使用规则引擎作为兜底
-        log.warn("AI诊断失败或返回为空，使用规则引擎兜底");
-        return diagnoseWithRules(failureMessage, failureType, responseStatus, responseBody, apiPath, apiMethod, caseName, allCaseResults);
+        diagnosisResultCache.put(diagnosisId, result);
+        diagnosisStatusCache.put(diagnosisId, false);
+    }
+    
+    @Override
+    public Map<String, Object> getDiagnosisResult(String diagnosisId) {
+        Map<String, Object> result = diagnosisResultCache.get(diagnosisId);
+        if (result != null) {
+            Map<String, Object> copy = new HashMap<>(result);
+            Boolean aiCompleted = diagnosisStatusCache.get(diagnosisId);
+            copy.put("aiCompleted", aiCompleted != null && aiCompleted);
+            log.info("获取诊断结果: diagnosisId={}, aiCompleted={}, severity={}, rootCause={}", 
+                    diagnosisId, aiCompleted, copy.get("severity"), copy.get("rootCause"));
+            return copy;
+        }
+        log.warn("诊断结果不存在: diagnosisId={}", diagnosisId);
+        return null;
+    }
+    
+    private void callDeepSeekDiagnosisAsync(String diagnosisId, String failureMessage, String failureType,
+                                            Integer responseStatus, String responseBody, String apiPath, 
+                                            String apiMethod, String caseName, Long executionId) {
+        CompletableFuture.runAsync(() -> {
+            try {
+                log.info("开始异步调用DeepSeek API进行AI诊断, diagnosisId={}", diagnosisId);
+                
+                List<TestCaseResult> allCaseResults = null;
+                if (executionId != null) {
+                    allCaseResults = testExecutionMapper.findTestCaseResultsByExecutionId(executionId);
+                    log.info("获取到{}条测试用例结果", allCaseResults != null ? allCaseResults.size() : 0);
+                }
+                
+                Map<String, Object> aiResult = callDeepSeekDiagnosis(failureMessage, failureType,
+                        responseStatus, responseBody, apiPath, apiMethod, caseName, allCaseResults);
+                
+                if (aiResult != null && !aiResult.isEmpty()) {
+                    aiResult.put("diagnosisId", diagnosisId);
+                    aiResult.put("aiStatus", "completed");
+                    diagnosisResultCache.put(diagnosisId, aiResult);
+                    diagnosisStatusCache.put(diagnosisId, true);
+                    log.info("AI诊断完成, diagnosisId={}, severity={}, rootCause={}, issuesCount={}, suggestionsCount={}", 
+                            diagnosisId, aiResult.get("severity"), aiResult.get("rootCause"),
+                            aiResult.get("issues") != null ? ((List<?>)aiResult.get("issues")).size() : 0,
+                            aiResult.get("suggestions") != null ? ((List<?>)aiResult.get("suggestions")).size() : 0);
+                } else {
+                    Map<String, Object> currentResult = diagnosisResultCache.get(diagnosisId);
+                    if (currentResult != null) {
+                        currentResult.put("aiStatus", "failed");
+                        diagnosisStatusCache.put(diagnosisId, true);
+                    }
+                    log.warn("AI诊断返回为空, diagnosisId={}", diagnosisId);
+                }
+            } catch (Exception e) {
+                log.error("异步AI诊断异常, diagnosisId={}", diagnosisId, e);
+                Map<String, Object> currentResult = diagnosisResultCache.get(diagnosisId);
+                if (currentResult != null) {
+                    currentResult.put("aiStatus", "failed");
+                    currentResult.put("aiError", e.getMessage());
+                    diagnosisStatusCache.put(diagnosisId, true);
+                }
+            }
+        });
     }
 
     /**

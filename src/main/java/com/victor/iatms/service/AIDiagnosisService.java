@@ -32,10 +32,17 @@ public interface AIDiagnosisService {
      * @param apiPath API路径
      * @param apiMethod API方法
      * @param caseName 用例名称
-     * @param allCaseResults 所有测试用例结果（用于批量诊断）
+     * @param executionId 执行记录ID（用于批量诊断）
      * @return 诊断结果
      */
     Map<String, Object> diagnose(String failureMessage, String failureType, Integer responseStatus,
                                   String responseBody, String apiPath, String apiMethod, String caseName,
-                                  List<TestCaseResult> allCaseResults);
+                                  Long executionId);
+
+    /**
+     * 获取诊断结果
+     * @param diagnosisId 诊断ID
+     * @return 诊断结果
+     */
+    Map<String, Object> getDiagnosisResult(String diagnosisId);
 }

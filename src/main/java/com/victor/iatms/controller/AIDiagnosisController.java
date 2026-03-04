@@ -1,8 +1,7 @@
 package com.victor.iatms.controller;
 
-import com.victor.iatms.entity.po.TestCaseResult;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.victor.iatms.entity.vo.ResponseVO;
-import com.victor.iatms.mappers.TestExecutionMapper;
 import com.victor.iatms.service.AIDiagnosisService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,9 +20,6 @@ public class AIDiagnosisController {
     @Autowired
     private AIDiagnosisService aiDiagnosisService;
 
-    @Autowired
-    private TestExecutionMapper testExecutionMapper;
-
     /**
      * 执行AI诊断
      * @param diagnosisRequest 诊断请求参数
@@ -34,7 +30,31 @@ public class AIDiagnosisController {
         try {
             log.info("AI诊断请求: {}", diagnosisRequest);
             
-            // 检查是否有executionId（批量测试诊断）
+            String failureMessage = (String) diagnosisRequest.getOrDefault("failureMessage", "");
+            String failureType = (String) diagnosisRequest.getOrDefault("failureType", "");
+            Integer responseStatus = diagnosisRequest.get("responseStatus") != null ? 
+                Integer.parseInt(String.valueOf(diagnosisRequest.get("responseStatus"))) : null;
+            
+            String responseBody = "";
+            Object responseBodyObj = diagnosisRequest.get("responseBody");
+            if (responseBodyObj != null) {
+                if (responseBodyObj instanceof String) {
+                    responseBody = (String) responseBodyObj;
+                } else {
+                    try {
+                        ObjectMapper mapper = new ObjectMapper();
+                        responseBody = mapper.writeValueAsString(responseBodyObj);
+                    } catch (Exception e) {
+                        log.warn("responseBody转换失败: {}", e.getMessage());
+                        responseBody = String.valueOf(responseBodyObj);
+                    }
+                }
+            }
+            
+            String apiPath = (String) diagnosisRequest.getOrDefault("apiPath", "");
+            String apiMethod = (String) diagnosisRequest.getOrDefault("apiMethod", "");
+            String caseName = (String) diagnosisRequest.getOrDefault("caseName", "");
+            
             Long executionId = null;
             if (diagnosisRequest.get("executionId") != null) {
                 try {
@@ -44,24 +64,6 @@ public class AIDiagnosisController {
                 }
             }
             
-            // 如果有executionId，获取所有测试用例结果
-            List<TestCaseResult> allCaseResults = new ArrayList<>();
-            if (executionId != null) {
-                allCaseResults = testExecutionMapper.findTestCaseResultsByExecutionId(executionId);
-                log.info("获取到{}条测试用例结果", allCaseResults.size());
-            }
-            
-            // 提取单个测试用例的诊断参数（用于兼容旧的调用方式）
-            String failureMessage = (String) diagnosisRequest.getOrDefault("failureMessage", "");
-            String failureType = (String) diagnosisRequest.getOrDefault("failureType", "");
-            Integer responseStatus = diagnosisRequest.get("responseStatus") != null ? 
-                Integer.parseInt(String.valueOf(diagnosisRequest.get("responseStatus"))) : null;
-            String responseBody = (String) diagnosisRequest.getOrDefault("responseBody", "");
-            String apiPath = (String) diagnosisRequest.getOrDefault("apiPath", "");
-            String apiMethod = (String) diagnosisRequest.getOrDefault("apiMethod", "");
-            String caseName = (String) diagnosisRequest.getOrDefault("caseName", "");
-            
-            // 执行AI诊断（传入所有测试用例结果）
             Map<String, Object> diagnosisResult = aiDiagnosisService.diagnose(
                 failureMessage, 
                 failureType, 
@@ -70,13 +72,33 @@ public class AIDiagnosisController {
                 apiPath,
                 apiMethod,
                 caseName,
-                allCaseResults  // 新增参数：所有测试用例结果
+                executionId
             );
             
             return ResponseVO.success(diagnosisResult);
         } catch (Exception e) {
             log.error("AI诊断执行失败: {}", e.getMessage(), e);
             return ResponseVO.serverError("AI诊断执行失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 获取诊断结果
+     * @param diagnosisId 诊断ID
+     * @return 诊断结果
+     */
+    @GetMapping("/result/{diagnosisId}")
+    public ResponseVO<Map<String, Object>> getDiagnosisResult(@PathVariable String diagnosisId) {
+        try {
+            Map<String, Object> result = aiDiagnosisService.getDiagnosisResult(diagnosisId);
+            if (result != null) {
+                return ResponseVO.success(result);
+            } else {
+                return ResponseVO.notFound("诊断结果不存在或已过期");
+            }
+        } catch (Exception e) {
+            log.error("获取诊断结果失败: {}", e.getMessage(), e);
+            return ResponseVO.serverError("获取诊断结果失败: " + e.getMessage());
         }
     }
 }
