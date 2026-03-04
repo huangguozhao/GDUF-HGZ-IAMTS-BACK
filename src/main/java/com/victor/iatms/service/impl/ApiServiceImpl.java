@@ -6,7 +6,10 @@ import com.victor.iatms.entity.constants.Constants;
 import com.victor.iatms.entity.dto.*;
 import com.victor.iatms.entity.po.Api;
 import com.victor.iatms.mappers.ApiMapper;
+import com.victor.iatms.mappers.ModuleMapper;
+import com.victor.iatms.mappers.ProjectMemberMapper;
 import com.victor.iatms.mappers.TestCaseMapper;
+import com.victor.iatms.mappers.UserMapper;
 import com.victor.iatms.service.ApiService;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,7 +32,16 @@ public class ApiServiceImpl implements ApiService {
     private ApiMapper apiMapper;
 
     @Autowired
+    private ModuleMapper moduleMapper;
+
+    @Autowired
+    private ProjectMemberMapper projectMemberMapper;
+
+    @Autowired
     private TestCaseMapper testCaseMapper;
+
+    @Autowired
+    private UserMapper userMapper;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -370,8 +382,16 @@ public class ApiServiceImpl implements ApiService {
         }
 
         // 规则2：项目成员可以管理接口
-        // TODO: 这里应该检查用户的项目成员权限
-        return true;
+        // 检查用户是否为项目成员
+        if (api.getModuleId() != null) {
+            com.victor.iatms.entity.po.Module module = moduleMapper.selectById(api.getModuleId());
+            if (module != null && module.getProjectId() != null) {
+                com.victor.iatms.entity.po.ProjectMember member = projectMemberMapper.findByProjectAndUser(
+                    module.getProjectId(), userId);
+                return member != null;
+            }
+        }
+        return false;
     }
 
     /**
@@ -411,7 +431,12 @@ public class ApiServiceImpl implements ApiService {
      * 检查接口是否正在被使用
      */
     private boolean isApiInUse(Integer apiId) {
-        // TODO: 检查接口是否正在被测试计划、测试套件等使用
+        // 检查接口是否被测试用例使用
+        if (testCaseMapper.countByApiId(apiId) > 0) {
+            return true;
+        }
+        // 检查接口是否被测试计划使用（通过查询测试计划相关的表）
+        // 这里可以扩展其他检查逻辑，如检查是否有测试套件使用了该接口
         return false;
     }
 

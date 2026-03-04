@@ -1,20 +1,17 @@
 package com.victor.iatms.service.impl;
 
-import com.victor.iatms.entity.enums.RoleEnum;
-import com.victor.iatms.entity.po.User;
-import com.victor.iatms.entity.po.UserRole;
-import com.victor.iatms.mappers.UserMapper;
-import com.victor.iatms.mappers.UserRoleMapper;
+import com.victor.iatms.entity.po.*;
+import com.victor.iatms.mappers.*;
 import com.victor.iatms.service.PermissionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /**
- * 权限服务实现类
+ * 权限服务实现类 - 极简版：只区分管理员和普通用户
+ * 管理员拥有所有权限，普通用户需要检查项目成员身份
  */
 @Service
 public class PermissionServiceImpl implements PermissionService {
@@ -23,8 +20,24 @@ public class PermissionServiceImpl implements PermissionService {
     private UserMapper userMapper;
 
     @Autowired
-    private UserRoleMapper userRoleMapper;
+    private ProjectMemberMapper projectMemberMapper;
 
+    @Autowired
+    private ApiMapper apiMapper;
+
+    @Autowired
+    private ModuleMapper moduleMapper;
+
+    @Autowired
+    private TestCaseMapper testCaseMapper;
+
+    @Autowired
+    private TaskMapper taskMapper;
+
+    /**
+     * 检查用户是否拥有指定权限
+     * 逻辑：admin 拥有所有权限，普通人需要检查具体权限
+     */
     @Override
     public boolean hasPermission(Integer userId, String[] permissions) {
         if (userId == null || permissions == null || permissions.length == 0) {
@@ -37,24 +50,19 @@ public class PermissionServiceImpl implements PermissionService {
             return false;
         }
 
-        // 超级管理员拥有所有权限
-        if (isSuperAdmin(userId)) {
+        // 管理员拥有所有权限
+        if (isAdmin(userId)) {
             return true;
         }
 
-        // 获取用户权限列表
-        List<String> userPermissions = getUserPermissions(userId);
-        
-        // 检查是否拥有所有需要的权限
-        for (String permission : permissions) {
-            if (!userPermissions.contains(permission)) {
-                return false;
-            }
-        }
-        
-        return true;
+        // TODO: 如果需要更细粒度的普通用户权限控制，在这里添加
+        // 当前简化版本：普通用户没有权限（如果需要可在此扩展）
+        return false;
     }
 
+    /**
+     * 检查用户是否拥有指定角色
+     */
     @Override
     public boolean hasRole(Integer userId, String[] roles) {
         if (userId == null || roles == null || roles.length == 0) {
@@ -67,19 +75,27 @@ public class PermissionServiceImpl implements PermissionService {
             return false;
         }
 
-        // 获取用户角色列表
-        List<String> userRoles = getUserRoles(userId);
-        
-        // 检查是否拥有任一需要的角色
-        for (String role : roles) {
-            if (userRoles.contains(role)) {
-                return true;
+        // 管理员拥有所有角色
+        if (isAdmin(userId)) {
+            return true;
+        }
+
+        // 检查用户的角色是否匹配
+        String userRole = user.getRole();
+        if (userRole != null) {
+            for (String role : roles) {
+                if (role.equals(userRole)) {
+                    return true;
+                }
             }
         }
-        
+
         return false;
     }
 
+    /**
+     * 判断用户是否是管理员
+     */
     @Override
     public boolean isAdmin(Integer userId) {
         if (userId == null) {
@@ -92,10 +108,14 @@ public class PermissionServiceImpl implements PermissionService {
             return false;
         }
 
-        // 检查是否为超级管理员或管理员
-        return isSuperAdmin(userId) || hasRole(userId, new String[]{RoleEnum.ADMIN.getCode()});
+        // 根据用户的 role 字段判断是否是管理员
+        return "admin".equals(user.getRole());
     }
 
+    /**
+     * 检查用户是否有资源访问权限
+     * 管理员可以访问所有资源，普通用户需要是项目成员
+     */
     @Override
     public boolean hasResourceAccess(Integer userId, String resourceType, Integer resourceId) {
         if (userId == null || resourceType == null || resourceId == null) {
@@ -108,12 +128,12 @@ public class PermissionServiceImpl implements PermissionService {
             return false;
         }
 
-        // 超级管理员可以访问所有资源
-        if (isSuperAdmin(userId)) {
+        // 管理员可以访问所有资源
+        if (isAdmin(userId)) {
             return true;
         }
 
-        // 根据资源类型进行不同的权限检查
+        // 根据资源类型进行不同的权限检查（普通用户需要是项目成员）
         switch (resourceType.toLowerCase()) {
             case "api":
                 return hasApiAccess(userId, resourceId);
@@ -121,11 +141,16 @@ public class PermissionServiceImpl implements PermissionService {
                 return hasModuleAccess(userId, resourceId);
             case "testcase":
                 return hasTestCaseAccess(userId, resourceId);
+            case "project":
+                return isProjectMember(userId, resourceId);
             default:
                 return false;
         }
     }
 
+    /**
+     * 获取用户权限列表（简化版）
+     */
     @Override
     public List<String> getUserPermissions(Integer userId) {
         List<String> permissions = new ArrayList<>();
@@ -134,127 +159,301 @@ public class PermissionServiceImpl implements PermissionService {
             return permissions;
         }
 
-        // 获取用户角色
-        List<String> userRoles = getUserRoles(userId);
-        
-        // 根据角色分配权限
-        for (String roleCode : userRoles) {
-            RoleEnum role = RoleEnum.fromCode(roleCode);
-            if (role != null) {
-                permissions.addAll(getRolePermissions(role));
-            }
+        User user = userMapper.findById(userId);
+        if (user == null || !"active".equals(user.getStatus())) {
+            return permissions;
         }
+
+        // 管理员拥有所有权限
+        if (isAdmin(userId)) {
+            permissions.add("*"); // 表示所有权限
+        }
+        // 普通用户暂无细粒度权限（可扩展）
         
         return permissions;
     }
 
+    /**
+     * 获取用户角色列表
+     */
     @Override
     public List<String> getUserRoles(Integer userId) {
         List<String> roles = new ArrayList<>();
-        
+
         if (userId == null) {
             return roles;
         }
 
-        // 从数据库查询用户角色
-        List<UserRole> userRoles = userRoleMapper.findByUserId(userId);
-        for (UserRole userRole : userRoles) {
-            // 这里需要根据roleId查询角色信息，简化处理
-            // 临时返回test_engineer角色，实际应该根据roleId查询角色表获取角色代码
-            // 可以根据userRole.getRoleId()查询角色表获取具体的角色代码
-            roles.add("test_engineer");
+        User user = userMapper.findById(userId);
+        if (user == null || !"active".equals(user.getStatus())) {
+            return roles;
         }
-        
+
+        // 从用户的 role 字段读取角色
+        if (user.getRole() != null) {
+            roles.add(user.getRole());
+        } else {
+            roles.add("user");
+        }
+
         return roles;
     }
 
     /**
-     * 检查是否为超级管理员
-     */
-    private boolean isSuperAdmin(Integer userId) {
-        // 这里可以根据实际业务逻辑判断
-        // 比如检查用户是否有超级管理员角色，或者用户ID是否为1等
-        return userId != null && userId == 1;
-    }
-
-    /**
-     * 根据角色获取权限
-     */
-    private List<String> getRolePermissions(RoleEnum role) {
-        List<String> permissions = new ArrayList<>();
-        
-        switch (role) {
-            case SUPER_ADMIN:
-                // 超级管理员拥有所有权限
-                permissions.addAll(Arrays.asList(
-                    "user:view", "user:create", "user:update", "user:delete",
-                    "api:view", "api:create", "api:update", "api:delete",
-                    "testcase:view", "testcase:create", "testcase:update", "testcase:delete", "testcase:execute",
-                    "module:view", "module:create", "module:update", "module:delete",
-                    "system:config", "system:log", "system:monitor"
-                ));
-                break;
-            case ADMIN:
-                permissions.addAll(Arrays.asList(
-                    "user:view", "user:create", "user:update",
-                    "api:view", "api:create", "api:update",
-                    "testcase:view", "testcase:create", "testcase:update", "testcase:execute",
-                    "module:view", "module:create", "module:update"
-                ));
-                break;
-            case TEST_MANAGER:
-                permissions.addAll(Arrays.asList(
-                    "api:view",
-                    "testcase:view", "testcase:create", "testcase:update", "testcase:execute",
-                    "module:view"
-                ));
-                break;
-            case TEST_ENGINEER:
-                permissions.addAll(Arrays.asList(
-                    "api:view",
-                    "testcase:view", "testcase:create", "testcase:update", "testcase:execute"
-                ));
-                break;
-            case DEVELOPER:
-                permissions.addAll(Arrays.asList(
-                    "api:view", "api:create", "api:update",
-                    "testcase:view", "testcase:execute"
-                ));
-                break;
-            case VIEWER:
-                permissions.addAll(Arrays.asList(
-                    "api:view",
-                    "testcase:view",
-                    "module:view"
-                ));
-                break;
-        }
-        
-        return permissions;
-    }
-
-    /**
-     * 检查API访问权限
+     * 检查API访问权限：用户是否是项目成员
      */
     private boolean hasApiAccess(Integer userId, Integer apiId) {
-        // 这里可以根据实际业务逻辑实现
-        // 比如检查用户是否有该API的访问权限，或者检查用户所属部门等
-        return true; // 临时返回true，实际应该根据业务逻辑判断
+        if (userId == null || apiId == null) {
+            return false;
+        }
+
+        Api api = apiMapper.selectById(apiId);
+        if (api == null) {
+            return false;
+        }
+
+        com.victor.iatms.entity.po.Module module = moduleMapper.selectById(api.getModuleId());
+        if (module == null) {
+            return false;
+        }
+
+        return isProjectMember(userId, module.getProjectId());
     }
 
     /**
-     * 检查模块访问权限
+     * 检查模块访问权限：用户是否是项目成员
      */
     private boolean hasModuleAccess(Integer userId, Integer moduleId) {
-        // 这里可以根据实际业务逻辑实现
-        return true; // 临时返回true，实际应该根据业务逻辑判断
+        if (userId == null || moduleId == null) {
+            return false;
+        }
+
+        com.victor.iatms.entity.po.Module module = moduleMapper.selectById(moduleId);
+        if (module == null) {
+            return false;
+        }
+
+        return isProjectMember(userId, module.getProjectId());
     }
 
     /**
-     * 检查测试用例访问权限
+     * 检查测试用例访问权限：用户是否是项目成员
      */
     private boolean hasTestCaseAccess(Integer userId, Integer testCaseId) {
-        // 这里可以根据实际业务逻辑实现
-        return true; // 临时返回true，实际应该根据业务逻辑判断
+        if (userId == null || testCaseId == null) {
+            return false;
+        }
+
+        TestCase testCase = testCaseMapper.selectById(testCaseId);
+        if (testCase == null) {
+            return false;
+        }
+
+        Api api = apiMapper.selectById(testCase.getApiId());
+        if (api == null) {
+            return false;
+        }
+
+        com.victor.iatms.entity.po.Module module = moduleMapper.selectById(api.getModuleId());
+        if (module == null) {
+            return false;
+        }
+
+        return isProjectMember(userId, module.getProjectId());
+    }
+
+    /**
+     * 检查用户是否是项目成员
+     */
+    private boolean isProjectMember(Integer userId, Integer projectId) {
+        if (userId == null || projectId == null) {
+            return false;
+        }
+
+        ProjectMember member = projectMemberMapper.findByProjectAndUser(projectId, userId);
+        return member != null;
+    }
+
+    /**
+     * 检查用户是否有项目资源操作权限
+     * 逻辑：
+     * 1. admin 拥有所有项目权限
+     * 2. 普通用户需要是项目成员，且根据 project_role 判断权限
+     *
+     * 权限矩阵：
+     * | 项目角色   | project:view | project:edit | project:delete | project:manage_members |
+     * |-----------|-------------|---------------|----------------|----------------------|
+     * | owner     | ✅          | ✅            | ✅             | ✅                    |
+     * | manager   | ✅          | ✅            | ❌             | ✅                    |
+     * | developer | ✅          | ❌            | ❌             | ❌                    |
+     * | tester    | ✅          | ❌            | ❌             | ❌                    |
+     * | viewer    | ✅          | ❌            | ❌             | ❌                    |
+     *
+     * | 项目角色   | module:view | module:create | module:edit | module:delete |
+     * |-----------|-----------|---------------|-------------|---------------|
+     * | owner     | ✅        | ✅             | ✅          | ✅             |
+     * | manager   | ✅        | ✅             | ✅          | ✅             |
+     * | developer | ✅        | ✅             | ✅          | ✅             |
+     * | tester    | ✅        | ✅             | ✅          | ❌             |
+     * | viewer    | ✅        | ❌             | ❌          | ❌             |
+     *
+     * | 项目角色   | api:view | api:create | api:edit | api:delete |
+     * |-----------|---------|------------|----------|------------|
+     * | owner     | ✅      | ✅         | ✅       | ✅         |
+     * | manager   | ✅      | ✅         | ✅       | ✅         |
+     * | developer | ✅      | ✅         | ✅       | ✅         |
+     * | tester    | ✅      | ✅         | ✅       | ❌         |
+     * | viewer    | ✅      | ❌         | ❌       | ❌         |
+     *
+     * | 项目角色   | testcase:view | testcase:create | testcase:edit | testcase:delete | testcase:execute |
+     * |-----------|--------------|------------------|---------------|-----------------|------------------|
+     * | owner     | ✅           | ✅                | ✅            | ✅              | ✅               |
+     * | manager   | ✅           | ✅                | ✅            | ✅              | ✅               |
+     * | developer | ✅           | ✅                | ✅            | ✅              | ✅               |
+     * | tester    | ✅           | ✅                | ✅            | ❌              | ✅               |
+     * | viewer    | ✅           | ❌                | ❌            | ❌              | ❌               |
+     *
+     * | 项目角色   | task:view | task:create | task:edit | task:delete |
+     * |-----------|----------|-------------|-----------|-------------|
+     * | owner     | ✅       | ✅           | ✅        | ✅          |
+     * | manager   | ✅       | ✅           | ✅        | ✅          |
+     * | developer | ✅       | ✅           | ✅        | ✅          |
+     * | tester    | ✅       | ✅           | ✅        | ❌          |
+     * | viewer    | ✅       | ❌           | ❌        | ❌          |
+     */
+    @Override
+    public boolean hasProjectPermission(Integer userId, Integer projectId, String permission) {
+        if (userId == null || projectId == null || permission == null) {
+            return false;
+        }
+
+        // 检查用户是否存在且状态为active
+        User user = userMapper.findById(userId);
+        if (user == null || !"active".equals(user.getStatus())) {
+            return false;
+        }
+
+        // 管理员拥有所有项目权限
+        if (isAdmin(userId)) {
+            return true;
+        }
+
+        // 检查用户是否是项目成员
+        ProjectMember member = projectMemberMapper.findByProjectAndUser(projectId, userId);
+        if (member == null || !"active".equals(member.getStatus())) {
+            return false;
+        }
+
+        // 根据 project_role 判断权限
+        String projectRole = member.getProjectRole();
+        if (projectRole == null) {
+            projectRole = "viewer"; // 默认为查看者
+        }
+
+        return checkProjectRolePermission(projectRole, permission);
+    }
+
+    /**
+     * 根据项目角色检查权限
+     */
+    private boolean checkProjectRolePermission(String projectRole, String permission) {
+        // 所有角色都可以查看
+        if (permission.endsWith(":view")) {
+            return true;
+        }
+
+        switch (projectRole) {
+            case "owner":
+                // owner 拥有所有权限
+                return true;
+            case "manager":
+                // manager 拥有除删除项目外的所有权限
+                if ("project:delete".equals(permission)) {
+                    return false;
+                }
+                return true;
+            case "developer":
+                // developer 不能管理项目和成员
+                if (permission.startsWith("project:") && !"project:view".equals(permission)) {
+                    return false;
+                }
+                if ("project:manage_members".equals(permission)) {
+                    return false;
+                }
+                // developer 不能删除模块
+                if ("module:delete".equals(permission)) {
+                    return false;
+                }
+                return true;
+            case "tester":
+                // tester 不能删除和编辑项目
+                if (permission.startsWith("project:") && !"project:view".equals(permission)) {
+                    return false;
+                }
+                if ("project:manage_members".equals(permission)) {
+                    return false;
+                }
+                // tester 不能删除模块、接口、用例
+                if ("module:delete".equals(permission) ||
+                    "api:delete".equals(permission) ||
+                    "testcase:delete".equals(permission) ||
+                    "task:delete".equals(permission)) {
+                    return false;
+                }
+                return true;
+            case "viewer":
+                // viewer 只能查看
+                return false;
+            default:
+                return false;
+        }
+    }
+
+    /**
+     * 根据资源类型和资源ID获取项目ID
+     */
+    @Override
+    public Integer getProjectIdByResource(String resourceType, Integer resourceId) {
+        if (resourceType == null || resourceId == null) {
+            return null;
+        }
+
+        switch (resourceType.toLowerCase()) {
+            case "api":
+                Api api = apiMapper.selectById(resourceId);
+                if (api != null) {
+                    com.victor.iatms.entity.po.Module module = moduleMapper.selectById(api.getModuleId());
+                    if (module != null) {
+                        return module.getProjectId();
+                    }
+                }
+                return null;
+            case "module":
+                com.victor.iatms.entity.po.Module module = moduleMapper.selectById(resourceId);
+                if (module != null) {
+                    return module.getProjectId();
+                }
+                return null;
+            case "testcase":
+                TestCase testCase = testCaseMapper.selectById(resourceId);
+                if (testCase != null) {
+                    Api testCaseApi = apiMapper.selectById(testCase.getApiId());
+                    if (testCaseApi != null) {
+                        com.victor.iatms.entity.po.Module m = moduleMapper.selectById(testCaseApi.getModuleId());
+                        if (m != null) {
+                            return m.getProjectId();
+                        }
+                    }
+                }
+                return null;
+            case "task":
+                Task task = taskMapper.selectById(resourceId.longValue());
+                if (task != null) {
+                    return task.getProjectId();
+                }
+                return null;
+            default:
+                return null;
+        }
     }
 }

@@ -43,7 +43,6 @@ public class TestExecutionController {
     @PostMapping("/test-cases/{case_id}/execute")
     @GlobalInterceptor(
         checkLogin = true,
-        checkPermission = {"testcase:execute"},
         checkResourceAccess = true,
         resourceType = "testcase",
         resourceIdParam = "case_id"

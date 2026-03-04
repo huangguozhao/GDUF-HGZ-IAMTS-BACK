@@ -39,12 +39,12 @@ public class GlobalOperationAspect {
     public void interceptorDo(JoinPoint point) {
         // ========== 临时禁用拦截器校验（测试用） ==========
         // TODO: 正式环境请将下面的 ENABLE_INTERCEPTOR 改为 true
-        boolean ENABLE_INTERCEPTOR = false; // 设置为 false 禁用所有拦截器校验
+        boolean ENABLE_INTERCEPTOR = true; // 设置为 true 启用所有拦截器校验
         if (!ENABLE_INTERCEPTOR) {
             return;
         }
         // =============================================
-        
+
         try {
             Method method = ((MethodSignature) point.getSignature()).getMethod();
             GlobalInterceptor interceptor = method.getAnnotation(GlobalInterceptor.class);
@@ -62,10 +62,12 @@ public class GlobalOperationAspect {
             /**
              * 校验登录
              */
-            if (interceptor.checkLogin() || interceptor.checkAdmin() || 
-                interceptor.checkPermission().length > 0 || interceptor.checkRole().length > 0 ||
+            if (interceptor.checkLogin() || interceptor.checkAdmin() ||
+                interceptor.checkPermission().length > 0 ||
                 interceptor.checkResourceAccess()) {
                 userId = checkLogin(request);
+                // 将userId设置到request属性中，供controller使用
+                request.setAttribute("userId", userId);
             }
 
             /**
@@ -76,26 +78,50 @@ public class GlobalOperationAspect {
             }
 
             /**
-             * 校验权限
+             * 校验权限（简化版：admin拥有所有权限）
              */
             if (interceptor.checkPermission().length > 0 && userId != null) {
                 checkPermission(userId, interceptor.checkPermission());
             }
 
             /**
-             * 校验角色
+             * 校验项目权限（基于项目成员角色）
              */
-            if (interceptor.checkRole().length > 0 && userId != null) {
-                checkRole(userId, interceptor.checkRole());
+            if (!interceptor.checkProjectPermission().isEmpty() && userId != null) {
+                String projectPermission = interceptor.checkProjectPermission();
+                Integer projectId = getProjectIdFromRequest(point, interceptor.projectIdParam());
+
+                // 如果 projectId 为空，尝试从资源 ID 反查
+                if (projectId == null && !interceptor.resourceTypeForProjectCheck().isEmpty()) {
+                    Integer resourceId = getResourceIdFromRequest(point, interceptor.resourceIdParamForProjectCheck());
+                    if (resourceId != null) {
+                        projectId = permissionService.getProjectIdByResource(
+                            interceptor.resourceTypeForProjectCheck(), resourceId);
+                    }
+                }
+
+                // 如果还是没有 projectId，尝试使用额外的资源参数
+                if (projectId == null && !interceptor.extraResourceType().isEmpty() &&
+                    !interceptor.extraResourceIdParam().isEmpty()) {
+                    Integer extraResourceId = getResourceIdFromRequest(point, interceptor.extraResourceIdParam());
+                    if (extraResourceId != null) {
+                        projectId = permissionService.getProjectIdByResource(
+                            interceptor.extraResourceType(), extraResourceId);
+                    }
+                }
+
+                if (projectId != null) {
+                    checkProjectPermission(userId, projectId, projectPermission);
+                }
             }
 
             /**
              * 校验资源访问权限
              */
-            if (interceptor.checkResourceAccess() && userId != null) {
-                checkResourceAccess(userId, interceptor.resourceType(), 
-                    getResourceIdFromRequest(point, interceptor.resourceIdParam()));
-            }
+//            if (interceptor.checkResourceAccess() && userId != null) {
+//                checkResourceAccess(userId, interceptor.resourceType(),
+//                    getResourceIdFromRequest(point, interceptor.resourceIdParam()));
+//            }
 
         } catch (BusinessException e) {
             logger.error("全局拦截器异常", e);
@@ -148,19 +174,10 @@ public class GlobalOperationAspect {
     }
 
     /**
-     * 校验权限
+     * 校验权限（简化版：admin拥有所有权限）
      */
     private void checkPermission(Integer userId, String[] permissions) {
         if (!permissionService.hasPermission(userId, permissions)) {
-            throw new BusinessException(ResponseCodeEnum.CODE_404);
-        }
-    }
-
-    /**
-     * 校验角色
-     */
-    private void checkRole(Integer userId, String[] roles) {
-        if (!permissionService.hasRole(userId, roles)) {
             throw new BusinessException(ResponseCodeEnum.CODE_404);
         }
     }
@@ -172,6 +189,76 @@ public class GlobalOperationAspect {
         if (!permissionService.hasResourceAccess(userId, resourceType, resourceId)) {
             throw new BusinessException(ResponseCodeEnum.CODE_404);
         }
+    }
+
+    /**
+     * 校验项目权限（基于项目成员角色）
+     */
+    private void checkProjectPermission(Integer userId, Integer projectId, String permission) {
+        if (!permissionService.hasProjectPermission(userId, projectId, permission)) {
+            throw new BusinessException(ResponseCodeEnum.CODE_404);
+        }
+    }
+
+    /**
+     * 从请求参数中获取项目ID
+     * 支持的参数字段：projectId, project_id, projectId
+     */
+    private Integer getProjectIdFromRequest(JoinPoint point, String projectIdParam) {
+        if (projectIdParam == null || projectIdParam.isEmpty()) {
+            // 尝试从常见参数名中获取
+            String[] commonParams = {"projectId", "project_id", "projectId"};
+            for (String param : commonParams) {
+                Integer id = getParamValue(point, param);
+                if (id != null) {
+                    return id;
+                }
+            }
+            return null;
+        }
+
+        return getParamValue(point, projectIdParam);
+    }
+
+    /**
+     * 从请求参数中获取指定名称的参数值
+     */
+    private Integer getParamValue(JoinPoint point, String paramName) {
+        try {
+            Method method = ((MethodSignature) point.getSignature()).getMethod();
+            Parameter[] parameters = method.getParameters();
+            Object[] args = point.getArgs();
+
+            for (int i = 0; i < parameters.length; i++) {
+                Parameter parameter = parameters[i];
+                if (paramName.equals(parameter.getName())) {
+                    Object arg = args[i];
+                    if (arg instanceof Integer) {
+                        return (Integer) arg;
+                    } else if (arg instanceof String && arg != null) {
+                        try {
+                            return Integer.parseInt((String) arg);
+                        } catch (NumberFormatException e) {
+                            // 忽略
+                        }
+                    }
+                }
+            }
+
+            // 尝试从 request 中获取
+            ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+            if (attributes != null) {
+                HttpServletRequest request = attributes.getRequest();
+                String value = request.getParameter(paramName);
+                if (value != null && !value.isEmpty()) {
+                    return Integer.parseInt(value);
+                }
+            }
+        } catch (Exception e) {
+            logger.error("获取项目ID失败", e);
+        }
+
+        return null;
     }
 
     /**

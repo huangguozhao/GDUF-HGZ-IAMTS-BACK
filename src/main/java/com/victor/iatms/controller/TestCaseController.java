@@ -11,6 +11,7 @@ import com.victor.iatms.entity.dto.UpdateTestCaseDTO;
 import com.victor.iatms.entity.dto.UpdateTestCaseResponseDTO;
 import com.victor.iatms.entity.vo.ResponseVO;
 import com.victor.iatms.service.TestCaseService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -31,11 +32,18 @@ public class TestCaseController {
      * @return 创建的测试用例信息
      */
     @PostMapping
-    @GlobalInterceptor(checkLogin = true)
-    public ResponseVO<CreateTestCaseResponseDTO> createTestCase(@RequestBody CreateTestCaseDTO createTestCaseDTO) {
+    @GlobalInterceptor(
+        checkLogin = true,
+        checkProjectPermission = "testcase:create",
+        extraResourceType = "api",
+        extraResourceIdParam = "apiId"
+    )
+    public ResponseVO<CreateTestCaseResponseDTO> createTestCase(@RequestBody CreateTestCaseDTO createTestCaseDTO, HttpServletRequest request) {
         try {
-            // TODO: 从当前用户上下文获取用户ID
-            Integer currentUserId = 1; // 临时硬编码，实际应该从认证上下文获取
+            Integer currentUserId = (Integer) request.getAttribute("userId");
+            if (currentUserId == null) {
+                return ResponseVO.authError("认证失败，请重新登录");
+            }
 
             CreateTestCaseResponseDTO result = testCaseService.createTestCase(createTestCaseDTO, currentUserId);
             return ResponseVO.success("测试用例创建成功", result);
@@ -68,13 +76,21 @@ public class TestCaseController {
      * @return 修改后的测试用例信息
      */
     @PutMapping("/{caseId}")
-    @GlobalInterceptor(checkLogin = true)
+    @GlobalInterceptor(
+        checkLogin = true,
+        checkProjectPermission = "testcase:update",
+        resourceTypeForProjectCheck = "testcase",
+        resourceIdParamForProjectCheck = "caseId"
+    )
     public ResponseVO<UpdateTestCaseResponseDTO> updateTestCase(
             @PathVariable("caseId") Integer caseId,
-            @RequestBody UpdateTestCaseDTO updateTestCaseDTO) {
+            @RequestBody UpdateTestCaseDTO updateTestCaseDTO,
+            HttpServletRequest request) {
         try {
-            // TODO: 从当前用户上下文获取用户ID
-            Integer currentUserId = 1; // 临时硬编码，实际应该从认证上下文获取
+            Integer currentUserId = (Integer) request.getAttribute("userId");
+            if (currentUserId == null) {
+                return ResponseVO.authError("认证失败，请重新登录");
+            }
 
             UpdateTestCaseResponseDTO result = testCaseService.updateTestCase(caseId, updateTestCaseDTO, currentUserId);
             return ResponseVO.success("测试用例更新成功", result);
@@ -107,11 +123,18 @@ public class TestCaseController {
      * @return 删除结果
      */
     @DeleteMapping("/{caseId}")
-    @GlobalInterceptor(checkLogin = true)
-    public ResponseVO<Void> deleteTestCase(@PathVariable("caseId") Integer caseId) {
+    @GlobalInterceptor(
+        checkLogin = true,
+        checkProjectPermission = "testcase:delete",
+        resourceTypeForProjectCheck = "testcase",
+        resourceIdParamForProjectCheck = "caseId"
+    )
+    public ResponseVO<Void> deleteTestCase(@PathVariable("caseId") Integer caseId, HttpServletRequest request) {
         try {
-            // TODO: 从当前用户上下文获取用户ID
-            Integer currentUserId = 1; // 临时硬编码，实际应该从认证上下文获取
+            Integer currentUserId = (Integer) request.getAttribute("userId");
+            if (currentUserId == null) {
+                return ResponseVO.authError("认证失败，请重新登录");
+            }
 
             testCaseService.deleteTestCase(caseId, currentUserId);
             return ResponseVO.success("测试用例删除成功", null);
@@ -142,11 +165,18 @@ public class TestCaseController {
      * @return 分页的测试用例列表
      */
     @GetMapping
-    @GlobalInterceptor(checkLogin = true)
-    public ResponseVO<TestCaseListResponseDTO> getTestCaseList(TestCaseListQueryDTO queryDTO) {
+    @GlobalInterceptor(
+        checkLogin = true,
+        checkProjectPermission = "testcase:view",
+        extraResourceType = "api",
+        extraResourceIdParam = "apiId"
+    )
+    public ResponseVO<TestCaseListResponseDTO> getTestCaseList(TestCaseListQueryDTO queryDTO, HttpServletRequest request) {
         try {
-            // TODO: 从当前用户上下文获取用户ID
-            Integer currentUserId = 1; // 临时硬编码，实际应该从认证上下文获取
+            Integer currentUserId = (Integer) request.getAttribute("userId");
+            if (currentUserId == null) {
+                return ResponseVO.authError("认证失败，请重新登录");
+            }
 
             TestCaseListResponseDTO result = testCaseService.getTestCaseList(queryDTO, currentUserId);
             return ResponseVO.success("查询成功", result);
@@ -174,11 +204,18 @@ public class TestCaseController {
      * @return 测试用例详情
      */
     @GetMapping("/{caseId}")
-    @GlobalInterceptor(checkLogin = true)
-    public ResponseVO<UpdateTestCaseResponseDTO> getTestCaseDetail(@PathVariable("caseId") Integer caseId) {
+    @GlobalInterceptor(
+        checkLogin = true,
+        checkProjectPermission = "testcase:view",
+        resourceTypeForProjectCheck = "testcase",
+        resourceIdParamForProjectCheck = "caseId"
+    )
+    public ResponseVO<UpdateTestCaseResponseDTO> getTestCaseDetail(@PathVariable("caseId") Integer caseId, HttpServletRequest request) {
         try {
-            // TODO: 从当前用户上下文获取用户ID
-            Integer currentUserId = 1; // 临时硬编码，实际应该从认证上下文获取
+            Integer currentUserId = (Integer) request.getAttribute("userId");
+            if (currentUserId == null) {
+                return ResponseVO.authError("认证失败，请重新登录");
+            }
 
             UpdateTestCaseResponseDTO result = testCaseService.getTestCaseDetail(caseId, currentUserId);
             return ResponseVO.success("查询成功", result);
@@ -203,14 +240,22 @@ public class TestCaseController {
      * @return 复制后的测试用例信息
      */
     @PostMapping("/{caseId}/copy")
-    @GlobalInterceptor(checkLogin = true)
+    @GlobalInterceptor(
+        checkLogin = true,
+        checkProjectPermission = "testcase:create",
+        resourceTypeForProjectCheck = "testcase",
+        resourceIdParamForProjectCheck = "caseId"
+    )
     public ResponseVO<CopyTestCaseResponseDTO> copyTestCase(
             @PathVariable("caseId") Integer caseId,
-            @RequestBody CopyTestCaseRequestDTO requestDTO) {
+            @RequestBody CopyTestCaseRequestDTO requestDTO,
+            HttpServletRequest request) {
         try {
-            // TODO: 从当前用户上下文获取用户ID
-            Integer currentUserId = 1; // 临时硬编码，实际应该从认证上下文获取
-            
+            Integer currentUserId = (Integer) request.getAttribute("userId");
+            if (currentUserId == null) {
+                return ResponseVO.authError("认证失败，请重新登录");
+            }
+
             CopyTestCaseResponseDTO result = testCaseService.copyTestCase(caseId, requestDTO, currentUserId);
             return ResponseVO.success("测试用例复制成功", result);
             

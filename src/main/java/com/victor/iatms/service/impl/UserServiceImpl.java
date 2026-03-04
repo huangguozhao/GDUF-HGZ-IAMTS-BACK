@@ -9,7 +9,6 @@ import com.victor.iatms.exception.BusinessException;
 import com.victor.iatms.mappers.ProjectMapper;
 import com.victor.iatms.mappers.ProjectMemberMapper;
 import com.victor.iatms.mappers.UserMapper;
-import com.victor.iatms.mappers.UserRoleMapper;
 import com.victor.iatms.redis.RedisComponet;
 import com.victor.iatms.service.UserService;
 import com.victor.iatms.utils.EmailUtils;
@@ -34,9 +33,6 @@ public class UserServiceImpl implements UserService {
     
     @Autowired
     private UserMapper userMapper;
-
-    @Autowired
-    private UserRoleMapper userRoleMapper;
 
     @Autowired
     private ProjectMapper projectMapper;
@@ -168,11 +164,6 @@ public class UserServiceImpl implements UserService {
         BeanUtils.copyProperties(updateUserDTO, userToUpdate);
         userToUpdate.setUserId(userId);
         userMapper.updateUser(userToUpdate);
-
-        if (!CollectionUtils.isEmpty(updateUserDTO.getRoleIds())) {
-            userRoleMapper.deleteUserRolesByUserId(userId);
-            userRoleMapper.batchInsertUserRoles(userId, updateUserDTO.getRoleIds());
-        }
     }
 
     @Override

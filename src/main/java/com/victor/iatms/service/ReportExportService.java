@@ -12,23 +12,25 @@ public interface ReportExportService {
     
     /**
      * 导出报告为指定格式
-     * 
+     *
      * @param queryDTO 导出查询参数
+     * @param currentUserId 当前用户ID
      * @return 导出文件资源
      */
-    Resource exportReport(ReportExportQueryDTO queryDTO);
-    
+    Resource exportReport(ReportExportQueryDTO queryDTO, Integer currentUserId);
+
     /**
      * 获取报告导出数据
-     * 
+     *
      * @param reportId 报告ID
      * @param includeDetails 是否包含详细信息
      * @param includeAttachments 是否包含附件信息
      * @param includeFailureDetails 是否包含失败详情
+     * @param currentUserId 当前用户ID
      * @return 报告导出响应数据
      */
-    ReportExportResponseDTO getReportExportData(Long reportId, Boolean includeDetails, 
-                                               Boolean includeAttachments, Boolean includeFailureDetails);
+    ReportExportResponseDTO getReportExportData(Long reportId, Boolean includeDetails,
+                                               Boolean includeAttachments, Boolean includeFailureDetails, Integer currentUserId);
     
     /**
      * 验证报告是否可以导出

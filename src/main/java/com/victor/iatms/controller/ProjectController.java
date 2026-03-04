@@ -23,6 +23,7 @@ import com.victor.iatms.entity.dto.UpdateProjectResponseDTO;
 import com.victor.iatms.entity.po.Project;
 import com.victor.iatms.entity.vo.ResponseVO;
 import com.victor.iatms.service.ProjectService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -50,7 +51,11 @@ public class ProjectController {
      * @return 模块列表响应
      */
     @GetMapping("/{projectId}/modules")
-    @GlobalInterceptor(checkLogin = true)
+    @GlobalInterceptor(
+        checkLogin = true,
+        checkProjectPermission = "project:view",
+        projectIdParam = "projectId"
+    )
     public ResponseVO<ModuleListResponseDTO> getModuleList(
             @PathVariable("projectId") Integer projectId,
             @RequestParam(value = "structure", required = false) String structure,
@@ -103,7 +108,11 @@ public class ProjectController {
      * @return 分页结果
      */
     @GetMapping("/{projectId}/members")
-    @GlobalInterceptor(checkLogin = true)
+    @GlobalInterceptor(
+        checkLogin = true,
+        checkProjectPermission = "project:manage_members",
+        projectIdParam = "projectId"
+    )
     public ResponseVO<ProjectMembersPageResultDTO> getProjectMembers(
             @PathVariable("projectId") Integer projectId,
             @RequestParam(value = "status", required = false) String status,
@@ -199,7 +208,11 @@ public class ProjectController {
      * @return 项目详情
      */
     @GetMapping("/{projectId}")
-    @GlobalInterceptor(checkLogin = true)
+    @GlobalInterceptor(
+        checkLogin = true,
+        checkProjectPermission = "project:view",
+        projectIdParam = "projectId"
+    )
     public ResponseVO<Project> getProjectById(@PathVariable("projectId") Integer projectId) {
         try {
             Project project = projectService.getProjectById(projectId);
@@ -246,11 +259,15 @@ public class ProjectController {
      */
     @PostMapping
     @GlobalInterceptor(checkLogin = true)
-    public ResponseVO<AddProjectResponseDTO> addProject(@RequestBody AddProjectDTO addProjectDTO) {
+    public ResponseVO<AddProjectResponseDTO> addProject(
+            @RequestBody AddProjectDTO addProjectDTO,
+            HttpServletRequest request) {
         try {
-            // TODO: 从当前用户上下文获取用户ID
-            Integer creatorId = 1; // 临时硬编码，实际应该从认证上下文获取
-            
+            Integer creatorId = (Integer) request.getAttribute("userId");
+            if (creatorId == null) {
+                return ResponseVO.authError("认证失败，请重新登录");
+            }
+
             AddProjectResponseDTO result = projectService.addProject(addProjectDTO, creatorId);
             return ResponseVO.success("项目创建成功", result);
             
@@ -289,13 +306,21 @@ public class ProjectController {
      * @return 编辑项目响应
      */
     @PutMapping("/{projectId}")
-    @GlobalInterceptor(checkLogin = true)
-    public ResponseVO<UpdateProjectResponseDTO> editProject(@PathVariable("projectId") Integer projectId,
-                                                           @RequestBody UpdateProjectDTO updateProjectDTO) {
+    @GlobalInterceptor(
+        checkLogin = true,
+        checkProjectPermission = "project:edit",
+        projectIdParam = "projectId"
+    )
+    public ResponseVO<UpdateProjectResponseDTO> editProject(
+            @PathVariable("projectId") Integer projectId,
+            @RequestBody UpdateProjectDTO updateProjectDTO,
+            HttpServletRequest request) {
         try {
-            // TODO: 从当前用户上下文获取用户ID
-            Integer updatedBy = 1; // 临时硬编码，实际应该从认证上下文获取
-            
+            Integer updatedBy = (Integer) request.getAttribute("userId");
+            if (updatedBy == null) {
+                return ResponseVO.authError("认证失败，请重新登录");
+            }
+
             UpdateProjectResponseDTO result = projectService.editProject(projectId, updateProjectDTO, updatedBy);
             return ResponseVO.success("项目信息更新成功", result);
             
@@ -325,7 +350,11 @@ public class ProjectController {
      * @return 更新结果
      */
     @PutMapping("/{projectId}/full")
-    @GlobalInterceptor(checkLogin = true)
+    @GlobalInterceptor(
+        checkLogin = true,
+        checkProjectPermission = "project:edit",
+        projectIdParam = "projectId"
+    )
     public ResponseVO<Boolean> updateProject(@PathVariable("projectId") Integer projectId, 
                                            @RequestBody Project project) {
         try {
@@ -352,13 +381,20 @@ public class ProjectController {
      * @return 删除结果
      */
     @DeleteMapping("/{projectId}")
-    @GlobalInterceptor(checkLogin = true)
+    @GlobalInterceptor(
+        checkLogin = true,
+        checkProjectPermission = "project:delete",
+        projectIdParam = "projectId"
+    )
     public ResponseVO<ProjectDeleteResultDTO> deleteProject(@PathVariable("projectId") Integer projectId,
-                                                           @RequestParam(value = "force_delete", required = false, defaultValue = "false") Boolean forceDelete) {
+                                                           @RequestParam(value = "force_delete", required = false, defaultValue = "false") Boolean forceDelete,
+                                                           HttpServletRequest request) {
         try {
-            // TODO: 从当前用户上下文获取用户ID
-            Integer deletedBy = 1; // 临时硬编码，实际应该从认证上下文获取
-            
+            Integer deletedBy = (Integer) request.getAttribute("userId");
+            if (deletedBy == null) {
+                return ResponseVO.authError("认证失败，请重新登录");
+            }
+
             ProjectDeleteResultDTO result = projectService.safeDeleteProject(projectId, deletedBy, forceDelete);
             
             if (result.getSuccess()) {
@@ -395,7 +431,11 @@ public class ProjectController {
      * @return 关联数据检查结果
      */
     @GetMapping("/{projectId}/relations")
-    @GlobalInterceptor(checkLogin = true)
+    @GlobalInterceptor(
+        checkLogin = true,
+        checkProjectPermission = "project:view",
+        projectIdParam = "projectId"
+    )
     public ResponseVO<ProjectRelationCheckDTO> checkProjectRelations(@PathVariable("projectId") Integer projectId) {
         try {
             ProjectRelationCheckDTO result = projectService.checkProjectRelations(projectId);
@@ -415,12 +455,18 @@ public class ProjectController {
      * @return 删除结果
      */
     @DeleteMapping("/{projectId}/simple")
-    @GlobalInterceptor(checkLogin = true)
-    public ResponseVO<Boolean> simpleDeleteProject(@PathVariable("projectId") Integer projectId) {
+    @GlobalInterceptor(
+        checkLogin = true,
+        checkProjectPermission = "project:delete",
+        projectIdParam = "projectId"
+    )
+    public ResponseVO<Boolean> simpleDeleteProject(@PathVariable("projectId") Integer projectId, HttpServletRequest request) {
         try {
-            // TODO: 从当前用户上下文获取用户ID
-            Integer deletedBy = 1; // 临时硬编码，实际应该从认证上下文获取
-            
+            Integer deletedBy = (Integer) request.getAttribute("userId");
+            if (deletedBy == null) {
+                return ResponseVO.authError("认证失败，请重新登录");
+            }
+
             Boolean result = projectService.deleteProject(projectId, deletedBy);
             if (result) {
                 return ResponseVO.success("项目删除成功", true);
@@ -481,10 +527,12 @@ public class ProjectController {
      */
     @GetMapping("/recent-projects")
     @GlobalInterceptor(checkLogin = true)
-    public ResponseVO<RecentProjectsResponseDTO> getRecentProjects(RecentProjectsQueryDTO queryDTO) {
+    public ResponseVO<RecentProjectsResponseDTO> getRecentProjects(RecentProjectsQueryDTO queryDTO, HttpServletRequest request) {
         try {
-            // TODO: 从当前用户上下文获取用户ID
-            Integer currentUserId = 1; // 临时硬编码，实际应该从认证上下文获取
+            Integer currentUserId = (Integer) request.getAttribute("userId");
+            if (currentUserId == null) {
+                return ResponseVO.authError("认证失败，请重新登录");
+            }
 
             RecentProjectsResponseDTO result = projectService.getRecentProjects(queryDTO, currentUserId);
             return ResponseVO.success("查询成功", result);
@@ -513,7 +561,11 @@ public class ProjectController {
      * @return 项目统计信息
      */
     @GetMapping("/{projectId}/statistics")
-    @GlobalInterceptor(checkLogin = true)
+    @GlobalInterceptor(
+        checkLogin = true,
+        checkProjectPermission = "project:view",
+        projectIdParam = "projectId"
+    )
     public ResponseVO<com.victor.iatms.entity.dto.ProjectStatisticsDTO> getProjectStatistics(
             @PathVariable("projectId") Integer projectId) {
         try {
@@ -537,7 +589,11 @@ public class ProjectController {
      * 3.9 添加项目成员
      */
     @PostMapping("/{projectId}/members")
-    @GlobalInterceptor(checkLogin = true, checkAdmin = true)
+    @GlobalInterceptor(
+        checkLogin = true,
+        checkProjectPermission = "project:manage_members",
+        projectIdParam = "projectId"
+    )
     public ResponseVO<com.victor.iatms.entity.dto.ProjectMemberDTO> addProjectMember(@PathVariable("projectId") Integer projectId, @RequestBody AddProjectMemberDTO dto, jakarta.servlet.http.HttpServletRequest request) {
         Integer operatorId = (Integer) request.getAttribute("userId");
         com.victor.iatms.entity.dto.ProjectMemberDTO result = projectService.addProjectMember(projectId, dto, operatorId);
@@ -548,7 +604,11 @@ public class ProjectController {
      * 3.10 更新项目成员角色/权限
      */
     @PutMapping("/{projectId}/members/{userId}")
-    @GlobalInterceptor(checkLogin = true, checkAdmin = true)
+    @GlobalInterceptor(
+        checkLogin = true,
+        checkProjectPermission = "project:manage_members",
+        projectIdParam = "projectId"
+    )
     public ResponseVO<com.victor.iatms.entity.dto.ProjectMemberDTO> updateProjectMember(@PathVariable("projectId") Integer projectId, @PathVariable("userId") Integer userId, @RequestBody UpdateProjectMemberDTO dto, jakarta.servlet.http.HttpServletRequest request) {
         Integer operatorId = (Integer) request.getAttribute("userId");
         com.victor.iatms.entity.dto.ProjectMemberDTO result = projectService.updateProjectMember(projectId, userId, dto, operatorId);

@@ -18,6 +18,8 @@ import com.victor.iatms.entity.enums.TestCaseSeverityEnum;
 import com.victor.iatms.entity.po.Api;
 import com.victor.iatms.entity.po.TestCase;
 import com.victor.iatms.mappers.ApiMapper;
+import com.victor.iatms.mappers.ModuleMapper;
+import com.victor.iatms.mappers.ProjectMemberMapper;
 import com.victor.iatms.mappers.TestCaseMapper;
 import com.victor.iatms.service.TestCaseService;
 import com.victor.iatms.utils.JsonUtils;
@@ -45,6 +47,12 @@ public class TestCaseServiceImpl implements TestCaseService {
 
     @Autowired
     private ApiMapper apiMapper;
+
+    @Autowired
+    private ModuleMapper moduleMapper;
+
+    @Autowired
+    private ProjectMemberMapper projectMemberMapper;
 
     @Override
     public CreateTestCaseResponseDTO createTestCase(CreateTestCaseDTO createTestCaseDTO, Integer currentUserId) {
@@ -168,11 +176,20 @@ public class TestCaseServiceImpl implements TestCaseService {
             throw new IllegalArgumentException("接口已禁用，无法创建用例");
         }
 
-        // TODO: 权限验证 (检查用户是否有权限在目标接口下创建用例)
-        // 暂时跳过，实际需要根据项目成员权限或模块权限进行判断
-        // if (!hasPermissionToCreateTestCase(api.getModuleId(), currentUserId)) {
-        //     throw new IllegalArgumentException("权限不足，无法创建测试用例");
-        // }
+        // 权限验证：检查用户是否有权限在目标接口下创建用例
+        Integer moduleId = api.getModuleId();
+        if (moduleId != null) {
+            // 获取模块信息
+            com.victor.iatms.entity.po.Module module = moduleMapper.selectById(moduleId);
+            if (module != null && module.getProjectId() != null) {
+                // 检查用户是否为项目成员
+                com.victor.iatms.entity.po.ProjectMember member = projectMemberMapper.findByProjectAndUser(
+                    module.getProjectId(), currentUserId);
+                if (member == null) {
+                    throw new IllegalArgumentException("权限不足，非项目成员无法创建测试用例");
+                }
+            }
+        }
 
         // 验证用例编码唯一性或自动生成
         String caseCode = addTestCaseDTO.getCaseCode();
@@ -436,7 +453,7 @@ public class TestCaseServiceImpl implements TestCaseService {
         setDefaultValues(queryDTO);
 
         // 权限检查
-        if (!hasTestCaseListPermission(currentUserId)) {
+        if (!hasTestCaseListPermission(queryDTO.getProjectId(), currentUserId)) {
             throw new IllegalArgumentException("权限不足，无法查看测试用例列表");
         }
 
@@ -637,9 +654,17 @@ public class TestCaseServiceImpl implements TestCaseService {
         }
 
         // 规则2：项目成员可以管理用例
-        // TODO: 这里应该检查用户的项目成员权限
-        // 暂时返回true，实际应该查询项目成员权限
-        return true;
+        // 检查用户是否为项目成员
+        Integer moduleId = api.getModuleId();
+        if (moduleId != null) {
+            com.victor.iatms.entity.po.Module module = moduleMapper.selectById(moduleId);
+            if (module != null && module.getProjectId() != null) {
+                com.victor.iatms.entity.po.ProjectMember member = projectMemberMapper.findByProjectAndUser(
+                    module.getProjectId(), userId);
+                return member != null;
+            }
+        }
+        return false;
     }
     
     /**
@@ -652,9 +677,20 @@ public class TestCaseServiceImpl implements TestCaseService {
         }
 
         // 规则2：项目成员可以管理用例
-        // TODO: 这里应该检查用户的项目成员权限
-        // 暂时返回true，实际应该查询项目成员权限
-        return true;
+        // 检查用户是否为项目成员
+        Integer apiId = testCase.getApiId();
+        if (apiId != null) {
+            Api api = apiMapper.selectById(apiId);
+            if (api != null && api.getModuleId() != null) {
+                com.victor.iatms.entity.po.Module module = moduleMapper.selectById(api.getModuleId());
+                if (module != null && module.getProjectId() != null) {
+                    com.victor.iatms.entity.po.ProjectMember member = projectMemberMapper.findByProjectAndUser(
+                        module.getProjectId(), userId);
+                    return member != null;
+                }
+            }
+        }
+        return false;
     }
     
     /**
@@ -747,10 +783,17 @@ public class TestCaseServiceImpl implements TestCaseService {
     /**
      * 检查是否有测试用例列表查看权限
      */
-    private boolean hasTestCaseListPermission(Integer userId) {
-        // TODO: 这里应该检查用户的项目成员权限
-        // 暂时返回true，实际应该查询项目成员权限
-        return true;
+    private boolean hasTestCaseListPermission(Integer projectId, Integer userId) {
+        // 如果指定了项目ID，检查用户是否为该项目成员
+        if (projectId != null) {
+            com.victor.iatms.entity.po.ProjectMember member = projectMemberMapper.findByProjectAndUser(
+                projectId, userId);
+            return member != null;
+        }
+        // 如果没有指定项目ID，检查用户是否至少是一个项目的成员
+        // 查询用户参与的项目数量
+        Long projectCount = projectMemberMapper.countUserProjects(userId, "active", null);
+        return projectCount != null && projectCount > 0;
     }
     
     /**

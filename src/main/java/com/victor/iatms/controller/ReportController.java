@@ -11,6 +11,7 @@ import com.victor.iatms.entity.po.TestReportSummary;
 import com.victor.iatms.entity.vo.ResponseVO;
 import com.victor.iatms.service.ReportService;
 import com.victor.iatms.service.ReportExportService;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
@@ -249,10 +250,13 @@ public class ReportController {
      */
     @DeleteMapping("/batch")
     @GlobalInterceptor(checkLogin = true)
-    public ResponseVO<Integer> batchDeleteReports(@RequestBody List<Long> reportIds) {
+    public ResponseVO<Integer> batchDeleteReports(@RequestBody List<Long> reportIds, HttpServletRequest request) {
         try {
-            // TODO: 从当前用户上下文获取用户ID
-            Integer deletedBy = 1; // 临时硬编码，实际应该从JWT token中获取
+            Integer deletedBy = (Integer) request.getAttribute("userId");
+            if (deletedBy == null) {
+                return ResponseVO.authError("认证失败，请重新登录");
+            }
+
             int result = reportService.batchDeleteReports(reportIds, deletedBy);
             return ResponseVO.success("批量删除报告成功", result);
         } catch (IllegalArgumentException e) {
@@ -270,10 +274,13 @@ public class ReportController {
      */
     @DeleteMapping("/project/{projectId}")
     @GlobalInterceptor(checkLogin = true)
-    public ResponseVO<Integer> deleteReportsByProjectId(@PathVariable("projectId") Integer projectId) {
+    public ResponseVO<Integer> deleteReportsByProjectId(@PathVariable("projectId") Integer projectId, HttpServletRequest request) {
         try {
-            // TODO: 从当前用户上下文获取用户ID
-            Integer deletedBy = 1; // 临时硬编码，实际应该从JWT token中获取
+            Integer deletedBy = (Integer) request.getAttribute("userId");
+            if (deletedBy == null) {
+                return ResponseVO.authError("认证失败，请重新登录");
+            }
+
             int result = reportService.deleteReportsByProjectId(projectId, deletedBy);
             return ResponseVO.success("删除项目报告成功", result);
         } catch (IllegalArgumentException e) {
@@ -359,8 +366,12 @@ public class ReportController {
                                                  @RequestParam(value = "include_details", required = false) Boolean includeDetails,
                                                  @RequestParam(value = "include_attachments", required = false) Boolean includeAttachments,
                                                  @RequestParam(value = "include_failure_details", required = false) Boolean includeFailureDetails,
-                                                 @RequestParam(value = "timezone", required = false) String timezone) {
+                                                 @RequestParam(value = "timezone", required = false) String timezone,
+                                                 HttpServletRequest request) {
         try {
+            // 获取当前用户ID
+            Integer currentUserId = (Integer) request.getAttribute("userId");
+
             // 构建导出查询参数
             ReportExportQueryDTO queryDTO = new ReportExportQueryDTO();
             queryDTO.setReportId(reportId);
@@ -369,9 +380,9 @@ public class ReportController {
             queryDTO.setIncludeAttachments(includeAttachments != null ? includeAttachments : Constants.DEFAULT_INCLUDE_ATTACHMENTS);
             queryDTO.setIncludeFailureDetails(includeFailureDetails != null ? includeFailureDetails : Constants.DEFAULT_INCLUDE_FAILURE_DETAILS);
             queryDTO.setTimezone(timezone != null ? timezone : Constants.DEFAULT_TIMEZONE);
-            
+
             // 导出报告
-            Resource resource = reportExportService.exportReport(queryDTO);
+            Resource resource = reportExportService.exportReport(queryDTO, currentUserId);
             
             // 获取MIME类型
             ReportExportFormatEnum formatEnum = ReportExportFormatEnum.getByCode(exportFormat);
@@ -578,11 +589,14 @@ public class ReportController {
     @DeleteMapping("/{reportId}")
     @GlobalInterceptor(checkLogin = true)
     public ResponseVO<DeleteReportResponseDTO> deleteReport(@PathVariable("reportId") Long reportId,
-                                                           @RequestParam(value = "force", required = false) Boolean force) {
+                                                           @RequestParam(value = "force", required = false) Boolean force,
+                                                           HttpServletRequest request) {
         try {
-            // TODO: 从当前用户上下文获取用户ID
-            Integer currentUserId = 1; // 临时硬编码，实际应该从认证上下文获取
-            
+            Integer currentUserId = (Integer) request.getAttribute("userId");
+            if (currentUserId == null) {
+                return ResponseVO.authError("认证失败，请重新登录");
+            }
+
             // 执行删除操作
             DeleteReportResponseDTO result = reportService.deleteTestReport(reportId, force, currentUserId);
             

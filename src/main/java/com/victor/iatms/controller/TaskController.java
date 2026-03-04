@@ -5,6 +5,7 @@ import com.victor.iatms.entity.dto.PendingTaskDTO;
 import com.victor.iatms.entity.po.Task;
 import com.victor.iatms.entity.vo.ResponseVO;
 import com.victor.iatms.service.TaskService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -28,11 +29,13 @@ public class TaskController {
      */
     @GetMapping("/pending")
     @GlobalInterceptor(checkLogin = true)
-    public ResponseVO<List<PendingTaskDTO>> getUserPendingTasks() {
+    public ResponseVO<List<PendingTaskDTO>> getUserPendingTasks(HttpServletRequest request) {
         try {
-            // TODO: 从当前用户上下文获取用户ID
-            Integer currentUserId = 1; // 临时硬编码，实际应该从认证上下文获取
-            
+            Integer currentUserId = (Integer) request.getAttribute("userId");
+            if (currentUserId == null) {
+                return ResponseVO.authError("认证失败，请重新登录");
+            }
+
             List<PendingTaskDTO> tasks = taskService.getUserPendingTasks(currentUserId);
             return ResponseVO.success("获取待处理任务成功", tasks);
         } catch (Exception e) {
@@ -61,7 +64,11 @@ public class TaskController {
      * @return 任务列表
      */
     @GetMapping("/project/{projectId}")
-    @GlobalInterceptor(checkLogin = true)
+    @GlobalInterceptor(
+        checkLogin = true,
+        checkProjectPermission = "task:view",
+        projectIdParam = "projectId"
+    )
     public ResponseVO<List<Task>> getTasksByProjectId(@PathVariable("projectId") Integer projectId) {
         try {
             List<Task> tasks = taskService.getTasksByProjectId(projectId);
@@ -77,7 +84,12 @@ public class TaskController {
      * @return 任务详情
      */
     @GetMapping("/{taskId}")
-    @GlobalInterceptor(checkLogin = true)
+    @GlobalInterceptor(
+        checkLogin = true,
+        checkProjectPermission = "task:view",
+        resourceTypeForProjectCheck = "task",
+        resourceIdParamForProjectCheck = "taskId"
+    )
     public ResponseVO<Task> getTaskById(@PathVariable("taskId") Long taskId) {
         try {
             Task task = taskService.getTaskById(taskId);
@@ -96,12 +108,18 @@ public class TaskController {
      * @return 创建结果
      */
     @PostMapping
-    @GlobalInterceptor(checkLogin = true)
-    public ResponseVO<Map<String, Long>> createTask(@RequestBody Task task) {
+    @GlobalInterceptor(
+        checkLogin = true,
+        checkProjectPermission = "task:create",
+        projectIdParam = "projectId"
+    )
+    public ResponseVO<Map<String, Long>> createTask(@RequestBody Task task, HttpServletRequest request) {
         try {
-            // TODO: 从当前用户上下文获取用户ID
-            Integer currentUserId = 1; // 临时硬编码，实际应该从认证上下文获取
-            
+            Integer currentUserId = (Integer) request.getAttribute("userId");
+            if (currentUserId == null) {
+                return ResponseVO.authError("认证失败，请重新登录");
+            }
+
             Long taskId = taskService.createTask(task, currentUserId);
             
             Map<String, Long> result = new HashMap<>();
@@ -119,14 +137,22 @@ public class TaskController {
      * @return 更新结果
      */
     @PutMapping("/{taskId}")
-    @GlobalInterceptor(checkLogin = true)
+    @GlobalInterceptor(
+        checkLogin = true,
+        checkProjectPermission = "task:update",
+        resourceTypeForProjectCheck = "task",
+        resourceIdParamForProjectCheck = "taskId"
+    )
     public ResponseVO<Void> updateTask(
             @PathVariable("taskId") Long taskId,
-            @RequestBody Task task) {
+            @RequestBody Task task,
+            HttpServletRequest request) {
         try {
-            // TODO: 从当前用户上下文获取用户ID
-            Integer currentUserId = 1; // 临时硬编码，实际应该从认证上下文获取
-            
+            Integer currentUserId = (Integer) request.getAttribute("userId");
+            if (currentUserId == null) {
+                return ResponseVO.authError("认证失败，请重新登录");
+            }
+
             task.setTaskId(taskId);
             boolean success = taskService.updateTask(task, currentUserId);
             
@@ -146,7 +172,12 @@ public class TaskController {
      * @return 删除结果
      */
     @DeleteMapping("/{taskId}")
-    @GlobalInterceptor(checkLogin = true)
+    @GlobalInterceptor(
+        checkLogin = true,
+        checkProjectPermission = "task:delete",
+        resourceTypeForProjectCheck = "task",
+        resourceIdParamForProjectCheck = "taskId"
+    )
     public ResponseVO<Void> deleteTask(@PathVariable("taskId") Long taskId) {
         try {
             boolean success = taskService.deleteTask(taskId);
@@ -168,7 +199,12 @@ public class TaskController {
      * @return 更新结果
      */
     @PatchMapping("/{taskId}/status")
-    @GlobalInterceptor(checkLogin = true)
+    @GlobalInterceptor(
+        checkLogin = true,
+        checkProjectPermission = "task:update",
+        resourceTypeForProjectCheck = "task",
+        resourceIdParamForProjectCheck = "taskId"
+    )
     public ResponseVO<Void> updateTaskStatus(
             @PathVariable("taskId") Long taskId,
             @RequestParam("status") String status) {
@@ -192,7 +228,12 @@ public class TaskController {
      * @return 更新结果
      */
     @PatchMapping("/{taskId}/progress")
-    @GlobalInterceptor(checkLogin = true)
+    @GlobalInterceptor(
+        checkLogin = true,
+        checkProjectPermission = "task:update",
+        resourceTypeForProjectCheck = "task",
+        resourceIdParamForProjectCheck = "taskId"
+    )
     public ResponseVO<Void> updateTaskProgress(
             @PathVariable("taskId") Long taskId,
             @RequestParam("progress") Integer progress) {
@@ -218,16 +259,23 @@ public class TaskController {
      * @return 创建结果
      */
     @PostMapping("/from-failure")
-    @GlobalInterceptor(checkLogin = true)
+    @GlobalInterceptor(
+        checkLogin = true,
+        checkProjectPermission = "task:create",
+        projectIdParam = "projectId"
+    )
     public ResponseVO<Map<String, Long>> createTaskFromFailure(
             @RequestParam("executionId") Long executionId,
             @RequestParam(value = "failureMessage", required = false) String failureMessage,
             @RequestParam(value = "projectId", required = false) Integer projectId,
-            @RequestParam(value = "projectName", required = false) String projectName) {
+            @RequestParam(value = "projectName", required = false) String projectName,
+            HttpServletRequest request) {
         try {
-            // TODO: 从当前用户上下文获取用户ID
-            Integer currentUserId = 1; // 临时硬编码
-            
+            Integer currentUserId = (Integer) request.getAttribute("userId");
+            if (currentUserId == null) {
+                return ResponseVO.authError("认证失败，请重新登录");
+            }
+
             Long taskId = taskService.createTaskFromFailure(
                     executionId, 
                     failureMessage, 

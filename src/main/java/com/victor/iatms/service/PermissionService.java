@@ -52,4 +52,21 @@ public interface PermissionService {
      * @return 角色列表
      */
     List<String> getUserRoles(Integer userId);
+
+    /**
+     * 检查用户是否有项目资源操作权限
+     * @param userId 用户ID
+     * @param projectId 项目ID
+     * @param permission 项目操作权限（如 project:view, api:create, testcase:execute 等）
+     * @return 是否有权限
+     */
+    boolean hasProjectPermission(Integer userId, Integer projectId, String permission);
+
+    /**
+     * 根据资源类型和资源ID获取项目ID
+     * @param resourceType 资源类型（api, module, testcase, task）
+     * @param resourceId 资源ID
+     * @return 项目ID，如果找不到返回null
+     */
+    Integer getProjectIdByResource(String resourceType, Integer resourceId);
 }

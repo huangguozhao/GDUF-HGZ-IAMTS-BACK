@@ -9,6 +9,7 @@ import com.victor.iatms.entity.dto.UpdateModuleDTO;
 import com.victor.iatms.entity.dto.UpdateModuleResponseDTO;
 import com.victor.iatms.entity.vo.ResponseVO;
 import com.victor.iatms.service.ModuleService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -31,12 +32,20 @@ public class ModuleController {
      * @return 创建结果
      */
     @PostMapping
-    @GlobalInterceptor(checkLogin = true)
-    public ResponseVO<CreateModuleResponseDTO> createModule(@RequestBody CreateModuleDTO createModuleDTO) {
+    @GlobalInterceptor(
+        checkLogin = true,
+        checkProjectPermission = "module:create",
+        projectIdParam = "projectId"
+    )
+    public ResponseVO<CreateModuleResponseDTO> createModule(
+            @RequestBody CreateModuleDTO createModuleDTO,
+            HttpServletRequest request) {
         try {
-            // TODO: 从当前用户上下文获取用户ID
-            Integer creatorId = 1; // 临时硬编码，实际应该从认证上下文获取
-            
+            Integer creatorId = (Integer) request.getAttribute("userId");
+            if (creatorId == null) {
+                return ResponseVO.authError("认证失败，请重新登录");
+            }
+
             CreateModuleResponseDTO result = moduleService.createModule(createModuleDTO, creatorId);
             return ResponseVO.success("模块创建成功", result);
             
@@ -65,12 +74,19 @@ public class ModuleController {
      * @return 删除结果
      */
     @DeleteMapping("/{moduleId}")
-    @GlobalInterceptor(checkLogin = true)
-    public ResponseVO<Void> deleteModule(@PathVariable("moduleId") Integer moduleId) {
+    @GlobalInterceptor(
+        checkLogin = true,
+        checkProjectPermission = "module:delete",
+        resourceTypeForProjectCheck = "module",
+        resourceIdParamForProjectCheck = "moduleId"
+    )
+    public ResponseVO<Void> deleteModule(@PathVariable("moduleId") Integer moduleId, HttpServletRequest request) {
         try {
-            // TODO: 从当前用户上下文获取用户ID
-            Integer deletedBy = 1; // 临时硬编码，实际应该从认证上下文获取
-            
+            Integer deletedBy = (Integer) request.getAttribute("userId");
+            if (deletedBy == null) {
+                return ResponseVO.authError("认证失败，请重新登录");
+            }
+
             moduleService.deleteModule(moduleId, deletedBy);
             return ResponseVO.success("模块删除成功", null);
             
@@ -102,14 +118,22 @@ public class ModuleController {
      * @return 修改结果
      */
     @PutMapping("/{moduleId}")
-    @GlobalInterceptor(checkLogin = true)
+    @GlobalInterceptor(
+        checkLogin = true,
+        checkProjectPermission = "module:update",
+        resourceTypeForProjectCheck = "module",
+        resourceIdParamForProjectCheck = "moduleId"
+    )
     public ResponseVO<UpdateModuleResponseDTO> updateModule(
             @PathVariable("moduleId") Integer moduleId,
-            @RequestBody UpdateModuleDTO updateModuleDTO) {
+            @RequestBody UpdateModuleDTO updateModuleDTO,
+            HttpServletRequest request) {
         try {
-            // TODO: 从当前用户上下文获取用户ID
-            Integer updatedBy = 1; // 临时硬编码，实际应该从认证上下文获取
-            
+            Integer updatedBy = (Integer) request.getAttribute("userId");
+            if (updatedBy == null) {
+                return ResponseVO.authError("认证失败，请重新登录");
+            }
+
             UpdateModuleResponseDTO result = moduleService.updateModule(moduleId, updateModuleDTO, updatedBy);
             return ResponseVO.success("模块信息更新成功", result);
             
@@ -153,7 +177,12 @@ public class ModuleController {
      * @return 接口列表
      */
     @GetMapping("/{moduleId}/apis")
-    @GlobalInterceptor(checkLogin = true)
+    @GlobalInterceptor(
+        checkLogin = true,
+        checkProjectPermission = "module:view",
+        resourceTypeForProjectCheck = "module",
+        resourceIdParamForProjectCheck = "moduleId"
+    )
     public ResponseVO<ApiListResponseDTO> getApiList(
             @PathVariable("moduleId") Integer moduleId,
             @RequestParam(value = "method", required = false) String method,
@@ -166,8 +195,14 @@ public class ModuleController {
             @RequestParam(value = "sort_by", required = false) String sortBy,
             @RequestParam(value = "sort_order", required = false) String sortOrder,
             @RequestParam(value = "page", required = false) Integer page,
-            @RequestParam(value = "page_size", required = false) Integer pageSize) {
+            @RequestParam(value = "page_size", required = false) Integer pageSize,
+            HttpServletRequest request) {
         try {
+            Integer userId = (Integer) request.getAttribute("userId");
+            if (userId == null) {
+                return ResponseVO.authError("认证失败，请重新登录");
+            }
+
             ApiListQueryDTO queryDTO = new ApiListQueryDTO();
             queryDTO.setModuleId(moduleId);
             queryDTO.setMethod(method);
@@ -182,7 +217,7 @@ public class ModuleController {
             queryDTO.setPage(page);
             queryDTO.setPageSize(pageSize);
 
-            ApiListResponseDTO result = moduleService.getApiList(queryDTO);
+            ApiListResponseDTO result = moduleService.getApiList(queryDTO, userId);
             return ResponseVO.success("查询接口列表成功", result);
 
         } catch (IllegalArgumentException e) {
@@ -205,7 +240,12 @@ public class ModuleController {
      * @return 模块统计信息
      */
     @GetMapping("/{moduleId}/statistics")
-    @GlobalInterceptor(checkLogin = true)
+    @GlobalInterceptor(
+        checkLogin = true,
+        checkProjectPermission = "module:view",
+        resourceTypeForProjectCheck = "module",
+        resourceIdParamForProjectCheck = "moduleId"
+    )
     public ResponseVO<com.victor.iatms.entity.dto.ModuleStatisticsDTO> getModuleStatistics(
             @PathVariable("moduleId") Integer moduleId) {
         try {

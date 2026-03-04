@@ -1,5 +1,6 @@
 package com.victor.iatms.utils;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 
 import java.util.ArrayList;
@@ -8,6 +9,7 @@ import java.util.List;
 /**
  * 对象复制工具类
  */
+@Slf4j
 public class CopyTools {
     public static <T, S> List<T> copyList(List<S> sList, Class<T> classz) {
         List<T> list = new ArrayList<T>();
@@ -16,7 +18,7 @@ public class CopyTools {
             try {
                 t = classz.newInstance();
             } catch (Exception e) {
-                e.printStackTrace();
+                log.error("Failed to create instance: {}", e.getMessage(), e);
             }
             BeanUtils.copyProperties(s, t);
             list.add(t);

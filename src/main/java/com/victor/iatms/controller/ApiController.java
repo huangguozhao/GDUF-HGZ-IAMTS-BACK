@@ -4,6 +4,7 @@ import com.victor.iatms.annotation.GlobalInterceptor;
 import com.victor.iatms.entity.dto.*;
 import com.victor.iatms.entity.vo.ResponseVO;
 import com.victor.iatms.service.ApiService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -21,16 +22,23 @@ public class ApiController {
 
     /**
      * 创建接口
-     * 
+     *
      * @param createDTO 创建接口请求DTO
      * @return 创建后的接口信息
      */
     @PostMapping
-    @GlobalInterceptor(checkLogin = true, checkPermission = {"api:create"})
-    public ResponseVO<ApiDTO> createApi(@RequestBody CreateApiDTO createDTO) {
+    @GlobalInterceptor(
+        checkLogin = true,
+        checkProjectPermission = "api:create",
+        extraResourceType = "module",
+        extraResourceIdParam = "moduleId"
+    )
+    public ResponseVO<ApiDTO> createApi(@RequestBody CreateApiDTO createDTO, HttpServletRequest request) {
         try {
-            // TODO: 从当前用户上下文获取用户ID
-            Integer currentUserId = 1; // 临时硬编码，实际应该从认证上下文获取
+            Integer currentUserId = (Integer) request.getAttribute("userId");
+            if (currentUserId == null) {
+                return ResponseVO.authError("认证失败，请重新登录");
+            }
 
             ApiDTO result = apiService.createApi(createDTO, currentUserId);
             return ResponseVO.success("创建接口成功", result);
@@ -53,19 +61,27 @@ public class ApiController {
 
     /**
      * 更新接口
-     * 
+     *
      * @param apiId 接口ID
      * @param updateDTO 更新接口请求DTO
      * @return 更新后的接口信息
      */
     @PutMapping("/{apiId}")
-    @GlobalInterceptor(checkLogin = true, checkPermission = {"api:update"})
+    @GlobalInterceptor(
+        checkLogin = true,
+        checkProjectPermission = "api:update",
+        resourceTypeForProjectCheck = "api",
+        resourceIdParamForProjectCheck = "apiId"
+    )
     public ResponseVO<ApiDTO> updateApi(
             @PathVariable("apiId") Integer apiId,
-            @RequestBody UpdateApiDTO updateDTO) {
+            @RequestBody UpdateApiDTO updateDTO,
+            HttpServletRequest request) {
         try {
-            // TODO: 从当前用户上下文获取用户ID
-            Integer currentUserId = 1; // 临时硬编码
+            Integer currentUserId = (Integer) request.getAttribute("userId");
+            if (currentUserId == null) {
+                return ResponseVO.authError("认证失败，请重新登录");
+            }
 
             ApiDTO result = apiService.updateApi(apiId, updateDTO, currentUserId);
             return ResponseVO.success("更新接口成功", result);
@@ -89,16 +105,23 @@ public class ApiController {
 
     /**
      * 根据ID查询接口
-     * 
+     *
      * @param apiId 接口ID
      * @return 接口信息
      */
     @GetMapping("/{apiId}")
-    @GlobalInterceptor(checkLogin = true, checkPermission = {"api:view"})
-    public ResponseVO<ApiDTO> getApiById(@PathVariable("apiId") Integer apiId) {
+    @GlobalInterceptor(
+        checkLogin = true,
+        checkProjectPermission = "api:view",
+        resourceTypeForProjectCheck = "api",
+        resourceIdParamForProjectCheck = "apiId"
+    )
+    public ResponseVO<ApiDTO> getApiById(@PathVariable("apiId") Integer apiId, HttpServletRequest request) {
         try {
-            // TODO: 从当前用户上下文获取用户ID
-            Integer currentUserId = 1; // 临时硬编码
+            Integer currentUserId = (Integer) request.getAttribute("userId");
+            if (currentUserId == null) {
+                return ResponseVO.authError("认证失败，请重新登录");
+            }
 
             ApiDTO result = apiService.getApiById(apiId, currentUserId);
             return ResponseVO.success("查询成功", result);
@@ -118,16 +141,23 @@ public class ApiController {
 
     /**
      * 分页查询接口列表
-     * 
+     *
      * @param queryDTO 查询参数
      * @return 接口列表
      */
     @GetMapping
-    @GlobalInterceptor(checkLogin = true, checkPermission = {"api:view"})
-    public ResponseVO<ApiListResponseDTO> getApiList(ApiListQueryDTO queryDTO) {
+    @GlobalInterceptor(
+        checkLogin = true,
+        checkProjectPermission = "api:view",
+        extraResourceType = "module",
+        extraResourceIdParam = "moduleId"
+    )
+    public ResponseVO<ApiListResponseDTO> getApiList(ApiListQueryDTO queryDTO, HttpServletRequest request) {
         try {
-            // TODO: 从当前用户上下文获取用户ID
-            Integer currentUserId = 1; // 临时硬编码
+            Integer currentUserId = (Integer) request.getAttribute("userId");
+            if (currentUserId == null) {
+                return ResponseVO.authError("认证失败，请重新登录");
+            }
 
             ApiListResponseDTO result = apiService.getApiList(queryDTO, currentUserId);
             return ResponseVO.success("查询成功", result);
@@ -150,11 +180,18 @@ public class ApiController {
      * @return 删除结果
      */
     @DeleteMapping("/{apiId}")
-    @GlobalInterceptor(checkLogin = true, checkPermission = {"api:delete"})
-    public ResponseVO<Void> deleteApi(@PathVariable("apiId") Integer apiId) {
+    @GlobalInterceptor(
+        checkLogin = true,
+        checkProjectPermission = "api:delete",
+        resourceTypeForProjectCheck = "api",
+        resourceIdParamForProjectCheck = "apiId"
+    )
+    public ResponseVO<Void> deleteApi(@PathVariable("apiId") Integer apiId, HttpServletRequest request) {
         try {
-            // TODO: 从当前用户上下文获取用户ID
-            Integer currentUserId = 1; // 临时硬编码
+            Integer currentUserId = (Integer) request.getAttribute("userId");
+            if (currentUserId == null) {
+                return ResponseVO.authError("认证失败，请重新登录");
+            }
 
             apiService.deleteApi(apiId, currentUserId);
             return ResponseVO.success("接口删除成功", null);

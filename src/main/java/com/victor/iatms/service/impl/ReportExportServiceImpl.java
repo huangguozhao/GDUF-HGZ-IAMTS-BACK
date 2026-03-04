@@ -38,24 +38,25 @@ public class ReportExportServiceImpl implements ReportExportService {
     private final ObjectMapper objectMapper = new ObjectMapper();
     
     @Override
-    public Resource exportReport(ReportExportQueryDTO queryDTO) {
+    public Resource exportReport(ReportExportQueryDTO queryDTO, Integer currentUserId) {
         // 参数校验
         validateExportQuery(queryDTO);
-        
+
         // 验证报告是否可以导出
         validateReportForExport(queryDTO.getReportId());
-        
+
         // 获取导出数据
         ReportExportResponseDTO exportData = getReportExportData(
             queryDTO.getReportId(),
             queryDTO.getIncludeDetails(),
             queryDTO.getIncludeAttachments(),
-            queryDTO.getIncludeFailureDetails()
+            queryDTO.getIncludeFailureDetails(),
+            currentUserId
         );
-        
+
         // 根据格式生成文件
         byte[] fileContent = generateFileContent(exportData, queryDTO.getExportFormat());
-        
+
         // 创建资源
         String fileName = generateExportFileName(queryDTO.getReportId(), queryDTO.getExportFormat());
         return new ByteArrayResource(fileContent) {
@@ -67,8 +68,8 @@ public class ReportExportServiceImpl implements ReportExportService {
     }
     
     @Override
-    public ReportExportResponseDTO getReportExportData(Long reportId, Boolean includeDetails, 
-                                                      Boolean includeAttachments, Boolean includeFailureDetails) {
+    public ReportExportResponseDTO getReportExportData(Long reportId, Boolean includeDetails,
+                                                      Boolean includeAttachments, Boolean includeFailureDetails, Integer currentUserId) {
         // 获取报告基本信息
         ReportExportResponseDTO.ReportSummaryInfoDTO reportSummary = reportMapper.selectReportExportData(reportId);
         if (reportSummary == null) {
@@ -89,34 +90,29 @@ public class ReportExportServiceImpl implements ReportExportService {
                     .filter(r -> "failed".equalsIgnoreCase(r.getStatus()) || "broken".equalsIgnoreCase(r.getStatus()))
                     .count();
                 long withFailureInfo = testResults.stream()
-                    .filter(r -> ("failed".equalsIgnoreCase(r.getStatus()) || "broken".equalsIgnoreCase(r.getStatus())) 
+                    .filter(r -> ("failed".equalsIgnoreCase(r.getStatus()) || "broken".equalsIgnoreCase(r.getStatus()))
                                  && r.getFailureMessage() != null)
                     .count();
-                System.out.println("=== 报告导出调试信息 ===");
-                System.out.println("总测试结果数: " + testResults.size());
-                System.out.println("失败/异常用例数: " + failedCount);
-                System.out.println("包含失败信息的用例数: " + withFailureInfo);
-                System.out.println("includeFailureDetails: " + includeFailureDetails);
-                
+                log.debug("=== 报告导出调试信息 ===");
+                log.debug("总测试结果数: {}, 失败/异常用例数: {}, 包含失败信息的用例数: {}, includeFailureDetails: {}",
+                    testResults.size(), failedCount, withFailureInfo, includeFailureDetails);
+
                 // 打印第一个失败用例的详情
                 testResults.stream()
                     .filter(r -> "failed".equalsIgnoreCase(r.getStatus()) || "broken".equalsIgnoreCase(r.getStatus()))
                     .findFirst()
                     .ifPresent(r -> {
-                        System.out.println("第一个失败用例:");
-                        System.out.println("  - 用例名称: " + r.getCaseName());
-                        System.out.println("  - 失败消息: " + r.getFailureMessage());
-                        System.out.println("  - 失败类型: " + r.getFailureType());
-                        System.out.println("  - 堆栈跟踪长度: " + (r.getFailureTrace() != null ? r.getFailureTrace().length() : 0));
+                        log.debug("第一个失败用例: 用例名称: {}, 失败消息: {}, 失败类型: {}, 堆栈跟踪长度: {}",
+                            r.getCaseName(), r.getFailureMessage(), r.getFailureType(),
+                            r.getFailureTrace() != null ? r.getFailureTrace().length() : 0);
                     });
-                System.out.println("=======================");
             }
         }
         
         // 构建导出元数据
         ReportExportResponseDTO.ExportMetadataDTO exportMetadata = new ReportExportResponseDTO.ExportMetadataDTO();
         exportMetadata.setExportedAt(LocalDateTime.now());
-        exportMetadata.setExportedBy(1); // TODO: 从当前用户上下文获取
+        exportMetadata.setExportedBy(currentUserId != null ? currentUserId : 1);
         exportMetadata.setIncludeDetails(includeDetails);
         exportMetadata.setIncludeAttachments(includeAttachments);
         

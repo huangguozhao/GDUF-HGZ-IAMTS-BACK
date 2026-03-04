@@ -84,7 +84,7 @@ public class RedisUtils<V> {
             }
             return true;
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("设置Redis key过期时间失败: key={}, time={}", key, time, e);
             return false;
         }
     }
@@ -102,7 +102,7 @@ public class RedisUtils<V> {
             }
             return true;
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Redis列表推送失败: key={}", key, e);
             return false;
         }
     }
@@ -112,7 +112,7 @@ public class RedisUtils<V> {
             Long remove = redisTemplate.opsForList().remove(key, 1, value);
             return remove;
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Redis列表移除元素失败: key={}, value={}", key, value, e);
             return 0;
         }
     }
@@ -125,7 +125,7 @@ public class RedisUtils<V> {
             }
             return true;
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Redis批量推送失败: key={}, values.size={}", key, values != null ? values.size() : 0, e);
             return false;
         }
     }

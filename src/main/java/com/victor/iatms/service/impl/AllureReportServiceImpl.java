@@ -292,12 +292,14 @@ public class AllureReportServiceImpl implements AllureReportService {
     
     /**
      * 构建HTTP请求
+     * 注意：此方法用于生成Allure报告中的示例请求信息，不是真实API调用
      */
     private AllureReportDTO.HttpRequest buildHttpRequest(ReportExportResponseDTO.TestCaseResultDTO caseResult) {
         AllureReportDTO.HttpRequest request = new AllureReportDTO.HttpRequest();
         request.setMethod("POST");
         request.setUrl("/api/v1/test/" + caseResult.getCaseId());
-        request.setHeaders("{\n  \"Content-Type\": \"application/json\",\n  \"Authorization\": \"Bearer token\"\n}");
+        // 使用占位符，实际使用时应从测试执行记录中获取真实的请求头信息
+        request.setHeaders("{\n  \"Content-Type\": \"application/json\",\n  \"Authorization\": \"Bearer ${token}\"\n}");
         request.setBody("{\n  \"caseId\": " + caseResult.getCaseId() + ",\n  \"testData\": \"sample\"\n}");
         return request;
     }

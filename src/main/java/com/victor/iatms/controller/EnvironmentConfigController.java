@@ -7,6 +7,7 @@ import com.victor.iatms.entity.dto.UpdateEnvironmentConfigDTO;
 import com.victor.iatms.entity.query.EnvironmentConfigQuery;
 import com.victor.iatms.entity.vo.ResponseVO;
 import com.victor.iatms.service.EnvironmentConfigService;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -27,11 +28,14 @@ public class EnvironmentConfigController {
      */
     @PostMapping
     public ResponseVO<EnvironmentConfigDTO> createEnvironmentConfig(
-            @RequestBody CreateEnvironmentConfigDTO createDTO) {
+            @RequestBody CreateEnvironmentConfigDTO createDTO,
+            HttpServletRequest request) {
         try {
-            // TODO: 从当前登录用户上下文获取用户ID
-            Integer creatorId = 1; // 临时使用固定值
-            
+            Integer creatorId = (Integer) request.getAttribute("userId");
+            if (creatorId == null) {
+                return ResponseVO.authError("认证失败，请重新登录");
+            }
+
             EnvironmentConfigDTO result = environmentConfigService.createEnvironmentConfig(createDTO, creatorId);
             return ResponseVO.success("创建环境配置成功", result);
         } catch (IllegalArgumentException e) {
@@ -66,11 +70,14 @@ public class EnvironmentConfigController {
     @PutMapping("/{envId}")
     public ResponseVO<EnvironmentConfigDTO> updateEnvironmentConfig(
             @PathVariable Integer envId,
-            @RequestBody UpdateEnvironmentConfigDTO updateDTO) {
+            @RequestBody UpdateEnvironmentConfigDTO updateDTO,
+            HttpServletRequest request) {
         try {
-            // TODO: 从当前登录用户上下文获取用户ID
-            Integer updaterId = 1; // 临时使用固定值
-            
+            Integer updaterId = (Integer) request.getAttribute("userId");
+            if (updaterId == null) {
+                return ResponseVO.authError("认证失败，请重新登录");
+            }
+
             EnvironmentConfigDTO result = environmentConfigService.updateEnvironmentConfig(envId, updateDTO, updaterId);
             return ResponseVO.success("更新环境配置成功", result);
         } catch (IllegalArgumentException e) {
@@ -86,11 +93,15 @@ public class EnvironmentConfigController {
      * 删除环境配置
      */
     @DeleteMapping("/{envId}")
-    public ResponseVO<Void> deleteEnvironmentConfig(@PathVariable Integer envId) {
+    public ResponseVO<Void> deleteEnvironmentConfig(
+            @PathVariable Integer envId,
+            HttpServletRequest request) {
         try {
-            // TODO: 从当前登录用户上下文获取用户ID
-            Integer deleterId = 1; // 临时使用固定值
-            
+            Integer deleterId = (Integer) request.getAttribute("userId");
+            if (deleterId == null) {
+                return ResponseVO.authError("认证失败，请重新登录");
+            }
+
             environmentConfigService.deleteEnvironmentConfig(envId, deleterId);
             return ResponseVO.success("删除环境配置成功", null);
         } catch (IllegalArgumentException e) {

@@ -16,6 +16,11 @@ public class Role {
     private Integer roleId;
 
     /**
+     * 角色代码，用于权限映射（如：super_admin, admin, test_engineer）
+     */
+    private String roleCode;
+
+    /**
      * 角色名称
      */
     private String roleName;

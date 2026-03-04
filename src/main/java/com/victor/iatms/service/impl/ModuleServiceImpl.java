@@ -13,6 +13,7 @@ import com.victor.iatms.entity.po.Project;
 import com.victor.iatms.entity.po.User;
 import com.victor.iatms.mappers.ModuleMapper;
 import com.victor.iatms.mappers.ProjectMapper;
+import com.victor.iatms.mappers.ProjectMemberMapper;
 import com.victor.iatms.mappers.TestExecutionMapper;
 import com.victor.iatms.mappers.UserMapper;
 import com.victor.iatms.service.ModuleService;
@@ -43,7 +44,10 @@ public class ModuleServiceImpl implements ModuleService {
     
     @Autowired
     private UserMapper userMapper;
-    
+
+    @Autowired
+    private ProjectMemberMapper projectMemberMapper;
+
     @Autowired
     private TestExecutionMapper testExecutionMapper;
     
@@ -274,23 +278,23 @@ public class ModuleServiceImpl implements ModuleService {
     }
     
     @Override
-    public ApiListResponseDTO getApiList(ApiListQueryDTO queryDTO) {
+    public ApiListResponseDTO getApiList(ApiListQueryDTO queryDTO, Integer userId) {
         // 参数校验
         validateApiListQuery(queryDTO);
-        
+
         // 检查模块是否存在
         Module module = moduleMapper.selectById(queryDTO.getModuleId());
         if (module == null) {
             throw new IllegalArgumentException("模块不存在");
         }
-        
+
         // 检查模块是否已被删除
         if (module.getIsDeleted()) {
             throw new IllegalArgumentException("模块已被删除");
         }
-        
+
         // 检查权限（需要模块访问权限）
-        if (!hasModuleAccessPermission(module, 1)) { // TODO: 从当前用户上下文获取用户ID
+        if (!hasModuleAccessPermission(module, userId)) {
             throw new IllegalArgumentException("权限不足，无法查看接口列表");
         }
         
@@ -395,11 +399,15 @@ public class ModuleServiceImpl implements ModuleService {
         if (module.getCreatedBy().equals(userId)) {
             return true;
         }
-        
+
         // 规则2：项目成员可以访问模块
-        // TODO: 这里应该检查用户的项目成员权限
-        // 暂时返回true，实际应该查询项目成员权限
-        return true;
+        // 检查用户是否为项目成员
+        if (module.getProjectId() != null) {
+            com.victor.iatms.entity.po.ProjectMember member = projectMemberMapper.findByProjectAndUser(
+                module.getProjectId(), userId);
+            return member != null;
+        }
+        return false;
     }
     
     /**
@@ -533,10 +541,13 @@ public class ModuleServiceImpl implements ModuleService {
         if (module.getCreatedBy().equals(updatedBy)) {
             return true;
         }
-        
+
         // 规则2：管理员可以编辑任何模块
-        // TODO: 这里应该检查用户的管理员权限
-        // 暂时返回false，实际应该查询用户权限
+        // 检查用户是否为系统管理员
+        User user = userMapper.selectUserById(updatedBy);
+        if (user != null && "admin".equals(user.getRole())) {
+            return true;
+        }
         return false;
     }
     
@@ -569,10 +580,13 @@ public class ModuleServiceImpl implements ModuleService {
         if (module.getCreatedBy().equals(deletedBy)) {
             return true;
         }
-        
+
         // 规则2：管理员可以删除任何模块
-        // TODO: 这里应该检查用户的管理员权限
-        // 暂时返回false，实际应该查询用户权限
+        // 检查用户是否为系统管理员
+        User user = userMapper.selectUserById(deletedBy);
+        if (user != null && "admin".equals(user.getRole())) {
+            return true;
+        }
         return false;
     }
     

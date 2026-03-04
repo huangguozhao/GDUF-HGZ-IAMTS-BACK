@@ -16,6 +16,7 @@
         <result column="position" property="position"/>
         <result column="description" property="description"/>
         <result column="status" property="status"/>
+        <result column="role" property="role"/>
         <result column="created_at" property="createdAt"/>
         <result column="updated_at" property="updatedAt"/>
         <result column="is_deleted" property="isDeleted"/>
@@ -25,7 +26,7 @@
     
     <sql id="Base_Column_List">
         user_id, name, email, avatar_url, phone, password, department_id, employee_id, creator_id,
-        last_login_time, position, description, status, created_at, updated_at, is_deleted, deleted_at, deleted_by
+        last_login_time, position, description, status, role, created_at, updated_at, is_deleted, deleted_at, deleted_by
     </sql>
 
     <sql id="Query_Conditions">

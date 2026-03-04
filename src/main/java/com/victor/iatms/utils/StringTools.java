@@ -1,6 +1,7 @@
 package com.victor.iatms.utils;
 
 import com.victor.iatms.exception.BusinessException;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.codec.digest.DigestUtils;
 import java.lang.reflect.Field;
@@ -9,6 +10,7 @@ import java.lang.reflect.Method;
 /**
  * 字符串工具类
  */
+@Slf4j
 public class StringTools {
 
     public static void checkParam(Object param) {
@@ -31,7 +33,7 @@ public class StringTools {
         } catch (BusinessException e) {
             throw e;
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("校验参数是否为空失败", e);
             throw new BusinessException("校验参数是否为空失败");
         }
     }

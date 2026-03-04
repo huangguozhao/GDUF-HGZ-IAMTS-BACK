@@ -7,6 +7,7 @@ import java.util.Date;
 @Data
 public class RoleListItemDTO {
     private Integer roleId;
+    private String roleCode;
     private String roleName;
     private String description;
     private Boolean isSuperAdmin;

@@ -74,6 +74,11 @@ public class User {
     private String status;
     
     /**
+     * 用户角色：admin-管理员，user-普通用户
+     */
+    private String role;
+    
+    /**
      * 账户创建时间
      */
     private LocalDateTime createdAt;

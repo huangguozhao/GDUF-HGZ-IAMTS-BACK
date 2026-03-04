@@ -1,5 +1,6 @@
 package com.victor.iatms.utils;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.Cell;
 
 import java.text.ParseException;
@@ -13,6 +14,7 @@ import java.util.Map;
 /**
  * 日期工具类
  */
+@Slf4j
 public class DateUtil {
 
     private static final Object lockObj = new Object();
@@ -46,7 +48,7 @@ public class DateUtil {
         try {
             return getSdf(pattern).parse(dateStr);
         } catch (ParseException e) {
-            e.printStackTrace();
+            log.error("日期解析失败: dateStr={}, pattern={}", dateStr, pattern, e);
         }
         return new Date();
     }

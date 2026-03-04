@@ -39,9 +39,10 @@ public interface ModuleService {
     /**
      * 获取接口列表
      * @param queryDTO 查询条件
+     * @param userId 当前用户ID
      * @return 接口列表
      */
-    ApiListResponseDTO getApiList(ApiListQueryDTO queryDTO);
+    ApiListResponseDTO getApiList(ApiListQueryDTO queryDTO, Integer userId);
     
     /**
      * 获取模块统计数据
