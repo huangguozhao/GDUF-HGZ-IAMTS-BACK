@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.victor.iatms.mappers.TestExecutionMapper">
 
@@ -736,7 +736,7 @@
         SELECT 
             suite_id,
             suite_code,
-            name,
+            suite_name as name,
             description,
             status,
             project_id,
@@ -1908,5 +1908,27 @@
           AND ref_id = #{moduleId}
           AND is_deleted = 0
           AND is_deleted = 0
+    </select>
+
+    <!-- 查询用例所属的范围信息（接口、模块、项目） -->
+    <select id="findTestCaseScopeInfo" resultType="java.util.Map">
+        SELECT 
+            tc.case_id as caseId,
+            tc.name as caseName,
+            a.api_id as apiId,
+            a.name as apiName,
+            m.module_id as moduleId,
+            m.name as moduleName,
+            p.project_id as projectId,
+            p.name as projectName
+        FROM TestCases tc
+        LEFT JOIN Apis a ON tc.api_id = a.api_id AND a.is_deleted = FALSE
+        LEFT JOIN Modules m ON a.module_id = m.module_id AND m.is_deleted = FALSE
+        LEFT JOIN Projects p ON m.project_id = p.project_id AND p.is_deleted = FALSE
+        WHERE tc.case_id IN
+        <foreach collection="caseIds" item="caseId" open="(" separator="," close=")">
+            #{caseId}
+        </foreach>
+        AND tc.is_deleted = FALSE
     </select>
 </mapper>

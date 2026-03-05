@@ -40,6 +40,7 @@ public class ApiExecutionResultDTO {
     private List<CaseResult> caseResults; // 用例执行结果列表
     private Map<String, Object> summary; // 汇总统计信息
     private Long reportId;
+    private String reportName;
     private String detailUrl;
 
     // 执行信息（新增）

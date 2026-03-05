@@ -343,6 +343,51 @@ public class TestExecutionServiceImpl implements TestExecutionService {
     }
 
     /**
+     * 验证并规范化 severity 值
+     * 数据库只允许: blocker, critical, high, normal, minor, trivial
+     */
+    private String normalizeSeverity(String severity) {
+        if (severity == null || severity.isEmpty()) {
+            return "normal";
+        }
+        String lowerSeverity = severity.toLowerCase();
+        if (lowerSeverity.matches("blocker|critical|high|normal|minor|trivial")) {
+            return lowerSeverity;
+        }
+        // 尝试映射常见值
+        return switch (lowerSeverity) {
+            case "p0", "urgent", "highest" -> "blocker";
+            case "p1", "high" -> "critical";
+            case "p2", "medium" -> "high";
+            case "p3", "low" -> "minor";
+            case "lowest" -> "trivial";
+            default -> "normal";
+        };
+    }
+
+    /**
+     * 验证并规范化 priority 值
+     * 数据库只允许: P0, P1, P2, P3
+     */
+    private String normalizePriority(String priority) {
+        if (priority == null || priority.isEmpty()) {
+            return "P2";
+        }
+        String upperPriority = priority.toUpperCase();
+        if (upperPriority.matches("P[0-3]")) {
+            return upperPriority;
+        }
+        // 尝试映射常见值
+        return switch (upperPriority) {
+            case "HIGHEST", "URGENT", "CRITICAL" -> "P0";
+            case "HIGH" -> "P1";
+            case "MEDIUM", "NORMAL" -> "P2";
+            case "LOW", "LOWEST" -> "P3";
+            default -> "P2";
+        };
+    }
+
+    /**
      * 构建测试结果
      */
     private TestCaseResult buildTestCaseResult(TestCaseExecutionDTO executionDTO, Long executionId, Long executionRecordId, Integer userId) {
@@ -361,8 +406,8 @@ public class TestExecutionServiceImpl implements TestExecutionService {
         result.setFailureType(executionDTO.getFailureType());
         result.setErrorCode(executionDTO.getErrorCode());
         result.setEnvironment(executionDTO.getEnvironment());
-        result.setSeverity(executionDTO.getSeverity());
-        result.setPriority(executionDTO.getPriority());
+        result.setSeverity(normalizeSeverity(executionDTO.getSeverity()));
+        result.setPriority(normalizePriority(executionDTO.getPriority()));
         result.setRetryCount(executionDTO.getRetryCount());
         result.setFlaky(executionDTO.getFlaky());
         result.setCreatedAt(LocalDateTime.now());
@@ -409,7 +454,10 @@ public class TestExecutionServiceImpl implements TestExecutionService {
      */
     private TestReportSummary buildTestReportSummary(TestCaseResult testCaseResult, Integer userId) {
         TestReportSummary summary = new TestReportSummary();
-        summary.setReportName("接口测试报告 - " + (testCaseResult.getFullName() != null ? testCaseResult.getFullName() : "测试用例"));
+        String reportName = testCaseResult.getFullName() != null ? 
+            testCaseResult.getFullName() + "_" + formatTimestamp(LocalDateTime.now()) : 
+            "测试用例报告_" + formatTimestamp(LocalDateTime.now());
+        summary.setReportName(reportName);
         summary.setReportType(ReportTypeEnum.EXECUTION.getCode());
         summary.setExecutionId(testCaseResult.getExecutionId());
         summary.setProjectId(1); // 这里应该从用例关联的项目获取
@@ -459,6 +507,14 @@ public class TestExecutionServiceImpl implements TestExecutionService {
         result.setFailureTrace(executionDTO.getFailureTrace());
         result.setLogsLink("/api/test-results/" + executionId + "/logs");
         result.setReportId(reportId);
+        
+        // 查询报告名称
+        if (reportId != null) {
+            TestReportSummary reportSummary = testExecutionMapper.findTestReportSummaryById(reportId);
+            if (reportSummary != null) {
+                result.setReportName(reportSummary.getReportName());
+            }
+        }
 
         // 添加接口信息
         if (executionDTO.getApiInfo() != null) {
@@ -586,6 +642,292 @@ public class TestExecutionServiceImpl implements TestExecutionService {
         }
 
         return result;
+    }
+
+    // ========== 批量用例执行相关方法 ==========
+
+    @Override
+    public ModuleExecutionResultDTO executeTestCases(List<Integer> caseIds, String environment, String baseUrl, Integer userId) {
+        log.info("执行多个测试用例: caseIds={}, environment={}, userId={}", caseIds, environment, userId);
+        
+        LocalDateTime startTime = LocalDateTime.now();
+        
+        // 创建批量执行的执行记录
+        Integer firstCaseId = caseIds.isEmpty() ? 0 : caseIds.get(0);
+        TestExecutionRecord executionRecord = createExecutionRecord("test_suite", firstCaseId, 
+                "批量用例执行 (" + caseIds.size() + "个用例)", userId, "scheduled", environment);
+        executionRecord.setTotalCases(caseIds.size());
+        testExecutionRecordMapper.insertExecutionRecord(executionRecord);
+        
+        int passed = 0, failed = 0, skipped = 0;
+        List<Long> executionIds = new ArrayList<>();
+        
+        for (Integer caseId : caseIds) {
+            try {
+                TestCaseExecutionDTO testCase = testExecutionMapper.findTestCaseForExecution(caseId);
+                if (testCase == null) {
+                    log.warn("测试用例不存在: caseId={}", caseId);
+                    skipped++;
+                    continue;
+                }
+                
+                // 直接调用内部执行方法，不生成单独的报告
+                ExecutionResultDTO result = executeTestCaseInternal(caseId, environment, baseUrl, userId, executionRecord.getRecordId());
+                
+                if (result.getExecutionId() != null) {
+                    executionIds.add(result.getExecutionId());
+                }
+                
+                if ("passed".equals(result.getStatus()) || "success".equals(result.getStatus())) {
+                    passed++;
+                } else if ("skipped".equals(result.getStatus())) {
+                    skipped++;
+                } else {
+                    failed++;
+                }
+            } catch (Exception e) {
+                log.error("执行测试用例失败: caseId={}", caseId, e);
+                failed++;
+            }
+        }
+        
+        // 更新执行记录统计
+        executionRecord.setPassedCases(passed);
+        executionRecord.setFailedCases(failed);
+        executionRecord.setSkippedCases(skipped);
+        BigDecimal successRate = caseIds.size() > 0 ? 
+            BigDecimal.valueOf(passed * 100.0 / caseIds.size()) : BigDecimal.ZERO;
+        executionRecord.setSuccessRate(successRate);
+        executionRecord.setStatus(failed > 0 ? "failed" : "success");
+        testExecutionRecordMapper.updateExecutionRecord(executionRecord);
+        
+        // 生成汇总报告
+        Long summaryReportId = generateBatchTestReport(executionRecord.getRecordId(), executionIds, userId, caseIds.size(), passed, failed, skipped, environment, caseIds);
+        
+        ModuleExecutionResultDTO resultDTO = new ModuleExecutionResultDTO();
+        resultDTO.setExecutionId(executionRecord.getRecordId());
+        resultDTO.setModuleId(null);
+        resultDTO.setModuleName("批量用例执行");
+        resultDTO.setTotalCases(caseIds.size());
+        resultDTO.setPassed(passed);
+        resultDTO.setFailed(failed);
+        resultDTO.setSkipped(skipped);
+        resultDTO.setSuccessRate(successRate.doubleValue());
+        resultDTO.setStartTime(String.valueOf(startTime));
+        resultDTO.setEndTime(String.valueOf(LocalDateTime.now()));
+        resultDTO.setStatus(failed > 0 ? "failed" : "success");
+        
+        log.info("批量用例执行完成: total={}, passed={}, failed={}, skipped={}", 
+                caseIds.size(), passed, failed, skipped);
+        
+        return resultDTO;
+    }
+    
+    /**
+     * 内部方法：执行单个测试用例，不生成独立报告（用于批量执行）
+     */
+    private ExecutionResultDTO executeTestCaseInternal(Integer caseId, String environment, String baseUrl, Integer userId, Long batchExecutionRecordId) {
+        TestExecutionRecord executionRecord = null;
+        try {
+            // 1. 查询用例执行信息
+            TestCaseExecutionDTO executionDTO = testExecutionMapper.findTestCaseForExecution(caseId);
+            if (executionDTO == null) {
+                throw new RuntimeException("测试用例不存在或未启用");
+            }
+
+            // 2. 创建执行记录
+            executionRecord = createExecutionRecord("test_case", caseId, executionDTO.getName(), 
+                userId, "scheduled", environment);
+            testExecutionRecordMapper.insertExecutionRecord(executionRecord);
+
+            // 3. 设置执行参数
+            ExecuteTestCaseDTO executeDTO = new ExecuteTestCaseDTO();
+            executeDTO.setEnvironment(environment);
+            executeDTO.setBaseUrl(baseUrl);
+            setExecutionParameters(executionDTO, executeDTO);
+
+            // 4. 执行测试用例
+            TestCaseExecutionDTO result = testCaseExecutor.executeTestCase(executionDTO);
+
+            // 5. 生成执行ID
+            Long executionId = generateExecutionId();
+
+            // 6. 保存测试结果（关联批量执行记录ID）
+            TestCaseResult testCaseResult = buildTestCaseResult(result, executionId, batchExecutionRecordId, userId);
+            testExecutionMapper.insertTestCaseResult(testCaseResult);
+
+            // 7. 更新执行记录为完成（不生成报告）
+            updateExecutionRecordOnCompletion(executionRecord, result, null);
+            testExecutionRecordMapper.updateExecutionRecord(executionRecord);
+
+            // 8. 构建返回结果
+            return buildExecutionResult(result, executionId, null, executionRecord);
+
+        } catch (Exception e) {
+            log.error("执行测试用例失败: {}", e.getMessage(), e);
+            // 更新执行记录为失败
+            if (executionRecord != null) {
+                updateExecutionRecordOnFailure(executionRecord, e.getMessage());
+                testExecutionRecordMapper.updateExecutionRecord(executionRecord);
+            }
+            
+            // 构建失败的执行结果
+            ExecutionResultDTO failureResult = new ExecutionResultDTO();
+            failureResult.setExecutionId(generateExecutionId());
+            failureResult.setCaseId(caseId);
+            failureResult.setCaseName("测试用例-" + caseId);
+            failureResult.setStatus(ExecutionStatusEnum.FAILED.getCode());
+            failureResult.setFailureMessage("执行失败: " + e.getMessage());
+            failureResult.setFailureType("EXECUTION_ERROR");
+            failureResult.setStartTime(LocalDateTime.now());
+            failureResult.setEndTime(LocalDateTime.now());
+            failureResult.setDuration(0L);
+            failureResult.setAssertionsPassed(0);
+            failureResult.setAssertionsFailed(1);
+            failureResult.setExecutionScope("test_case");
+            failureResult.setEnvironment(environment);
+            
+            return failureResult;
+        }
+    }
+    
+    /**
+     * 生成批量执行的汇总报告
+     */
+    private Long generateBatchTestReport(Long executionRecordId, List<Long> executionIds, Integer userId, 
+            int totalCases, int passed, int failed, int skipped, String environment, List<Integer> caseIds) {
+        try {
+            LocalDateTime now = LocalDateTime.now();
+            BigDecimal successRate = totalCases > 0 ? 
+                BigDecimal.valueOf(passed * 100.0 / totalCases) : BigDecimal.ZERO;
+            
+            String reportName = generateSmartReportName(caseIds, now);
+            
+            TestReportSummary reportSummary = new TestReportSummary();
+            reportSummary.setReportName(reportName);
+            reportSummary.setReportType(ReportTypeEnum.EXECUTION.getCode());
+            reportSummary.setExecutionId(executionRecordId);
+            reportSummary.setProjectId(1);
+            reportSummary.setEnvironment(environment != null ? environment : "test");
+            reportSummary.setStartTime(now);
+            reportSummary.setEndTime(now);
+            reportSummary.setDuration(0L);
+            reportSummary.setTotalCases(totalCases);
+            reportSummary.setExecutedCases(totalCases);
+            reportSummary.setPassedCases(passed);
+            reportSummary.setFailedCases(failed);
+            reportSummary.setBrokenCases(0);
+            reportSummary.setSkippedCases(skipped);
+            reportSummary.setSuccessRate(successRate);
+            reportSummary.setTotalDuration(0L);
+            reportSummary.setAvgDuration(0L);
+            reportSummary.setMaxDuration(0L);
+            reportSummary.setMinDuration(0L);
+            reportSummary.setReportStatus(failed > 0 ? "failed" : "completed");
+            reportSummary.setFileFormat("html");
+            reportSummary.setGeneratedBy(userId);
+            reportSummary.setCreatedAt(now);
+            reportSummary.setUpdatedAt(now);
+            reportSummary.setIsDeleted(false);
+            
+            testExecutionMapper.insertTestReportSummary(reportSummary);
+            
+            // 更新所有相关测试结果的报告ID
+            for (Long execId : executionIds) {
+                TestCaseResult testCaseResult = testExecutionMapper.findTestCaseResultByExecutionId(execId);
+                if (testCaseResult != null) {
+                    testCaseResult.setReportId(reportSummary.getReportId());
+                    testCaseResult.setExecutionRecordId(executionRecordId);
+                    testExecutionMapper.updateTestCaseResult(testCaseResult);
+                }
+            }
+            
+            log.info("生成批量测试报告: reportId={}, reportName={}, totalCases={}, passed={}, failed={}", 
+                    reportSummary.getReportId(), reportName, totalCases, passed, failed);
+            
+            return reportSummary.getReportId();
+        } catch (Exception e) {
+            log.error("生成批量测试报告失败: {}", e.getMessage(), e);
+            return null;
+        }
+    }
+
+    /**
+     * 智能生成报告名称
+     * 规则：
+     * 1. 单个测试用例 -> 用例名称 + 时间戳
+     * 2. 同一接口下的多个用例 -> 接口名称 + 时间戳
+     * 3. 同一模块下的多个用例 -> 模块名称 + 时间戳
+     * 4. 同一项目下的多个用例 -> 项目名称 + 时间戳
+     * 5. 跨项目的用例 -> "批量测试报告" + 时间戳
+     */
+    private String generateSmartReportName(List<Integer> caseIds, LocalDateTime time) {
+        if (caseIds == null || caseIds.isEmpty()) {
+            return "测试报告_" + formatTimestamp(time);
+        }
+        
+        if (caseIds.size() == 1) {
+            TestCaseExecutionDTO testCase = testExecutionMapper.findTestCaseForExecution(caseIds.get(0));
+            if (testCase != null && testCase.getName() != null) {
+                return testCase.getName() + "_" + formatTimestamp(time);
+            }
+            return "测试用例报告_" + formatTimestamp(time);
+        }
+        
+        List<Map<String, Object>> scopeInfoList = testExecutionMapper.findTestCaseScopeInfo(caseIds);
+        if (scopeInfoList == null || scopeInfoList.isEmpty()) {
+            return "批量测试报告_" + formatTimestamp(time);
+        }
+        
+        Set<Integer> apiIds = new HashSet<>();
+        Set<Integer> moduleIds = new HashSet<>();
+        Set<Integer> projectIds = new HashSet<>();
+        String apiName = null;
+        String moduleName = null;
+        String projectName = null;
+        
+        for (Map<String, Object> info : scopeInfoList) {
+            Object apiId = info.get("apiId");
+            Object moduleId = info.get("moduleId");
+            Object projectId = info.get("projectId");
+            
+            if (apiId != null) {
+                apiIds.add(((Number) apiId).intValue());
+                if (apiName == null && info.get("apiName") != null) {
+                    apiName = (String) info.get("apiName");
+                }
+            }
+            if (moduleId != null) {
+                moduleIds.add(((Number) moduleId).intValue());
+                if (moduleName == null && info.get("moduleName") != null) {
+                    moduleName = (String) info.get("moduleName");
+                }
+            }
+            if (projectId != null) {
+                projectIds.add(((Number) projectId).intValue());
+                if (projectName == null && info.get("projectName") != null) {
+                    projectName = (String) info.get("projectName");
+                }
+            }
+        }
+        
+        if (apiIds.size() == 1 && apiName != null) {
+            return apiName + "_" + formatTimestamp(time);
+        }
+        
+        if (moduleIds.size() == 1 && moduleName != null) {
+            return moduleName + "_" + formatTimestamp(time);
+        }
+        
+        if (projectIds.size() == 1 && projectName != null) {
+            return projectName + "_" + formatTimestamp(time);
+        }
+        
+        return "批量测试报告_" + formatTimestamp(time);
+    }
+    
+    private String formatTimestamp(LocalDateTime time) {
+        return time.format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
     }
 
     // ========== 模块执行相关方法 ==========
@@ -938,7 +1280,8 @@ public class TestExecutionServiceImpl implements TestExecutionService {
      */
     private Long createModuleTestReportSummary(Module module, int totalCases, Integer userId) {
         TestReportSummary reportSummary = new TestReportSummary();
-        reportSummary.setReportName("模块测试报告 - " + module.getName());
+        String reportName = module.getName() + "_" + formatTimestamp(LocalDateTime.now());
+        reportSummary.setReportName(reportName);
         reportSummary.setReportType(ReportTypeEnum.EXECUTION.getCode());
         reportSummary.setProjectId(module.getProjectId());
         reportSummary.setEnvironment("test");
@@ -975,8 +1318,8 @@ public class TestExecutionServiceImpl implements TestExecutionService {
         testCaseResult.setStartTime(LocalDateTime.now());
         testCaseResult.setEndTime(LocalDateTime.now());
         testCaseResult.setEnvironment("test");
-        testCaseResult.setSeverity(testCase.getSeverity());
-        testCaseResult.setPriority(testCase.getPriority());
+        testCaseResult.setSeverity(normalizeSeverity(testCase.getSeverity()));
+        testCaseResult.setPriority(normalizePriority(testCase.getPriority()));
         
         // 设置新增字段
         testCaseResult.setCaseId(testCase.getCaseId());
@@ -1391,7 +1734,8 @@ public class TestExecutionServiceImpl implements TestExecutionService {
      */
     private Long createProjectTestReportSummary(Project project, int totalCases, Integer userId) {
         TestReportSummary reportSummary = new TestReportSummary();
-        reportSummary.setReportName("项目测试报告 - " + project.getName());
+        String reportName = project.getName() + "_" + formatTimestamp(LocalDateTime.now());
+        reportSummary.setReportName(reportName);
         reportSummary.setReportType(ReportTypeEnum.EXECUTION.getCode());
         reportSummary.setProjectId(project.getProjectId());
         reportSummary.setEnvironment("test");
@@ -1725,6 +2069,13 @@ public class TestExecutionServiceImpl implements TestExecutionService {
         // 2. 创建测试报告汇总
         Long reportId = createApiTestReportSummary(api, testCases.size(), userId);
         
+        // 获取报告名称
+        String reportName = null;
+        TestReportSummary reportSummary = testExecutionMapper.findTestReportSummaryById(reportId);
+        if (reportSummary != null) {
+            reportName = reportSummary.getReportName();
+        }
+        
         int passed = 0, failed = 0, skipped = 0, broken = 0;
         List<ApiExecutionResultDTO.CaseResult> caseResults = new ArrayList<>();
         
@@ -1872,6 +2223,7 @@ public class TestExecutionServiceImpl implements TestExecutionService {
         result.setCaseResults(caseResults);
         result.setSummary(summary);
         result.setReportId(reportId);
+        result.setReportName(reportName);
         result.setDetailUrl("/api/test-results/" + executionRecordId + "/details");
         
         // 添加执行信息（新增）
@@ -1988,7 +2340,8 @@ public class TestExecutionServiceImpl implements TestExecutionService {
      */
     private Long createApiTestReportSummary(Api api, int totalCases, Integer userId) {
         TestReportSummary reportSummary = new TestReportSummary();
-        reportSummary.setReportName("接口测试报告 - " + api.getName());
+        String reportName = api.getName() + "_" + formatTimestamp(LocalDateTime.now());
+        reportSummary.setReportName(reportName);
         reportSummary.setReportType(ReportTypeEnum.EXECUTION.getCode());
         reportSummary.setExecutionId(System.currentTimeMillis()); // 使用时间戳作为执行ID
         reportSummary.setProjectId(1); // 设置默认项目ID，避免null值
@@ -2509,7 +2862,8 @@ public class TestExecutionServiceImpl implements TestExecutionService {
      */
     private Long createSuiteTestReportSummary(TestSuite testSuite, int totalCases, Integer userId) {
         TestReportSummary reportSummary = new TestReportSummary();
-        reportSummary.setReportName("测试套件报告 - " + testSuite.getName());
+        String reportName = testSuite.getName() + "_" + formatTimestamp(LocalDateTime.now());
+        reportSummary.setReportName(reportName);
         reportSummary.setReportType(ReportTypeEnum.EXECUTION.getCode());
         reportSummary.setProjectId(testSuite.getProjectId());
         reportSummary.setEnvironment("test");

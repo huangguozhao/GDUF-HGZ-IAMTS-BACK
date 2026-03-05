@@ -1,6 +1,7 @@
 package com.victor.iatms.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.victor.iatms.entity.dto.*;
 import com.victor.iatms.entity.po.ScheduledTaskExecution;
 import com.victor.iatms.entity.po.ScheduledTestTask;
@@ -9,6 +10,7 @@ import com.victor.iatms.mappers.ScheduledTaskExecutionMapper;
 import com.victor.iatms.mappers.ScheduledTaskMapper;
 import com.victor.iatms.quartz.ScheduledTestTaskJob;
 import com.victor.iatms.service.ScheduledTaskService;
+import com.victor.iatms.service.TestExecutionService;
 import lombok.extern.slf4j.Slf4j;
 import org.quartz.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,6 +39,11 @@ public class ScheduledTaskServiceImpl implements ScheduledTaskService {
 
     @Autowired
     private Scheduler scheduler;
+    
+    @Autowired
+    private TestExecutionService testExecutionService;
+    
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     private Scheduler getScheduler() {
         return scheduler;
@@ -47,6 +54,16 @@ public class ScheduledTaskServiceImpl implements ScheduledTaskService {
     @Override
     @Transactional
     public ScheduledTaskDTO createScheduledTask(CreateScheduledTaskDTO dto, Integer userId) {
+        // 将 caseIds 列表转换为 JSON 字符串
+        String caseIdsJson = null;
+        if (dto.getCaseIds() != null && !dto.getCaseIds().isEmpty()) {
+            try {
+                caseIdsJson = objectMapper.writeValueAsString(dto.getCaseIds());
+            } catch (Exception e) {
+                log.warn("caseIds序列化失败: {}", e.getMessage());
+            }
+        }
+        
         // 创建任务实体
         ScheduledTestTask task = ScheduledTestTask.builder()
                 .taskName(dto.getTaskName())
@@ -54,6 +71,7 @@ public class ScheduledTaskServiceImpl implements ScheduledTaskService {
                 .taskType(dto.getTaskType())
                 .targetId(dto.getTargetId())
                 .targetName(dto.getTargetName())
+                .caseIds(caseIdsJson)
                 .triggerType(dto.getTriggerType())
                 .cronExpression(dto.getCronExpression())
                 .simpleRepeatInterval(dto.getSimpleRepeatInterval())
@@ -347,6 +365,9 @@ public class ScheduledTaskServiceImpl implements ScheduledTaskService {
         scheduledTaskExecutionMapper.updateById(execution);
         scheduledTaskMapper.updateById(task);
         
+        // 更新下次触发时间
+        updateNextTriggerTime(taskId);
+        
         // 发送通知
         sendNotification(task, execution);
         
@@ -354,16 +375,186 @@ public class ScheduledTaskServiceImpl implements ScheduledTaskService {
     }
 
     private void executeTest(ScheduledTestTask task, ScheduledTaskExecution execution) {
-        // 这里需要调用实际的测试执行服务
         log.info("执行定时测试任务: taskId={}, taskType={}, targetId={}", 
                 task.getTaskId(), task.getTaskType(), task.getTargetId());
         
-        // 模拟执行结果
-        execution.setTotalCases(10);
-        execution.setPassedCases(9);
-        execution.setFailedCases(1);
-        execution.setSkippedCases(0);
-        execution.setSuccessRate(new BigDecimal("90.00"));
+        try {
+            String taskType = task.getTaskType();
+            Integer targetId = task.getTargetId() != null ? task.getTargetId().intValue() : null;
+            Integer userId = task.getCreatedBy();
+            String environment = task.getExecutionEnvironment();
+            String baseUrl = task.getBaseUrl();
+            
+            // 解析 caseIds
+            List<Integer> caseIds = null;
+            if (task.getCaseIds() != null && !task.getCaseIds().isEmpty()) {
+                try {
+                    caseIds = objectMapper.readValue(task.getCaseIds(), 
+                            objectMapper.getTypeFactory().constructCollectionType(List.class, Integer.class));
+                } catch (Exception e) {
+                    log.warn("caseIds解析失败: {}", e.getMessage());
+                }
+            }
+            
+            Object result = null;
+            
+            // 如果有 caseIds，直接执行这些用例
+            if (caseIds != null && !caseIds.isEmpty()) {
+                log.info("执行定时任务用例列表: taskId={}, caseCount={}", task.getTaskId(), caseIds.size());
+                result = testExecutionService.executeTestCases(caseIds, environment, baseUrl, userId);
+            } else {
+                // 原有逻辑：根据任务类型执行
+                if (targetId == null) {
+                    throw new RuntimeException("任务目标ID不能为空");
+                }
+                
+                switch (taskType) {
+                    case "test_case", "single_case" -> {
+                        ExecuteTestCaseDTO dto = new ExecuteTestCaseDTO();
+                        dto.setEnvironment(environment);
+                        dto.setBaseUrl(baseUrl);
+                        dto.setAsync(false);
+                        result = testExecutionService.executeTestCase(targetId, dto, userId);
+                    }
+                    case "api" -> {
+                        ExecuteApiDTO dto = new ExecuteApiDTO();
+                        dto.setEnvironment(environment);
+                        dto.setBaseUrl(baseUrl);
+                        dto.setAsync(false);
+                        result = testExecutionService.executeApi(targetId, dto, userId);
+                    }
+                    case "module" -> {
+                        ExecuteModuleDTO dto = new ExecuteModuleDTO();
+                        dto.setEnvironment(environment);
+                        dto.setBaseUrl(baseUrl);
+                        dto.setAsync(false);
+                        result = testExecutionService.executeModule(targetId, dto, userId);
+                    }
+                    case "project" -> {
+                        ExecuteProjectDTO dto = new ExecuteProjectDTO();
+                        dto.setEnvironment(environment);
+                        dto.setBaseUrl(baseUrl);
+                        dto.setAsync(false);
+                        result = testExecutionService.executeProject(targetId, dto, userId);
+                    }
+                    case "test_suite", "suite" -> {
+                        ExecuteTestSuiteDTO dto = new ExecuteTestSuiteDTO();
+                        dto.setEnvironment(environment);
+                        dto.setBaseUrl(baseUrl);
+                        dto.setAsync(false);
+                        result = testExecutionService.executeTestSuite(targetId, dto, userId);
+                    }
+                    default -> throw new RuntimeException("不支持的任务类型: " + taskType);
+                }
+            }
+            
+            if (result != null) {
+                extractExecutionResults(result, execution);
+                
+                // 只有单个用例执行时才生成报告，批量执行时每个用例已经生成了报告
+                if (caseIds == null || caseIds.isEmpty()) {
+                    Long executionId = getExecutionId(result);
+                    if (executionId != null) {
+                        execution.setTestExecutionRecordId(executionId);
+                        
+                        Long reportId = testExecutionService.generateTestReport(executionId, userId);
+                        log.info("定时任务生成测试报告: taskId={}, executionId={}, reportId={}", 
+                                task.getTaskId(), executionId, reportId);
+                    }
+                }
+            }
+            
+            log.info("定时测试任务执行完成: taskId={}, totalCases={}, passed={}, failed={}", 
+                    task.getTaskId(), execution.getTotalCases(), execution.getPassedCases(), execution.getFailedCases());
+            
+        } catch (Exception e) {
+            log.error("执行定时测试任务失败: taskId={}", task.getTaskId(), e);
+            throw new RuntimeException("执行测试失败: " + e.getMessage(), e);
+        }
+    }
+    
+    private void extractExecutionResults(Object result, ScheduledTaskExecution execution) {
+        if (result instanceof ExecutionResultDTO caseResult) {
+            // 单个测试用例执行结果
+            execution.setTotalCases(1);
+            if ("passed".equals(caseResult.getStatus()) || "success".equals(caseResult.getStatus())) {
+                execution.setPassedCases(1);
+                execution.setFailedCases(0);
+                execution.setSkippedCases(0);
+                execution.setSuccessRate(BigDecimal.valueOf(100));
+            } else if ("skipped".equals(caseResult.getStatus())) {
+                execution.setPassedCases(0);
+                execution.setFailedCases(0);
+                execution.setSkippedCases(1);
+                execution.setSuccessRate(BigDecimal.ZERO);
+            } else {
+                execution.setPassedCases(0);
+                execution.setFailedCases(1);
+                execution.setSkippedCases(0);
+                execution.setSuccessRate(BigDecimal.ZERO);
+            }
+        } else if (result instanceof ApiExecutionResultDTO apiResult) {
+            execution.setTotalCases(apiResult.getTotalCases() != null ? apiResult.getTotalCases() : 0);
+            execution.setPassedCases(apiResult.getPassed() != null ? apiResult.getPassed() : 0);
+            execution.setFailedCases(apiResult.getFailed() != null ? apiResult.getFailed() : 0);
+            execution.setSkippedCases(apiResult.getSkipped() != null ? apiResult.getSkipped() : 0);
+            if (apiResult.getSuccessRate() != null) {
+                execution.setSuccessRate(apiResult.getSuccessRate());
+            }
+        } else if (result instanceof ModuleExecutionResultDTO moduleResult) {
+            execution.setTotalCases(moduleResult.getTotalCases() != null ? moduleResult.getTotalCases() : 0);
+            execution.setPassedCases(moduleResult.getPassed() != null ? moduleResult.getPassed() : 0);
+            execution.setFailedCases(moduleResult.getFailed() != null ? moduleResult.getFailed() : 0);
+            execution.setSkippedCases(moduleResult.getSkipped() != null ? moduleResult.getSkipped() : 0);
+            if (moduleResult.getSuccessRate() != null) {
+                execution.setSuccessRate(BigDecimal.valueOf(moduleResult.getSuccessRate()));
+            }
+        } else if (result instanceof ProjectExecutionResultDTO projectResult) {
+            execution.setTotalCases(projectResult.getTotalCases() != null ? projectResult.getTotalCases() : 0);
+            execution.setPassedCases(projectResult.getPassed() != null ? projectResult.getPassed() : 0);
+            execution.setFailedCases(projectResult.getFailed() != null ? projectResult.getFailed() : 0);
+            execution.setSkippedCases(projectResult.getSkipped() != null ? projectResult.getSkipped() : 0);
+            if (projectResult.getSuccessRate() != null) {
+                execution.setSuccessRate(projectResult.getSuccessRate());
+            }
+        } else if (result instanceof TestSuiteExecutionResultDTO suiteResult) {
+            execution.setTotalCases(suiteResult.getTotalCases() != null ? suiteResult.getTotalCases() : 0);
+            execution.setPassedCases(suiteResult.getPassed() != null ? suiteResult.getPassed() : 0);
+            execution.setFailedCases(suiteResult.getFailed() != null ? suiteResult.getFailed() : 0);
+            execution.setSkippedCases(suiteResult.getSkipped() != null ? suiteResult.getSkipped() : 0);
+            if (suiteResult.getSuccessRate() != null) {
+                execution.setSuccessRate(suiteResult.getSuccessRate());
+            }
+        }
+        
+        if (execution.getTotalCases() == null || execution.getTotalCases() == 0) {
+            execution.setTotalCases(0);
+            execution.setPassedCases(0);
+            execution.setFailedCases(0);
+            execution.setSkippedCases(0);
+            execution.setSuccessRate(BigDecimal.ZERO);
+        } else {
+            int total = execution.getTotalCases();
+            int passed = execution.getPassedCases() != null ? execution.getPassedCases() : 0;
+            if (execution.getSuccessRate() == null) {
+                execution.setSuccessRate(BigDecimal.valueOf((double) passed / total * 100));
+            }
+        }
+    }
+    
+    private Long getExecutionId(Object result) {
+        if (result instanceof ExecutionResultDTO caseResult) {
+            return caseResult.getExecutionId();
+        } else if (result instanceof ApiExecutionResultDTO apiResult) {
+            return apiResult.getExecutionId();
+        } else if (result instanceof ModuleExecutionResultDTO moduleResult) {
+            return moduleResult.getExecutionId();
+        } else if (result instanceof ProjectExecutionResultDTO projectResult) {
+            return projectResult.getExecutionId();
+        } else if (result instanceof TestSuiteExecutionResultDTO suiteResult) {
+            return suiteResult.getExecutionId();
+        }
+        return null;
     }
 
     private void handleRetry(ScheduledTestTask task, ScheduledTaskExecution execution, Integer userId) {
@@ -680,6 +871,17 @@ public class ScheduledTaskServiceImpl implements ScheduledTaskService {
     // ==================== 转换方法 ====================
 
     private ScheduledTaskDTO convertToDTO(ScheduledTestTask task) {
+        // 解析 caseIds JSON 字符串为 List
+        List<Integer> caseIdsList = null;
+        if (task.getCaseIds() != null && !task.getCaseIds().isEmpty()) {
+            try {
+                caseIdsList = objectMapper.readValue(task.getCaseIds(), 
+                        objectMapper.getTypeFactory().constructCollectionType(List.class, Integer.class));
+            } catch (Exception e) {
+                log.warn("caseIds解析失败: {}", e.getMessage());
+            }
+        }
+        
         return ScheduledTaskDTO.builder()
                 .taskId(task.getTaskId())
                 .taskName(task.getTaskName())
@@ -687,6 +889,7 @@ public class ScheduledTaskServiceImpl implements ScheduledTaskService {
                 .taskType(task.getTaskType())
                 .targetId(task.getTargetId())
                 .targetName(task.getTargetName())
+                .caseIds(caseIdsList)
                 .triggerType(task.getTriggerType())
                 .cronExpression(task.getCronExpression())
                 .simpleRepeatInterval(task.getSimpleRepeatInterval())

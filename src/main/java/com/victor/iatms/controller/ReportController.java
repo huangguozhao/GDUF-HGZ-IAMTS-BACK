@@ -318,6 +318,39 @@ public class ReportController {
     }
     
     /**
+     * 更新报告名称
+     * 
+     * @param reportId 报告ID
+     * @param reportName 新的报告名称
+     * @return 更新结果
+     */
+    @PatchMapping("/{reportId}/name")
+    @GlobalInterceptor(checkLogin = true)
+    public ResponseVO<Boolean> updateReportName(@PathVariable("reportId") Long reportId,
+                                                @RequestParam("report_name") String reportName) {
+        try {
+            if (reportName == null || reportName.trim().isEmpty()) {
+                return ResponseVO.paramError("报告名称不能为空");
+            }
+            if (reportName.length() > 255) {
+                return ResponseVO.paramError("报告名称长度不能超过255个字符");
+            }
+            boolean result = reportService.updateReportName(reportId, reportName.trim());
+            return ResponseVO.success("更新报告名称成功", result);
+        } catch (IllegalArgumentException e) {
+            if (e.getMessage().contains("不存在")) {
+                return ResponseVO.notFound(e.getMessage());
+            } else if (e.getMessage().contains("已被删除")) {
+                return ResponseVO.businessError(e.getMessage());
+            } else {
+                return ResponseVO.paramError(e.getMessage());
+            }
+        } catch (Exception e) {
+            return ResponseVO.serverError("更新报告名称失败：" + e.getMessage());
+        }
+    }
+    
+    /**
      * 更新报告文件信息
      * 
      * @param reportId 报告ID

@@ -152,6 +152,15 @@ public interface ReportMapper {
     int updateReportStatus(@Param("reportId") Long reportId, @Param("reportStatus") String reportStatus);
     
     /**
+     * 更新报告名称
+     * 
+     * @param reportId 报告ID
+     * @param reportName 报告名称
+     * @return 影响行数
+     */
+    int updateReportName(@Param("reportId") Long reportId, @Param("reportName") String reportName);
+    
+    /**
      * 更新报告文件信息
      * 
      * @param reportId 报告ID

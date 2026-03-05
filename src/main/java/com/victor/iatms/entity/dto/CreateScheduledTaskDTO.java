@@ -7,6 +7,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 /**
  * 创建定时任务请求DTO
  */
@@ -61,5 +63,8 @@ public class CreateScheduledTaskDTO {
     // 执行限制
     private Boolean skipIfPreviousFailed;
     private Integer maxDurationSeconds;
+    
+    // 多用例支持
+    private List<Integer> caseIds;
 }
 

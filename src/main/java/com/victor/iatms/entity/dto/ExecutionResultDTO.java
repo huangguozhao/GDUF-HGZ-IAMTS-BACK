@@ -106,6 +106,11 @@ public class ExecutionResultDTO {
      * 报告ID
      */
     private Long reportId;
+    
+    /**
+     * 报告名称
+     */
+    private String reportName;
 
     /**
      * 任务ID（异步执行时使用）

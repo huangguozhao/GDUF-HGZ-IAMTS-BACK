@@ -98,6 +98,15 @@ public interface ReportService {
     boolean updateReportStatus(Long reportId, String reportStatus);
     
     /**
+     * 更新报告名称
+     * 
+     * @param reportId 报告ID
+     * @param reportName 新的报告名称
+     * @return 是否更新成功
+     */
+    boolean updateReportName(Long reportId, String reportName);
+    
+    /**
      * 更新报告文件信息
      * 
      * @param reportId 报告ID

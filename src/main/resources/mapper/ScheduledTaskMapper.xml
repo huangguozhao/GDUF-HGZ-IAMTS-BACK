@@ -10,6 +10,7 @@
         <result column="task_type" property="taskType"/>
         <result column="target_id" property="targetId"/>
         <result column="target_name" property="targetName"/>
+        <result column="case_ids" property="caseIds"/>
         <result column="trigger_type" property="triggerType"/>
         <result column="cron_expression" property="cronExpression"/>
         <result column="simple_repeat_interval" property="simpleRepeatInterval"/>
@@ -50,7 +51,7 @@
 
     <!-- 通用查询列 -->
     <sql id="Base_Column_List">
-        task_id, task_name, description, task_type, target_id, target_name,
+        task_id, task_name, description, task_type, target_id, target_name, case_ids,
         trigger_type, cron_expression, simple_repeat_interval, simple_repeat_count,
         daily_hour, daily_minute, weekly_days, monthly_day,
         execution_environment, base_url, timeout_seconds, concurrency, execution_strategy,

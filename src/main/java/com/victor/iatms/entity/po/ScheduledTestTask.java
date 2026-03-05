@@ -1,6 +1,7 @@
 package com.victor.iatms.entity.po;
 
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.AllArgsConstructor;
@@ -31,6 +32,9 @@ public class ScheduledTestTask {
     // 执行目标
     private Integer targetId;
     private String targetName;
+    
+    @TableField("case_ids")
+    private String caseIds; // JSON格式存储用例ID列表，如 "[1,2,3]"
 
     // 调度配置
     private String triggerType; // cron, simple, daily, weekly, monthly

@@ -256,6 +256,31 @@ public class ReportServiceImpl implements ReportService {
     }
     
     @Override
+    public boolean updateReportName(Long reportId, String reportName) {
+        if (reportId == null || reportId <= 0) {
+            throw new IllegalArgumentException("报告ID不能为空或小于等于0");
+        }
+        
+        if (!StringUtils.hasText(reportName)) {
+            throw new IllegalArgumentException("报告名称不能为空");
+        }
+        
+        // 检查报告是否存在
+        TestReportSummary report = reportMapper.selectById(reportId);
+        if (report == null) {
+            throw new IllegalArgumentException("报告不存在");
+        }
+        
+        if (report.getIsDeleted()) {
+            throw new IllegalArgumentException("报告已被删除");
+        }
+        
+        // 更新报告名称
+        int result = reportMapper.updateReportName(reportId, reportName);
+        return result > 0;
+    }
+    
+    @Override
     public boolean updateReportFileInfo(Long reportId, String filePath, Long fileSize, String downloadUrl) {
         if (reportId == null || reportId <= 0) {
             throw new IllegalArgumentException("报告ID不能为空或小于等于0");

@@ -494,6 +494,14 @@
         WHERE report_id = #{reportId}
     </update>
 
+    <!-- 更新报告名称 -->
+    <update id="updateReportName">
+        UPDATE TestReportSummaries SET
+            report_name = #{reportName},
+            updated_at = NOW()
+        WHERE report_id = #{reportId}
+    </update>
+
     <!-- 更新报告文件信息 -->
     <update id="updateReportFileInfo">
         UPDATE TestReportSummaries SET

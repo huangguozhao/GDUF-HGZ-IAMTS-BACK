@@ -11,10 +11,22 @@ import com.victor.iatms.entity.dto.ProjectExecutionResultDTO;
 import com.victor.iatms.entity.dto.ApiExecutionResultDTO;
 import com.victor.iatms.entity.dto.TestSuiteExecutionResultDTO;
 
+import java.util.List;
+
 /**
  * 测试执行服务接口
  */
 public interface TestExecutionService {
+
+    /**
+     * 执行多个测试用例
+     * @param caseIds 用例ID列表
+     * @param environment 执行环境
+     * @param baseUrl 基础URL
+     * @param userId 当前用户ID
+     * @return 执行结果
+     */
+    ModuleExecutionResultDTO executeTestCases(List<Integer> caseIds, String environment, String baseUrl, Integer userId);
 
     /**
      * 执行单个测试用例

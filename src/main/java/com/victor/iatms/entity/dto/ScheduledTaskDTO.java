@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * 定时任务详情响应DTO
@@ -22,6 +23,7 @@ public class ScheduledTaskDTO {
     private String taskType;
     private Integer targetId;
     private String targetName;
+    private List<Integer> caseIds;
 
     // 调度配置
     private String triggerType;

@@ -604,4 +604,11 @@ public interface TestExecutionMapper {
          * @return 执行记录数量
          */
         Integer countExecutionRecordsByModuleId(@Param("moduleId") Integer moduleId);
-    }
+
+        /**
+         * 查询用例所属的范围信息（接口、模块、项目）
+         * @param caseIds 用例ID列表
+         * @return 范围信息列表
+         */
+        List<java.util.Map<String, Object>> findTestCaseScopeInfo(@Param("caseIds") List<Integer> caseIds);
+}
