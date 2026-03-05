@@ -204,6 +204,13 @@ public interface TestExecutionMapper {
         Api findApiById(@Param("apiId") Integer apiId);
 
         /**
+         * 根据接口ID查询所属项目ID
+         * @param apiId 接口ID
+         * @return 项目ID
+         */
+        Integer findProjectIdByApiId(@Param("apiId") Integer apiId);
+
+        /**
          * 查询接口下的所有测试用例
          * @param apiId 接口ID
          * @param priorityList 优先级过滤列表（可选）
@@ -611,4 +618,11 @@ public interface TestExecutionMapper {
          * @return 范围信息列表
          */
         List<java.util.Map<String, Object>> findTestCaseScopeInfo(@Param("caseIds") List<Integer> caseIds);
+
+        /**
+         * 根据测试用例ID查询所属项目ID
+         * @param caseId 测试用例ID
+         * @return 项目ID
+         */
+        Integer findProjectIdByCaseId(@Param("caseId") Integer caseId);
 }

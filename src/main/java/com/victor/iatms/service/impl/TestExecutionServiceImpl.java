@@ -460,7 +460,14 @@ public class TestExecutionServiceImpl implements TestExecutionService {
         summary.setReportName(reportName);
         summary.setReportType(ReportTypeEnum.EXECUTION.getCode());
         summary.setExecutionId(testCaseResult.getExecutionId());
-        summary.setProjectId(1); // 这里应该从用例关联的项目获取
+        
+        // 通过测试用例ID查询所属项目ID
+        Integer projectId = null;
+        if (testCaseResult.getCaseId() != null) {
+            projectId = testExecutionMapper.findProjectIdByCaseId(testCaseResult.getCaseId());
+        }
+        summary.setProjectId(projectId != null ? projectId : 1); // 如果查询不到，使用默认值
+        
         summary.setEnvironment(testCaseResult.getEnvironment() != null ? testCaseResult.getEnvironment() : "test");
         summary.setStartTime(testCaseResult.getStartTime() != null ? testCaseResult.getStartTime() : LocalDateTime.now());
         summary.setEndTime(testCaseResult.getEndTime() != null ? testCaseResult.getEndTime() : LocalDateTime.now());
@@ -2344,7 +2351,11 @@ public class TestExecutionServiceImpl implements TestExecutionService {
         reportSummary.setReportName(reportName);
         reportSummary.setReportType(ReportTypeEnum.EXECUTION.getCode());
         reportSummary.setExecutionId(System.currentTimeMillis()); // 使用时间戳作为执行ID
-        reportSummary.setProjectId(1); // 设置默认项目ID，避免null值
+        
+        // 通过接口ID查询所属项目ID
+        Integer projectId = testExecutionMapper.findProjectIdByApiId(api.getApiId());
+        reportSummary.setProjectId(projectId != null ? projectId : 1); // 如果查询不到，使用默认值
+        
         reportSummary.setEnvironment("test");
         reportSummary.setStartTime(LocalDateTime.now());
         reportSummary.setEndTime(LocalDateTime.now());

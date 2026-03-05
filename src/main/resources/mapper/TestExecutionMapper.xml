@@ -611,7 +611,16 @@
         AND is_deleted = FALSE
     </select>
 
-    <!-- 鏌ヨ鎺ュ彛涓嬬殑鎵€鏈夋祴璇曠敤渚?-->
+    <!-- 根据接口ID查询所属项目ID -->
+    <select id="findProjectIdByApiId" resultType="java.lang.Integer">
+        SELECT m.project_id
+        FROM Apis a
+        LEFT JOIN Modules m ON a.module_id = m.module_id
+        WHERE a.api_id = #{apiId}
+        AND a.is_deleted = FALSE
+    </select>
+
+    <!-- 鏌ヨ鎺ュ彛涓嬬殑鎵€鏈夋祴璇曠敤渚?-->
     <select id="findTestCasesByApiId" resultType="com.victor.iatms.entity.po.TestCase">
         SELECT 
             tc.case_id,
@@ -1929,6 +1938,17 @@
         <foreach collection="caseIds" item="caseId" open="(" separator="," close=")">
             #{caseId}
         </foreach>
+        AND tc.is_deleted = FALSE
+    </select>
+
+    <!-- 根据测试用例ID查询所属项目ID -->
+    <select id="findProjectIdByCaseId" resultType="java.lang.Integer">
+        SELECT p.project_id
+        FROM TestCases tc
+        LEFT JOIN Apis a ON tc.api_id = a.api_id AND a.is_deleted = FALSE
+        LEFT JOIN Modules m ON a.module_id = m.module_id AND m.is_deleted = FALSE
+        LEFT JOIN Projects p ON m.project_id = p.project_id AND p.is_deleted = FALSE
+        WHERE tc.case_id = #{caseId}
         AND tc.is_deleted = FALSE
     </select>
 </mapper>
