@@ -139,7 +139,23 @@
         AND is_deleted = FALSE
     </update>
 
-    <!-- 鏍规嵁鎶ュ憡ID鏌ヨ娴嬭瘯缁撴灉鍒楄〃 -->
+    <select id="countResultsByReportId" resultType="java.util.Map">
+        SELECT 
+            COUNT(*) as total,
+            SUM(CASE WHEN status = 'passed' THEN 1 ELSE 0 END) as passed,
+            SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END) as failed,
+            SUM(CASE WHEN status = 'broken' THEN 1 ELSE 0 END) as broken,
+            SUM(CASE WHEN status = 'skipped' THEN 1 ELSE 0 END) as skipped,
+            SUM(duration) as totalDuration,
+            AVG(duration) as avgDuration,
+            MAX(duration) as maxDuration,
+            MIN(duration) as minDuration
+        FROM TestCaseResults
+        WHERE report_id = #{reportId}
+        AND is_deleted = FALSE
+    </select>
+
+    <!-- 鏍规嵁鎶ュ憡ID鏌ヨ娴嬭瘯缁撴灉鍒楄〃 -->
     <select id="findTestCaseResultsByReportId" resultType="com.victor.iatms.entity.po.TestCaseResult">
         SELECT 
             result_id, report_id, execution_id, task_type, ref_id, full_name, status, duration,
@@ -284,7 +300,6 @@
             name,
             description,
             status,
-            version,
             created_by,
             updated_by,
             created_at,
@@ -404,9 +419,6 @@
             name,
             description,
             status,
-            version,
-            created_by,
-            updated_by,
             created_at,
             updated_at,
             is_deleted,
@@ -426,7 +438,6 @@
             name,
             description,
             status,
-            version,
             created_by,
             updated_by,
             created_at,
@@ -1455,7 +1466,7 @@
     <select id="getWeeklyProjectStats" resultType="com.victor.iatms.entity.dto.ProjectStatsDTO">
         SELECT 
             trs.project_id as projectId,
-            p.project_name as projectName,
+            p.name as projectName,
             COUNT(*) as executions,
             ROUND((SUM(CASE WHEN tcr.status = 'passed' THEN 1 ELSE 0 END) * 100.0) / NULLIF(COUNT(*), 0), 2) as successRate,
             ROUND(AVG(tcr.duration), 0) as avgDuration
@@ -1475,7 +1486,7 @@
         <if test="environment != null and environment != ''">
             AND tcr.environment = #{environment}
         </if>
-        GROUP BY trs.project_id, p.project_name
+        GROUP BY trs.project_id, p.name
         ORDER BY executions DESC
         LIMIT 5
     </select>
@@ -1484,7 +1495,7 @@
     <select id="getWeeklyModuleStats" resultType="com.victor.iatms.entity.dto.ModuleStatsDTO">
         SELECT 
             m.module_id as moduleId,
-            m.module_name as moduleName,
+            m.name as moduleName,
             COUNT(*) as executions,
             ROUND((SUM(CASE WHEN tcr.status = 'passed' THEN 1 ELSE 0 END) * 100.0) / NULLIF(COUNT(*), 0), 2) as successRate,
             ROUND(AVG(tcr.duration), 0) as avgDuration
@@ -1507,7 +1518,7 @@
         <if test="environment != null and environment != ''">
             AND tcr.environment = #{environment}
         </if>
-        GROUP BY m.module_id, m.module_name
+        GROUP BY m.module_id, m.name
         ORDER BY executions DESC
         LIMIT 5
     </select>

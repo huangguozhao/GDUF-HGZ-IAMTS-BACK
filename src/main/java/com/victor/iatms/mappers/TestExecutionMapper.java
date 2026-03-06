@@ -48,6 +48,13 @@ public interface TestExecutionMapper {
     int updateTestReportSummary(TestReportSummary reportSummary);
 
     /**
+     * 根据报告ID统计测试结果
+     * @param reportId 报告ID
+     * @return 统计结果Map
+     */
+    java.util.Map<String, Object> countResultsByReportId(@Param("reportId") Long reportId);
+
+    /**
      * 根据报告ID查询测试结果列表
      * @param reportId 报告ID
      * @return 测试结果列表

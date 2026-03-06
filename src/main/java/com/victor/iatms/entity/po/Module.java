@@ -61,11 +61,6 @@ public class Module {
     private String tags;
     
     /**
-     * 版本号
-     */
-    private String version;
-    
-    /**
      * 创建人ID，关联用户表
      */
     private Integer createdBy;

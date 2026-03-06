@@ -169,6 +169,14 @@
           AND is_deleted = FALSE
     </select>
 
+    <select id="getMaxCaseSeqByApiId" resultType="int">
+        SELECT COALESCE(MAX(
+            CAST(SUBSTRING(case_code, LENGTH(CONCAT('TC-API-', #{apiId}, '-')) + 1) AS UNSIGNED)
+        ), 0) as max_seq
+        FROM TestCases
+        WHERE api_id = #{apiId}
+    </select>
+
     <!-- 根据测试用例ID获取创建后的测试用例详情 -->
     <select id="selectCreateTestCaseDetailById" resultMap="CreateTestCaseResponseMap">
         SELECT 

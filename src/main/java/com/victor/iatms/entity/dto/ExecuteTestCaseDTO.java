@@ -49,4 +49,9 @@ public class ExecuteTestCaseDTO {
      * 异步执行完成后的回调URL
      */
     private String callbackUrl;
+
+    /**
+     * 变量池ID，用于跨用例变量传递
+     */
+    private String executionId;
 }

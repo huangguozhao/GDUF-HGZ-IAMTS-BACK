@@ -45,6 +45,13 @@ public interface TestCaseMapper {
     int countByApiId(@Param("apiId") Integer apiId);
     
     /**
+     * 获取指定接口下测试用例的最大序号
+     * @param apiId 接口ID
+     * @return 最大序号
+     */
+    Integer getMaxCaseSeqByApiId(@Param("apiId") Integer apiId);
+
+    /**
      * 统计指定接口下的测试用例数量（未删除）
      * @param apiId 接口ID
      * @return 测试用例数量

@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.victor.iatms.mappers.AITestCaseGenerationMapper">
+
+    <resultMap id="BaseResultMap" type="com.victor.iatms.entity.po.AITestCaseGeneration">
+        <id column="generation_id" property="generationId"/>
+        <result column="project_id" property="projectId"/>
+        <result column="api_id" property="apiId"/>
+        <result column="user_id" property="userId"/>
+        <result column="generation_type" property="generationType"/>
+        <result column="input_context" property="inputContext"/>
+        <result column="generation_config" property="generationConfig"/>
+        <result column="status" property="status"/>
+        <result column="generated_cases" property="generatedCases"/>
+        <result column="case_count" property="caseCount"/>
+        <result column="prompt_tokens" property="promptTokens"/>
+        <result column="completion_tokens" property="completionTokens"/>
+        <result column="total_cost" property="totalCost"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="completed_at" property="completedAt"/>
+        <result column="error_message" property="errorMessage"/>
+    </resultMap>
+
+    <insert id="insert" parameterType="com.victor.iatms.entity.po.AITestCaseGeneration" useGeneratedKeys="true" keyProperty="generationId">
+        INSERT INTO AITestCaseGenerations (
+            project_id, api_id, user_id, generation_type, input_context,
+            generation_config, status, case_count, created_at
+        ) VALUES (
+            #{projectId}, #{apiId}, #{userId}, #{generationType}, #{inputContext},
+            #{generationConfig}, #{status}, #{caseCount}, #{createdAt}
+        )
+    </insert>
+
+    <select id="findById" resultMap="BaseResultMap">
+        SELECT * FROM AITestCaseGenerations WHERE generation_id = #{generationId}
+    </select>
+
+    <update id="updateStatus">
+        UPDATE AITestCaseGenerations
+        SET status = #{status},
+            generated_cases = #{generatedCases},
+            case_count = #{caseCount},
+            completed_at = #{completedAt},
+            error_message = #{errorMessage}
+        WHERE generation_id = #{generationId}
+    </update>
+
+    <update id="updateTokenUsage">
+        UPDATE AITestCaseGenerations
+        SET prompt_tokens = #{promptTokens},
+            completion_tokens = #{completionTokens}
+        WHERE generation_id = #{generationId}
+    </update>
+
+</mapper>
