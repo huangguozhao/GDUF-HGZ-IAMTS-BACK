@@ -40,6 +40,23 @@ public interface AIDiagnosisService {
                                   Long executionId);
 
     /**
+     * 执行AI诊断（支持批量测试用例结果）
+     * @param failureMessage 失败消息
+     * @param failureType 失败类型
+     * @param responseStatus HTTP响应状态码
+     * @param responseBody 响应体
+     * @param apiPath API路径
+     * @param apiMethod API方法
+     * @param caseName 用例名称
+     * @param executionId 执行记录ID
+     * @param caseResults 批量测试用例结果列表
+     * @return 诊断结果
+     */
+    Map<String, Object> diagnose(String failureMessage, String failureType, Integer responseStatus,
+                                  String responseBody, String apiPath, String apiMethod, String caseName,
+                                  Long executionId, List<Map<String, Object>> caseResults);
+
+    /**
      * 获取诊断结果
      * @param diagnosisId 诊断ID
      * @return 诊断结果

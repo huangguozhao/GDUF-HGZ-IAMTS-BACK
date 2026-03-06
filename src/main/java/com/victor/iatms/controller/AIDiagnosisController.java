@@ -64,6 +64,18 @@ public class AIDiagnosisController {
                 }
             }
             
+            // 获取批量测试用例结果（用于接口/模块/项目测试的AI诊断）
+            List<Map<String, Object>> caseResults = null;
+            Object caseResultsObj = diagnosisRequest.get("caseResults");
+            if (caseResultsObj instanceof List) {
+                try {
+                    caseResults = (List<Map<String, Object>>) caseResultsObj;
+                    log.info("收到批量测试用例结果: {} 条", caseResults.size());
+                } catch (Exception e) {
+                    log.warn("caseResults转换失败: {}", e.getMessage());
+                }
+            }
+            
             Map<String, Object> diagnosisResult = aiDiagnosisService.diagnose(
                 failureMessage, 
                 failureType, 
@@ -72,7 +84,8 @@ public class AIDiagnosisController {
                 apiPath,
                 apiMethod,
                 caseName,
-                executionId
+                executionId,
+                caseResults
             );
             
             return ResponseVO.success(diagnosisResult);

@@ -44,22 +44,75 @@ public class AIDiagnosisServiceImpl implements AIDiagnosisService {
     public Map<String, Object> diagnose(String failureMessage, String failureType, Integer responseStatus,
                                          String responseBody, String apiPath, String apiMethod, String caseName,
                                          Long executionId) {
-        log.info("开始AI诊断: failureMessage={}, failureType={}, responseStatus={}, executionId={}",
-                 failureMessage, failureType, responseStatus, executionId);
+        return diagnose(failureMessage, failureType, responseStatus, responseBody, apiPath, apiMethod, 
+                        caseName, executionId, null);
+    }
+
+    @Override
+    public Map<String, Object> diagnose(String failureMessage, String failureType, Integer responseStatus,
+                                         String responseBody, String apiPath, String apiMethod, String caseName,
+                                         Long executionId, List<Map<String, Object>> caseResults) {
+        log.info("开始AI诊断: failureMessage={}, failureType={}, responseStatus={}, executionId={}, caseResultsCount={}",
+                 failureMessage, failureType, responseStatus, executionId, caseResults != null ? caseResults.size() : 0);
 
         String diagnosisId = generateDiagnosisId(failureMessage, apiPath, caseName);
         
+        // 如果有批量测试用例结果，直接使用这些结果进行诊断
+        List<TestCaseResult> testCaseResults = null;
+        if (caseResults != null && !caseResults.isEmpty()) {
+            log.info("使用前端传递的批量测试用例结果: {} 条", caseResults.size());
+            testCaseResults = convertToTestCaseResults(caseResults);
+        }
+        
         Map<String, Object> ruleResult = diagnoseWithRules(failureMessage, failureType, responseStatus, 
-                responseBody, apiPath, apiMethod, caseName, null);
+                responseBody, apiPath, apiMethod, caseName, testCaseResults);
         ruleResult.put("diagnosisId", diagnosisId);
         ruleResult.put("aiStatus", "processing");
         
         cacheResult(diagnosisId, ruleResult);
         
         callDeepSeekDiagnosisAsync(diagnosisId, failureMessage, failureType,
-                responseStatus, responseBody, apiPath, apiMethod, caseName, executionId);
+                responseStatus, responseBody, apiPath, apiMethod, caseName, executionId, testCaseResults);
         
         return ruleResult;
+    }
+
+    /**
+     * 将前端传递的 caseResults 转换为 TestCaseResult 列表
+     */
+    private List<TestCaseResult> convertToTestCaseResults(List<Map<String, Object>> caseResults) {
+        List<TestCaseResult> results = new ArrayList<>();
+        if (caseResults == null || caseResults.isEmpty()) {
+            return results;
+        }
+        
+        for (Map<String, Object> cr : caseResults) {
+            TestCaseResult tcr = new TestCaseResult();
+            if (cr.get("caseId") != null) {
+                Object caseIdObj = cr.get("caseId");
+                if (caseIdObj instanceof Number) {
+                    tcr.setCaseId(((Number) caseIdObj).intValue());
+                } else {
+                    tcr.setCaseId(Integer.parseInt(String.valueOf(caseIdObj)));
+                }
+            }
+            tcr.setCaseCode((String) cr.get("caseCode"));
+            tcr.setCaseName((String) cr.get("caseName"));
+            tcr.setStatus((String) cr.get("status"));
+            tcr.setFailureMessage((String) cr.get("failureMessage"));
+            tcr.setFailureType((String) cr.get("failureType"));
+            if (cr.get("duration") != null) {
+                Object durationObj = cr.get("duration");
+                if (durationObj instanceof Number) {
+                    tcr.setDuration(((Number) durationObj).longValue());
+                } else {
+                    tcr.setDuration(Long.parseLong(String.valueOf(durationObj)));
+                }
+            }
+            // 注意：TestCaseResult 没有 responseStatus 字段，不需要设置
+            results.add(tcr);
+        }
+        return results;
     }
     
     private String generateDiagnosisId(String failureMessage, String apiPath, String caseName) {
@@ -83,25 +136,31 @@ public class AIDiagnosisServiceImpl implements AIDiagnosisService {
             Map<String, Object> copy = new HashMap<>(result);
             Boolean aiCompleted = diagnosisStatusCache.get(diagnosisId);
             copy.put("aiCompleted", aiCompleted != null && aiCompleted);
-            log.info("获取诊断结果: diagnosisId={}, aiCompleted={}, severity={}, rootCause={}", 
-                    diagnosisId, aiCompleted, copy.get("severity"), copy.get("rootCause"));
+            log.info("获取诊断结果: diagnosisId={}, aiCompleted={}, severity={}, rootCause={}, aiStatus={}, cachedKeys={}",
+                    diagnosisId, aiCompleted, copy.get("severity"), copy.get("rootCause"), copy.get("aiStatus"), diagnosisResultCache.keySet());
             return copy;
         }
-        log.warn("诊断结果不存在: diagnosisId={}", diagnosisId);
+        log.warn("诊断结果不存在: diagnosisId={}, availableKeys={}", diagnosisId, diagnosisResultCache.keySet());
         return null;
     }
     
     private void callDeepSeekDiagnosisAsync(String diagnosisId, String failureMessage, String failureType,
                                             Integer responseStatus, String responseBody, String apiPath, 
-                                            String apiMethod, String caseName, Long executionId) {
+                                            String apiMethod, String caseName, Long executionId, 
+                                            List<TestCaseResult> providedCaseResults) {
         CompletableFuture.runAsync(() -> {
             try {
-                log.info("开始异步调用DeepSeek API进行AI诊断, diagnosisId={}", diagnosisId);
+                log.info("开始异步调用DeepSeek API进行AI诊断, diagnosisId={}, executionId={}, providedCaseResultsCount={}", 
+                        diagnosisId, executionId, providedCaseResults != null ? providedCaseResults.size() : 0);
                 
-                List<TestCaseResult> allCaseResults = null;
-                if (executionId != null) {
-                    allCaseResults = testExecutionMapper.findTestCaseResultsByExecutionId(executionId);
-                    log.info("获取到{}条测试用例结果", allCaseResults != null ? allCaseResults.size() : 0);
+                List<TestCaseResult> allCaseResults = providedCaseResults;
+                
+                // 如果没有提供测试用例结果，尝试从数据库获取
+                if (allCaseResults == null || allCaseResults.isEmpty()) {
+                    if (executionId != null) {
+                        allCaseResults = testExecutionMapper.findTestCaseResultsByExecutionId(executionId);
+                        log.info("从数据库获取到{}条测试用例结果", allCaseResults != null ? allCaseResults.size() : 0);
+                    }
                 }
                 
                 Map<String, Object> aiResult = callDeepSeekDiagnosis(failureMessage, failureType,
@@ -112,7 +171,7 @@ public class AIDiagnosisServiceImpl implements AIDiagnosisService {
                     aiResult.put("aiStatus", "completed");
                     diagnosisResultCache.put(diagnosisId, aiResult);
                     diagnosisStatusCache.put(diagnosisId, true);
-                    log.info("AI诊断完成, diagnosisId={}, severity={}, rootCause={}, issuesCount={}, suggestionsCount={}", 
+                    log.info("AI诊断完成并已更新缓存, diagnosisId={}, severity={}, rootCause={}, issuesCount={}, suggestionsCount={}",
                             diagnosisId, aiResult.get("severity"), aiResult.get("rootCause"),
                             aiResult.get("issues") != null ? ((List<?>)aiResult.get("issues")).size() : 0,
                             aiResult.get("suggestions") != null ? ((List<?>)aiResult.get("suggestions")).size() : 0);
