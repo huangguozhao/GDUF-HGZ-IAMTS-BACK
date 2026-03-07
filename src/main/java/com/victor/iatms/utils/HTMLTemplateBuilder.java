@@ -328,6 +328,15 @@ public class HTMLTemplateBuilder {
                 if (failedCase.getSeverity() != null) {
                     html.append("            <div class=\"failure-meta-item\"><strong>严重程度:</strong> ").append(failedCase.getSeverity()).append("</div>\n");
                 }
+                if (failedCase.getModuleName() != null) {
+                    html.append("            <div class=\"failure-meta-item\"><strong>模块:</strong> ").append(ReportFormatter.escapeHtml(failedCase.getModuleName())).append("</div>\n");
+                }
+                if (failedCase.getApiName() != null) {
+                    html.append("            <div class=\"failure-meta-item\"><strong>接口:</strong> ").append(ReportFormatter.escapeHtml(failedCase.getApiName())).append("</div>\n");
+                }
+                if (failedCase.getResponseStatus() != null) {
+                    html.append("            <div class=\"failure-meta-item\"><strong>HTTP状态:</strong> ").append(failedCase.getResponseStatus()).append("</div>\n");
+                }
                 if (failedCase.getDuration() != null) {
                     html.append("            <div class=\"failure-meta-item\"><strong>执行耗时:</strong> ").append(ReportFormatter.formatDuration(failedCase.getDuration())).append("</div>\n");
                 }
@@ -343,9 +352,13 @@ public class HTMLTemplateBuilder {
                 html.append("          </div>\n");
                 
                 // 错误信息
-                if (failedCase.getFailureMessage() != null || failedCase.getFailureType() != null || failedCase.getFailureTrace() != null) {
+                if (failedCase.getFailureMessage() != null || failedCase.getFailureType() != null || failedCase.getFailureTrace() != null || failedCase.getErrorCode() != null) {
                     html.append("          <div class=\"error-box\">\n");
                     html.append("            <div class=\"error-title\">🔍 错误详情</div>\n");
+                    
+                    if (failedCase.getErrorCode() != null) {
+                        html.append("            <div class=\"error-type\">错误代码: ").append(ReportFormatter.escapeHtml(failedCase.getErrorCode())).append("</div>\n");
+                    }
                     
                     if (failedCase.getFailureType() != null) {
                         html.append("            <div class=\"error-type\">").append(ReportFormatter.escapeHtml(failedCase.getFailureType())).append("</div>\n");
@@ -391,6 +404,40 @@ public class HTMLTemplateBuilder {
                     html.append("            <div style=\"display: flex; gap: 8px; flex-wrap: wrap;\">\n");
                     for (String tag : failedCase.getTags()) {
                         html.append("              <span style=\"background: #ecf5ff; color: #409eff; padding: 4px 10px; border-radius: 4px; font-size: 12px;\">").append(ReportFormatter.escapeHtml(tag)).append("</span>\n");
+                    }
+                    html.append("            </div>\n");
+                    html.append("          </div>\n");
+                }
+                
+                // 测试参数
+                if (failedCase.getParametersJson() != null && !failedCase.getParametersJson().trim().isEmpty()) {
+                    html.append("          <div style=\"margin-top: 15px; padding-top: 15px; border-top: 1px solid #ebeef5;\">\n");
+                    html.append("            <div style=\"font-weight: bold; color: #606266; margin-bottom: 8px; font-size: 13px;\">📝 测试参数</div>\n");
+                    html.append("            <div class=\"error-trace\" style=\"background: #f5f7fa; max-height: 200px;\">").append(ReportFormatter.escapeHtml(ReportFormatter.formatJson(failedCase.getParametersJson()))).append("</div>\n");
+                    html.append("          </div>\n");
+                }
+                
+                // 执行步骤
+                if (failedCase.getStepsJson() != null && !failedCase.getStepsJson().trim().isEmpty()) {
+                    html.append("          <div style=\"margin-top: 15px; padding-top: 15px; border-top: 1px solid #ebeef5;\">\n");
+                    html.append("            <div style=\"font-weight: bold; color: #606266; margin-bottom: 8px; font-size: 13px;\">📋 执行步骤</div>\n");
+                    html.append("            <div class=\"error-trace\" style=\"background: #f5f7fa; max-height: 200px;\">").append(ReportFormatter.escapeHtml(ReportFormatter.formatJson(failedCase.getStepsJson()))).append("</div>\n");
+                    html.append("          </div>\n");
+                }
+                
+                // 附件链接
+                if (failedCase.getLogsLink() != null || failedCase.getScreenshotLink() != null || failedCase.getVideoLink() != null) {
+                    html.append("          <div style=\"margin-top: 15px; padding-top: 15px; border-top: 1px solid #ebeef5;\">\n");
+                    html.append("            <div style=\"font-weight: bold; color: #606266; margin-bottom: 8px; font-size: 13px;\">🔗 附件链接</div>\n");
+                    html.append("            <div style=\"display: flex; gap: 15px; flex-wrap: wrap;\">\n");
+                    if (failedCase.getLogsLink() != null) {
+                        html.append("              <span style=\"color: #409eff;\">📄 日志</span>\n");
+                    }
+                    if (failedCase.getScreenshotLink() != null) {
+                        html.append("              <span style=\"color: #67c23a;\">🖼️ 截图</span>\n");
+                    }
+                    if (failedCase.getVideoLink() != null) {
+                        html.append("              <span style=\"color: #e6a23c;\">🎬 视频</span>\n");
                     }
                     html.append("            </div>\n");
                     html.append("          </div>\n");
@@ -480,13 +527,16 @@ public class HTMLTemplateBuilder {
         }
         
         html.append("    <div class=\"info-section\">\n");
-        html.append("      <h2 class=\"section-title\">📝 所有测试用例</h2>\n");
+        html.append("      <h2 class=\"section-title\">📝 所有测试用例（共").append(exportData.getTestResults().size()).append("条）</h2>\n");
         html.append("      <table class=\"info-table\">\n");
         html.append("        <thead>\n");
         html.append("          <tr>\n");
         html.append("            <th>用例编号</th>\n");
         html.append("            <th>用例名称</th>\n");
+        html.append("            <th>模块</th>\n");
+        html.append("            <th>接口</th>\n");
         html.append("            <th>状态</th>\n");
+        html.append("            <th>HTTP状态</th>\n");
         html.append("            <th>优先级</th>\n");
         html.append("            <th>严重程度</th>\n");
         html.append("            <th>耗时</th>\n");
@@ -499,6 +549,8 @@ public class HTMLTemplateBuilder {
             html.append("          <tr>\n");
             html.append("            <td>").append(result.getCaseCode() != null ? ReportFormatter.escapeHtml(result.getCaseCode()) : "N/A").append("</td>\n");
             html.append("            <td>").append(result.getCaseName() != null ? ReportFormatter.escapeHtml(result.getCaseName()) : "N/A").append("</td>\n");
+            html.append("            <td>").append(result.getModuleName() != null ? ReportFormatter.escapeHtml(result.getModuleName()) : "-").append("</td>\n");
+            html.append("            <td>").append(result.getApiName() != null ? ReportFormatter.escapeHtml(result.getApiName()) : "-").append("</td>\n");
             
             // 状态徽章
             String statusColor = "#909399";
@@ -513,6 +565,16 @@ public class HTMLTemplateBuilder {
             }
             html.append("            <td><span style=\"background: ").append(statusColor).append("; color: white; padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: bold;\">")
                 .append(result.getStatus() != null ? result.getStatus().toUpperCase() : "UNKNOWN").append("</span></td>\n");
+            
+            // HTTP状态码
+            if (result.getResponseStatus() != null) {
+                String httpStatusColor = result.getResponseStatus() >= 200 && result.getResponseStatus() < 300 ? "#67c23a" : 
+                                         result.getResponseStatus() >= 400 ? "#f56c6c" : "#909399";
+                html.append("            <td><span style=\"background: ").append(httpStatusColor).append("; color: white; padding: 2px 8px; border-radius: 3px; font-size: 11px;\">")
+                    .append(result.getResponseStatus()).append("</span></td>\n");
+            } else {
+                html.append("            <td>-</td>\n");
+            }
             
             html.append("            <td>").append(result.getPriority() != null ? result.getPriority() : "N/A").append("</td>\n");
             html.append("            <td>").append(result.getSeverity() != null ? result.getSeverity() : "N/A").append("</td>\n");

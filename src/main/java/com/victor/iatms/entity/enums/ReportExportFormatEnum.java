@@ -23,7 +23,12 @@ public enum ReportExportFormatEnum {
     /**
      * JSON格式
      */
-    JSON("json", "JSON格式", "application/json");
+    JSON("json", "JSON格式", "application/json"),
+    
+    /**
+     * PDF格式
+     */
+    PDF("pdf", "PDF格式", "application/pdf");
     
     private final String code;
     private final String desc;

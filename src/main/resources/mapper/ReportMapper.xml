@@ -554,6 +554,7 @@
             tcr.failure_message AS failureMessage,
             tcr.failure_trace AS failureTrace,
             tcr.failure_type AS failureType,
+            tcr.error_code AS errorCode,
             tcr.environment,
             tcr.browser,
             tcr.os,

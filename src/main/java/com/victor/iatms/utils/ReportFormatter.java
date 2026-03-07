@@ -221,5 +221,24 @@ public class ReportFormatter {
             return "#f56c6c"; // 红色
         }
     }
+    
+    /**
+     * 格式化JSON字符串，使其易于阅读
+     * 
+     * @param jsonStr JSON字符串
+     * @return 格式化后的JSON字符串
+     */
+    public static String formatJson(String jsonStr) {
+        if (jsonStr == null || jsonStr.trim().isEmpty()) {
+            return "";
+        }
+        try {
+            Object obj = new com.fasterxml.jackson.databind.ObjectMapper().readValue(jsonStr, Object.class);
+            return new com.fasterxml.jackson.databind.ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(obj);
+        } catch (Exception e) {
+            // 如果不是有效的JSON，返回原始字符串
+            return jsonStr;
+        }
+    }
 }
 

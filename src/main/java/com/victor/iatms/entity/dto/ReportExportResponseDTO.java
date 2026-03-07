@@ -87,6 +87,7 @@ public class ReportExportResponseDTO {
         private String failureMessage;
         private String failureTrace;
         private String failureType;
+        private String errorCode;
         private String environment;
         private String browser;
         private String os;
@@ -102,6 +103,13 @@ public class ReportExportResponseDTO {
         private String impactAssessment;
         private String retestResult;
         private List<String> tags;
+        private Integer responseStatus;
+        private String responseBody;
+        private String logsLink;
+        private String screenshotLink;
+        private String videoLink;
+        private String parametersJson;
+        private String stepsJson;
     }
     
     /**

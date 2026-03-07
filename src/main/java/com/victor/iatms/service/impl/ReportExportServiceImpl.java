@@ -10,6 +10,11 @@ import com.victor.iatms.mappers.ReportMapper;
 import com.victor.iatms.service.ReportExportService;
 import com.victor.iatms.service.ReportService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDPage;
+import org.apache.pdfbox.pdmodel.PDPageContentStream;
+import org.apache.pdfbox.pdmodel.common.PDRectangle;
+import org.apache.pdfbox.pdmodel.font.PDType0Font;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
@@ -17,7 +22,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -144,9 +152,9 @@ public class ReportExportServiceImpl implements ReportExportService {
             }
         }
         
-        if (Constants.REPORT_STATUS_FAILED.equals(report.getReportStatus())) {
-            throw new IllegalArgumentException("报告生成失败，无法导出");
-        }
+//        if (Constants.REPORT_STATUS_FAILED.equals(report.getReportStatus())) {
+//            throw new IllegalArgumentException("报告生成失败，无法导出");
+//        }
         
         return report;
     }
@@ -193,6 +201,8 @@ public class ReportExportServiceImpl implements ReportExportService {
                     return generateCsvContent(exportData);
                 case "json":
                     return generateJsonContent(exportData);
+                case "pdf":
+                    return generatePdfContent(exportData);
                 default:
                     throw new IllegalArgumentException("不支持的导出格式：" + exportFormat);
             }
@@ -537,5 +547,259 @@ public class ReportExportServiceImpl implements ReportExportService {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         objectMapper.writeValue(outputStream, exportData);
         return outputStream.toByteArray();
+    }
+    
+    /**
+     * 清理文本用于PDF显示 - 移除换行符等非法字符
+     */
+    private String sanitizeTextForPdf(String text) {
+        if (text == null) {
+            return "";
+        }
+        // 替换换行符和回车符为空格
+        return text.replace("\n", " ").replace("\r", " ").replace("\t", " ");
+    }
+    
+    /**
+     * 生成PDF内容
+     */
+    private byte[] generatePdfContent(ReportExportResponseDTO exportData) throws IOException {
+        PDDocument document = new PDDocument();
+        try {
+            // 加载中文字体支持
+            PDType0Font font = null;
+            PDType0Font boldFont = null;
+            boolean chineseFontLoaded = false;
+            
+            // 尝试从 classpath 加载中文字体
+            String[] classpathFonts = {
+                "fonts/NotoSansSC-Regular.ttf",
+                "fonts/simsun.ttc"
+            };
+            
+            for (String fontPath : classpathFonts) {
+                try {
+                    InputStream fontStream = getClass().getClassLoader().getResourceAsStream(fontPath);
+                    if (fontStream != null) {
+                        font = PDType0Font.load(document, fontStream, true);
+                        boldFont = font;
+                        log.info("成功从classpath加载中文字体: {}", fontPath);
+                        chineseFontLoaded = true;
+                        break;
+                    }
+                } catch (Exception e) {
+                    log.warn("尝试从classpath加载字体失败: {}", fontPath);
+                }
+            }
+            
+            if (!chineseFontLoaded) {
+                // 尝试从系统字体目录加载
+                String[] systemFontPaths = {
+                    "C:/Windows/Fonts/msyh.ttc",
+                    "C:/Windows/Fonts/simsun.ttc",
+                    "C:/Windows/Fonts/simhei.ttf"
+                };
+                
+                for (String fontPath : systemFontPaths) {
+                    try {
+                        File fontFile = new File(fontPath);
+                        if (fontFile.exists()) {
+                            font = PDType0Font.load(document, new FileInputStream(fontFile), true);
+                            boldFont = PDType0Font.load(document, new FileInputStream(fontFile), true);
+                            log.info("成功加载系统字体: {}", fontPath);
+                            chineseFontLoaded = true;
+                            break;
+                        }
+                    } catch (Exception e) {
+                        log.warn("尝试加载系统字体失败: {}", fontPath);
+                    }
+                }
+            }
+            
+            if (!chineseFontLoaded) {
+                throw new IOException("PDF中文渲染失败：请在 C:/Windows/Fonts 目录确保有 msyh.ttc（微软雅黑）或 simsun.ttc（宋体）字体文件");
+            }
+            
+            PDPage page = new PDPage(PDRectangle.A4);
+            document.addPage(page);
+            
+            PDPageContentStream content = new PDPageContentStream(document, page);
+            
+            float yPosition = 800;
+            
+            // ===== 标题 =====
+            content.beginText();
+            content.newLineAtOffset(50, yPosition);
+            content.setFont(boldFont, 20);
+            String title = sanitizeTextForPdf(exportData.getReportSummary().getReportName());
+            content.showText(title != null ? title : "Test Report");
+            content.endText();
+            
+            yPosition -= 40;
+            
+            // ===== 基本信息 =====
+            content.beginText();
+            content.newLineAtOffset(50, yPosition);
+            content.setFont(boldFont, 14);
+            content.showText("Report Overview");
+            content.endText();
+            
+            yPosition -= 30;
+            content.setFont(font, 10);
+            
+            ReportExportResponseDTO.ReportSummaryInfoDTO summary = exportData.getReportSummary();
+            
+            String startTimeStr = summary.getStartTime() != null ? summary.getStartTime().toString() : "N/A";
+            String endTimeStr = summary.getEndTime() != null ? summary.getEndTime().toString() : "N/A";
+            
+            String[] infoLines = {
+                "Project: " + sanitizeTextForPdf(summary.getProjectName()),
+                "Environment: " + sanitizeTextForPdf(summary.getEnvironment()),
+                "Report Type: " + sanitizeTextForPdf(summary.getReportType()),
+                "Execution Time: " + sanitizeTextForPdf(startTimeStr) + " ~ " + sanitizeTextForPdf(endTimeStr),
+                "Duration: " + formatDuration(summary.getDuration())
+            };
+            
+            for (String line : infoLines) {
+                content.beginText();
+                content.newLineAtOffset(50, yPosition);
+                content.showText(line);
+                content.endText();
+                yPosition -= 20;
+            }
+            
+            yPosition -= 30;
+            
+            // ===== 统计信息 =====
+            content.beginText();
+            content.newLineAtOffset(50, yPosition);
+            content.setFont(boldFont, 14);
+            content.showText("Execution Statistics");
+            content.endText();
+            
+            yPosition -= 30;
+            content.setFont(font, 11);
+            
+            String[] statLines = {
+                "Total Cases: " + summary.getTotalCases(),
+                "Passed: " + summary.getPassedCases() + " | Failed: " + summary.getFailedCases() + " | Broken: " + summary.getBrokenCases() + " | Skipped: " + summary.getSkippedCases(),
+                "Success Rate: " + String.format("%.2f%%", summary.getSuccessRate())
+            };
+            
+            for (String line : statLines) {
+                content.beginText();
+                content.newLineAtOffset(50, yPosition);
+                content.showText(line);
+                content.endText();
+                yPosition -= 20;
+            }
+            
+            yPosition -= 30;
+            
+            // ===== 失败用例详情 =====
+            List<ReportExportResponseDTO.TestCaseResultDTO> testResults = exportData.getTestResults();
+            if (testResults != null && !testResults.isEmpty()) {
+                List<ReportExportResponseDTO.TestCaseResultDTO> failedCases = testResults.stream()
+                    .filter(r -> "failed".equalsIgnoreCase(r.getStatus()) || "broken".equalsIgnoreCase(r.getStatus()))
+                    .limit(30)
+                    .collect(java.util.stream.Collectors.toList());
+                
+                if (!failedCases.isEmpty()) {
+                    content.beginText();
+                    content.newLineAtOffset(50, yPosition);
+                    content.setFont(boldFont, 14);
+                    content.showText("Failed Cases (Top " + failedCases.size() + ")");
+                    content.endText();
+                    
+                    yPosition -= 30;
+                    
+                    for (ReportExportResponseDTO.TestCaseResultDTO failedCase : failedCases) {
+                        if (yPosition < 100) {
+                            content.close();
+                            page = new PDPage(PDRectangle.A4);
+                            document.addPage(page);
+                            content = new PDPageContentStream(document, page);
+                            yPosition = 800;
+                        }
+                        
+                        content.setFont(boldFont, 10);
+                        content.beginText();
+                        content.newLineAtOffset(50, yPosition);
+                        String caseName = sanitizeTextForPdf(failedCase.getCaseName());
+                        if (caseName == null || caseName.isEmpty()) {
+                            caseName = "Unnamed Case";
+                        }
+                        if (caseName.length() > 50) {
+                            caseName = caseName.substring(0, 50) + "...";
+                        }
+                        content.showText("Case: " + caseName);
+                        content.endText();
+                        
+                        yPosition -= 18;
+                        content.setFont(font, 9);
+                        
+                        if (failedCase.getCaseCode() != null) {
+                            content.beginText();
+                            content.newLineAtOffset(50, yPosition);
+                            content.showText("  Code: " + sanitizeTextForPdf(failedCase.getCaseCode()));
+                            content.endText();
+                            yPosition -= 15;
+                        }
+                        
+                        if (failedCase.getStatus() != null) {
+                            content.beginText();
+                            content.newLineAtOffset(50, yPosition);
+                            content.showText("  Status: " + failedCase.getStatus().toUpperCase());
+                            content.endText();
+                            yPosition -= 15;
+                        }
+                        
+                        if (failedCase.getFailureMessage() != null && !failedCase.getFailureMessage().isEmpty()) {
+                            content.beginText();
+                            content.newLineAtOffset(50, yPosition);
+                            String msg = sanitizeTextForPdf(failedCase.getFailureMessage());
+                            if (msg.length() > 80) {
+                                msg = msg.substring(0, 80) + "...";
+                            }
+                            content.showText("  Error: " + msg);
+                            content.endText();
+                            yPosition -= 15;
+                        }
+                        
+                        if (failedCase.getDuration() != null) {
+                            content.beginText();
+                            content.newLineAtOffset(50, yPosition);
+                            content.showText("  Duration: " + formatDuration(failedCase.getDuration()));
+                            content.endText();
+                            yPosition -= 15;
+                        }
+                        
+                        yPosition -= 15;
+                    }
+                }
+            }
+            
+            // ===== 页脚 =====
+            yPosition -= 30;
+            content.setFont(font, 8);
+            content.beginText();
+            content.newLineAtOffset(50, yPosition);
+            content.showText("Generated: " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+            content.endText();
+            
+            yPosition -= 12;
+            content.beginText();
+            content.newLineAtOffset(50, yPosition);
+            content.showText("IATMS - Interface Automation Testing Management System");
+            content.endText();
+            
+            content.close();
+            
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            document.save(outputStream);
+            return outputStream.toByteArray();
+        } finally {
+            document.close();
+        }
     }
 }
