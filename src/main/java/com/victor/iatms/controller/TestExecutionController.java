@@ -54,13 +54,37 @@ public class TestExecutionController {
             @PathVariable("case_id") Integer caseId,
             @RequestBody ExecuteTestCaseDTO executeDTO,
             HttpServletRequest request) {
+        try {
             // 获取当前用户ID
             Integer userId = getCurrentUserId(request);
 
-            // 调用服务层方法
-            ExecutionResultDTO result = testExecutionService.executeTestCase(caseId, executeDTO, userId);
+            // 根据async参数选择同步或异步执行
+            if (executeDTO.getAsync() != null && executeDTO.getAsync()) {
+                // 异步执行
+                ExecutionResultDTO result = testExecutionService.executeTestCaseAsync(caseId, executeDTO, userId);
+                return ResponseVO.success("用例执行任务已提交", result);
+            } else {
+                // 同步执行
+                ExecutionResultDTO result = testExecutionService.executeTestCase(caseId, executeDTO, userId);
+                return ResponseVO.success("用例执行完成", result);
+            }
 
-            return ResponseVO.success("用例执行完成", result);
+        } catch (AuthException e) {
+            return ResponseVO.authError(e.getMessage());
+        } catch (RuntimeException e) {
+            String errorMsg = e.getMessage();
+            if ("测试用例不存在或未启用".equals(errorMsg)) {
+                return ResponseVO.notFound(errorMsg);
+            } else if ("关联的接口不存在或已禁用".equals(errorMsg)) {
+                return ResponseVO.paramError(errorMsg);
+            } else if ("创建异步任务失败".equals(errorMsg)) {
+                return ResponseVO.serverError("创建异步任务失败，请稍后重试");
+            } else {
+                return ResponseVO.serverError("系统异常，请稍后重试");
+            }
+        } catch (Exception e) {
+            return ResponseVO.serverError("系统异常，请稍后重试");
+        }
     }
 
     /**
@@ -305,10 +329,16 @@ public class TestExecutionController {
             // 获取当前用户ID
             Integer userId = getCurrentUserId(request);
 
-            // 调用服务层方法
-            ModuleExecutionResultDTO result = testExecutionService.executeModule(moduleId, executeDTO, userId);
-
-            return ResponseVO.success("模块测试执行完成", result);
+            // 根据async参数选择同步或异步执行
+            if (executeDTO.getAsync() != null && executeDTO.getAsync()) {
+                // 异步执行
+                ModuleExecutionResultDTO result = testExecutionService.executeModuleAsync(moduleId, executeDTO, userId);
+                return ResponseVO.success("模块测试执行任务已提交", result);
+            } else {
+                // 同步执行
+                ModuleExecutionResultDTO result = testExecutionService.executeModule(moduleId, executeDTO, userId);
+                return ResponseVO.success("模块测试执行完成", result);
+            }
 
         } catch (AuthException e) {
             return ResponseVO.authError(e.getMessage());
@@ -470,10 +500,16 @@ public class TestExecutionController {
             // 获取当前用户ID
             Integer userId = getCurrentUserId(request);
 
-            // 调用服务层方法
-            ProjectExecutionResultDTO result = testExecutionService.executeProject(projectId, executeDTO, userId);
-
-            return ResponseVO.success("项目测试执行完成", result);
+            // 根据async参数选择同步或异步执行
+            if (executeDTO.getAsync() != null && executeDTO.getAsync()) {
+                // 异步执行
+                ProjectExecutionResultDTO result = testExecutionService.executeProjectAsync(projectId, executeDTO, userId);
+                return ResponseVO.success("项目测试执行任务已提交", result);
+            } else {
+                // 同步执行
+                ProjectExecutionResultDTO result = testExecutionService.executeProject(projectId, executeDTO, userId);
+                return ResponseVO.success("项目测试执行完成", result);
+            }
 
         } catch (AuthException e) {
             return ResponseVO.authError(e.getMessage());
@@ -635,10 +671,16 @@ public class TestExecutionController {
             // 获取当前用户ID
             Integer userId = getCurrentUserId(request);
 
-            // 调用服务层方法
-            ApiExecutionResultDTO result = testExecutionService.executeApi(apiId, executeDTO, userId);
-
-            return ResponseVO.success("接口测试执行完成", result);
+            // 根据async参数选择同步或异步执行
+            if (executeDTO.getAsync() != null && executeDTO.getAsync()) {
+                // 异步执行
+                ApiExecutionResultDTO result = testExecutionService.executeApiAsync(apiId, executeDTO, userId);
+                return ResponseVO.success("接口测试执行任务已提交", result);
+            } else {
+                // 同步执行
+                ApiExecutionResultDTO result = testExecutionService.executeApi(apiId, executeDTO, userId);
+                return ResponseVO.success("接口测试执行完成", result);
+            }
 
         } catch (AuthException e) {
             return ResponseVO.authError(e.getMessage());
@@ -804,10 +846,16 @@ public class TestExecutionController {
             // 获取当前用户ID
             Integer userId = getCurrentUserId(request);
 
-            // 调用服务层方法
-            TestSuiteExecutionResultDTO result = testExecutionService.executeTestSuite(suiteId, executeDTO, userId);
-
-            return ResponseVO.success("测试套件执行完成", result);
+            // 根据async参数选择同步或异步执行
+            if (executeDTO.getAsync() != null && executeDTO.getAsync()) {
+                // 异步执行
+                TestSuiteExecutionResultDTO result = testExecutionService.executeTestSuiteAsync(suiteId, executeDTO, userId);
+                return ResponseVO.success("测试套件执行任务已提交", result);
+            } else {
+                // 同步执行
+                TestSuiteExecutionResultDTO result = testExecutionService.executeTestSuite(suiteId, executeDTO, userId);
+                return ResponseVO.success("测试套件执行完成", result);
+            }
 
         } catch (AuthException e) {
             return ResponseVO.authError(e.getMessage());

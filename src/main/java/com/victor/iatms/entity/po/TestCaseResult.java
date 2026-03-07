@@ -49,6 +49,11 @@ public class TestCaseResult {
      * 执行状态
      */
     private String status;
+    
+    /**
+     * HTTP响应状态码
+     */
+    private Integer responseStatus;
 
     /**
      * 执行耗时（毫秒）

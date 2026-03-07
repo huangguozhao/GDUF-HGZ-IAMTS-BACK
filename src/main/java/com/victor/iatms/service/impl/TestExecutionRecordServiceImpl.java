@@ -4,8 +4,10 @@ import com.victor.iatms.entity.dto.TestExecutionRecordDetailDTO;
 import com.victor.iatms.entity.dto.TestExecutionRecordPageResultDTO;
 import com.victor.iatms.entity.dto.TestExecutionRecordStatisticsDTO;
 import com.victor.iatms.entity.dto.UpdateTestExecutionRecordDTO;
+import com.victor.iatms.entity.po.TestCaseResult;
 import com.victor.iatms.entity.po.TestExecutionRecord;
 import com.victor.iatms.entity.query.TestExecutionRecordQuery;
+import com.victor.iatms.mappers.TestExecutionMapper;
 import com.victor.iatms.mappers.TestExecutionRecordMapper;
 import com.victor.iatms.mappers.UserMapper;
 import com.victor.iatms.service.TestExecutionRecordService;
@@ -14,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -26,6 +29,9 @@ public class TestExecutionRecordServiceImpl implements TestExecutionRecordServic
     
     @Autowired
     private TestExecutionRecordMapper testExecutionRecordMapper;
+    
+    @Autowired
+    private TestExecutionMapper testExecutionMapper;
     
     @Autowired
     private UserMapper userMapper;
@@ -109,6 +115,46 @@ public class TestExecutionRecordServiceImpl implements TestExecutionRecordServic
                 com.victor.iatms.entity.dto.ExecutorInfoDTO executorInfo = 
                     userMapper.findExecutorInfoById(record.getExecutedBy());
                 dto.setExecutorInfo(executorInfo);
+            }
+            
+            // 填充用例执行结果列表（如果有的话）
+            if (record.getTotalCases() != null && record.getTotalCases() > 0) {
+                try {
+                    List<TestCaseResult> caseResults = testExecutionMapper.findTestCaseResultsByExecutionId(recordId);
+                    if (caseResults != null && !caseResults.isEmpty()) {
+                        List<TestExecutionRecordDetailDTO.CaseResultDetail> caseResultDetails = new ArrayList<>();
+                        for (TestCaseResult caseResult : caseResults) {
+                            TestExecutionRecordDetailDTO.CaseResultDetail detail = new TestExecutionRecordDetailDTO.CaseResultDetail();
+                            detail.setResultId(caseResult.getResultId());
+                            detail.setCaseId(caseResult.getCaseId());
+                            detail.setCaseCode(caseResult.getCaseCode());
+                            detail.setCaseName(caseResult.getCaseName());
+                            detail.setStatus(caseResult.getStatus());
+                            detail.setResponseStatus(caseResult.getResponseStatus());
+                            detail.setDuration(caseResult.getDuration());
+                            detail.setFailureMessage(caseResult.getFailureMessage());
+                            detail.setFailureType(caseResult.getFailureType());
+                            detail.setLogsLink(caseResult.getLogsLink());
+                            detail.setStepsJson(caseResult.getStepsJson());
+                            detail.setParametersJson(caseResult.getParametersJson());
+                            detail.setModuleName(caseResult.getModuleName());
+                            detail.setApiName(caseResult.getApiName());
+                            detail.setEnvironment(caseResult.getEnvironment());
+                            detail.setBrowser(caseResult.getBrowser());
+                            detail.setStartTime(caseResult.getStartTime());
+                            detail.setEndTime(caseResult.getEndTime());
+                            detail.setSeverity(caseResult.getSeverity());
+                            detail.setPriority(caseResult.getPriority());
+                            detail.setTestType(caseResult.getTestType());
+                            detail.setTestLayer(caseResult.getTestLayer());
+                            caseResultDetails.add(detail);
+                        }
+                        dto.setCaseResults(caseResultDetails);
+                    }
+                } catch (Exception e) {
+                    log.warn("查询用例执行结果失败: {}", e.getMessage());
+                    // 不影响主流程，只是没有详细用例结果而已
+                }
             }
             
             return dto;

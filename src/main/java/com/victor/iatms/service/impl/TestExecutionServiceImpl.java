@@ -1123,26 +1123,56 @@ public class TestExecutionServiceImpl implements TestExecutionService {
         // 3. 设置默认参数
         setDefaultExecutionParams(executeDTO);
         
-        // 4. 生成任务ID
-        String taskId = generateModuleTaskId();
+        // 4. 先创建执行记录（用于追踪任务状态）
+        TestExecutionRecord executionRecord = createExecutionRecord("module", module.getModuleId(), 
+            module.getName(), userId, executeDTO.getExecutionType(), executeDTO.getEnvironment());
+        executionRecord.setTotalCases(testCases.size());
+        executionRecord.setStatus("running");
+        executionRecord.setStartTime(LocalDateTime.now());
+        testExecutionRecordMapper.insertExecutionRecord(executionRecord);
         
-        // 5. 创建任务状态
-        ModuleExecutionResultDTO taskInfo = createModuleTaskInfo(taskId, module, testCases, executeDTO);
+        // 5. 创建报告汇总
+        Long reportId = createModuleTestReportSummary(module, testCases.size(), userId);
         
-        // 6. 缓存任务信息
-        moduleTaskStatusCache.put(taskId, taskInfo);
-        try {
-            redisComponent.setString(Constants.MODULE_EXECUTION_QUEUE + ":" + taskId, 
-                objectMapper.writeValueAsString(taskInfo), Constants.MODULE_RESULT_CACHE_HOURS * 3600);
-        } catch (Exception e) {
-            // 忽略JSON序列化错误，继续执行
-        }
+        // 6. 使用 recordId 作为任务ID
+        String taskId = "module_" + executionRecord.getRecordId();
         
-        // 7. 异步执行
+        // 7. 创建任务信息返回给前端
+        ModuleExecutionResultDTO taskInfo = new ModuleExecutionResultDTO();
+        taskInfo.setTaskId(taskId);
+        taskInfo.setExecutionId(executionRecord.getRecordId());
+        taskInfo.setModuleId(module.getModuleId());
+        taskInfo.setModuleName(module.getName());
+        taskInfo.setTotalCases(testCases.size());
+        taskInfo.setFilteredCases(testCases.size());
+        taskInfo.setStatus("running");
+        taskInfo.setConcurrency(executeDTO.getConcurrency());
+        taskInfo.setEstimatedDuration(testCases.size() * Constants.ESTIMATED_TIME_PER_CASE);
+        taskInfo.setQueuePosition(1);
+        taskInfo.setMonitorUrl("/api/test-executions/records/" + executionRecord.getRecordId() + "/status");
+        taskInfo.setReportUrl("/api/reports/module/" + module.getModuleId() + "/executions/latest");
+        taskInfo.setReportId(reportId);
+        taskInfo.setStartTime(DateUtil.formatToISO8601(executionRecord.getStartTime()));
+        
+        // 8. 异步执行（更新 recordId 引用）
+        final Long finalRecordId = executionRecord.getRecordId();
+        final Long finalReportId = reportId;
+        
         CompletableFuture.runAsync(() -> {
             try {
-                executeTestCasesAsync(taskId, module, testCases, executeDTO, userId);
+                executeTestCasesAsyncWithRecordId(taskId, module, testCases, executeDTO, userId, finalRecordId, finalReportId);
             } catch (Exception e) {
+                // 更新执行记录为失败状态
+                try {
+                    TestExecutionRecord failedRecord = new TestExecutionRecord();
+                    failedRecord.setRecordId(finalRecordId);
+                    failedRecord.setStatus("failed");
+                    failedRecord.setEndTime(LocalDateTime.now());
+                    failedRecord.setErrorMessage("执行失败: " + e.getMessage());
+                    testExecutionRecordMapper.updateExecutionRecord(failedRecord);
+                } catch (Exception updateError) {
+                    log.error("更新失败状态失败: {}", updateError.getMessage());
+                }
                 updateModuleTaskStatus(taskId, TaskExecutionStatusEnum.FAILED.getCode(), 
                     "执行失败: " + e.getMessage());
             }
@@ -1456,6 +1486,103 @@ public class TestExecutionServiceImpl implements TestExecutionService {
     }
 
     /**
+     * 异步执行测试用例（复用已存在的 recordId）
+     */
+    private void executeTestCasesAsyncWithRecordId(String taskId, Module module, List<TestCase> testCases, 
+                                      ExecuteModuleDTO executeDTO, Integer userId, Long recordId, Long reportId) {
+        updateModuleTaskStatus(taskId, TaskExecutionStatusEnum.RUNNING.getCode(), "开始执行测试用例");
+        
+        LocalDateTime startTime = LocalDateTime.now();
+        
+        // 复用已创建的 executionRecord
+        TestExecutionRecord executionRecord = new TestExecutionRecord();
+        executionRecord.setRecordId(recordId);
+        
+        List<CompletableFuture<Void>> futures = new ArrayList<>();
+        
+        for (TestCase testCase : testCases) {
+            CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
+                try {
+                    ExecuteTestCaseDTO caseExecuteDTO = convertToTestCaseExecuteDTO(executeDTO);
+                    
+                    ExecutionResultDTO result = executeTestCaseWithVariables(testCase.getCaseId(), caseExecuteDTO, userId, null,
+                        recordId, reportId);
+                    
+                } catch (Exception e) {
+                    recordModuleTestCaseFailure(reportId, testCase, e.getMessage(), userId, recordId);
+                }
+            }, executorService);
+            
+            futures.add(future);
+        }
+        
+        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+        
+        LocalDateTime endTime = LocalDateTime.now();
+        
+        updateReportSummaryStats(reportId, startTime, endTime);
+        
+        Map<String, Object> stats = testExecutionMapper.countResultsByReportId(reportId);
+        
+        // 关键修复：由于异步线程使用独立的数据库连接，主线程可能看不到异步线程插入的数据
+        // 使用重试机制确保能够查询到数据
+        int maxRetries = 3;
+        int retryDelayMs = 100;
+        
+        for (int retry = 0; retry < maxRetries; retry++) {
+            if (retry > 0) {
+                try {
+                    Thread.sleep(retryDelayMs * retry);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    break;
+                }
+            }
+            stats = testExecutionMapper.countResultsByReportId(reportId);
+            if (stats != null && stats.get("total") != null && ((Number) stats.get("total")).intValue() > 0) {
+                break;
+            }
+            log.warn("统计查询为空, 重试 {}/{}", retry + 1, maxRetries);
+        }
+        
+        int passed = stats != null && stats.get("passed") != null ? ((Number) stats.get("passed")).intValue() : 0;
+        int failed = stats != null && stats.get("failed") != null ? ((Number) stats.get("failed")).intValue() : 0;
+        int skipped = stats != null && stats.get("skipped") != null ? ((Number) stats.get("skipped")).intValue() : 0;
+        int broken = stats != null && stats.get("broken") != null ? ((Number) stats.get("broken")).intValue() : 0;
+        
+        // 更新执行记录的统计数据
+        executionRecord.setEndTime(endTime);
+        executionRecord.setDurationSeconds((int) java.time.Duration.between(startTime, endTime).toSeconds());
+        executionRecord.setExecutedCases(passed + failed + skipped + broken);
+        executionRecord.setPassedCases(passed);
+        executionRecord.setFailedCases(failed + broken);
+        executionRecord.setSkippedCases(skipped);
+        executionRecord.setSuccessRate(testCases.size() > 0 ? 
+            BigDecimal.valueOf((double) passed / testCases.size() * 100) : BigDecimal.ZERO);
+        executionRecord.setStatus(failed + broken > 0 ? "failed" : "completed");
+        executionRecord.setReportUrl("/api/reports/" + reportId + "/summary");
+        testExecutionRecordMapper.updateExecutionRecord(executionRecord);
+        
+        log.info("模块测试更新完成: recordId={}, passedCases={}, failedCases={}, status={}", 
+                recordId, passed, failed + broken, executionRecord.getStatus());
+        
+        ModuleExecutionResultDTO taskInfo = getModuleTaskStatus(taskId, userId);
+        taskInfo.setStatus(TaskExecutionStatusEnum.COMPLETED.getCode());
+        taskInfo.setStartTime(DateUtil.formatToISO8601(startTime));
+        taskInfo.setEndTime(DateUtil.formatToISO8601(endTime));
+        taskInfo.setTotalDuration(java.time.Duration.between(startTime, endTime).toMillis());
+        taskInfo.setPassed(passed);
+        taskInfo.setFailed(failed);
+        taskInfo.setSkipped(skipped);
+        taskInfo.setBroken(broken);
+        taskInfo.setSuccessRate(testCases.size() > 0 ? (double) passed / testCases.size() * 100 : 0.0);
+        taskInfo.setReportId(reportId);
+        taskInfo.setSummaryUrl("/api/reports/" + reportId + "/summary");
+        
+        updateModuleTaskStatus(taskId, TaskExecutionStatusEnum.COMPLETED.getCode(), "执行完成");
+    }
+
+    /**
      * 异步执行测试用例
      */
     private void executeTestCasesAsync(String taskId, Module module, List<TestCase> testCases, 
@@ -1713,26 +1840,56 @@ public class TestExecutionServiceImpl implements TestExecutionService {
         // 3. 设置默认参数
         setDefaultProjectExecutionParams(executeDTO);
         
-        // 4. 生成任务ID
-        String taskId = generateProjectTaskId();
+        // 4. 先创建执行记录（用于追踪任务状态）
+        TestExecutionRecord executionRecord = createExecutionRecord("project", project.getProjectId(), 
+            project.getName(), userId, executeDTO.getExecutionType(), executeDTO.getEnvironment());
+        executionRecord.setTotalCases(testCases.size());
+        executionRecord.setStatus("running");
+        executionRecord.setStartTime(LocalDateTime.now());
+        testExecutionRecordMapper.insertExecutionRecord(executionRecord);
         
-        // 5. 创建任务状态
-        ProjectExecutionResultDTO taskInfo = createProjectTaskInfo(taskId, project, testCases, executeDTO);
+        // 5. 创建报告汇总
+        Long reportId = createProjectTestReportSummary(project, testCases.size(), userId);
         
-        // 6. 缓存任务信息
-        projectTaskStatusCache.put(taskId, taskInfo);
-        try {
-            redisComponent.setString(Constants.PROJECT_EXECUTION_QUEUE + ":" + taskId, 
-                objectMapper.writeValueAsString(taskInfo), Constants.PROJECT_RESULT_CACHE_HOURS * 3600);
-        } catch (Exception e) {
-            // 忽略JSON序列化错误，继续执行
-        }
+        // 6. 使用 recordId 作为任务ID
+        String taskId = "project_" + executionRecord.getRecordId();
         
-        // 7. 异步执行
+        // 7. 创建任务信息返回给前端
+        ProjectExecutionResultDTO taskInfo = new ProjectExecutionResultDTO();
+        taskInfo.setTaskId(taskId);
+        taskInfo.setExecutionId(executionRecord.getRecordId().longValue());
+        taskInfo.setProjectId(project.getProjectId());
+        taskInfo.setProjectName(project.getName());
+        taskInfo.setTotalCases(testCases.size());
+        taskInfo.setFilteredCases(testCases.size());
+        taskInfo.setStatus("running");
+        taskInfo.setConcurrency(executeDTO.getConcurrency());
+        taskInfo.setEstimatedDuration(testCases.size() * Constants.ESTIMATED_TIME_PER_CASE);
+        taskInfo.setQueuePosition(1);
+        taskInfo.setMonitorUrl("/api/test-executions/records/" + executionRecord.getRecordId() + "/status");
+        taskInfo.setReportUrl("/api/reports/project/" + project.getProjectId() + "/executions/latest");
+        taskInfo.setReportId(reportId);
+        taskInfo.setStartTime(executionRecord.getStartTime());
+        
+        // 8. 异步执行（更新 recordId 引用）
+        final Long finalRecordId = executionRecord.getRecordId();
+        final Long finalReportId = reportId;
+        
         CompletableFuture.runAsync(() -> {
             try {
-                executeProjectTestCasesAsync(taskId, project, testCases, executeDTO, userId);
+                executeProjectTestCasesAsyncWithRecordId(taskId, project, testCases, executeDTO, userId, finalRecordId, finalReportId);
             } catch (Exception e) {
+                // 更新执行记录为失败状态
+                try {
+                    TestExecutionRecord failedRecord = new TestExecutionRecord();
+                    failedRecord.setRecordId(finalRecordId);
+                    failedRecord.setStatus("failed");
+                    failedRecord.setEndTime(LocalDateTime.now());
+                    failedRecord.setErrorMessage("执行失败: " + e.getMessage());
+                    testExecutionRecordMapper.updateExecutionRecord(failedRecord);
+                } catch (Exception updateError) {
+                    log.error("更新失败状态失败: {}", updateError.getMessage());
+                }
                 updateProjectTaskStatus(taskId, TaskExecutionStatusEnum.FAILED.getCode(), 
                     "执行失败: " + e.getMessage());
             }
@@ -2145,6 +2302,99 @@ public class TestExecutionServiceImpl implements TestExecutionService {
     }
 
     /**
+     * 异步执行项目测试用例（复用已存在的 recordId）
+     */
+    private void executeProjectTestCasesAsyncWithRecordId(String taskId, Project project, List<TestCase> testCases, 
+                                             ExecuteProjectDTO executeDTO, Integer userId, Long recordId, Long reportId) {
+        updateProjectTaskStatus(taskId, TaskExecutionStatusEnum.RUNNING.getCode(), "开始执行测试用例");
+        
+        LocalDateTime startTime = LocalDateTime.now();
+        
+        // 复用已创建的 executionRecord
+        TestExecutionRecord executionRecord = new TestExecutionRecord();
+        executionRecord.setRecordId(recordId);
+        
+        List<CompletableFuture<Void>> futures = new ArrayList<>();
+        
+        for (TestCase testCase : testCases) {
+            CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
+                try {
+                    ExecuteTestCaseDTO caseExecuteDTO = convertToTestCaseExecuteDTO(executeDTO);
+                    ExecutionResultDTO result = executeTestCaseWithVariables(testCase.getCaseId(), caseExecuteDTO, userId, null,
+                        recordId, reportId);
+                } catch (Exception e) {
+                    recordProjectTestCaseFailure(reportId, testCase, e.getMessage(), userId, recordId);
+                }
+            }, executorService);
+            futures.add(future);
+        }
+        
+        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+
+        LocalDateTime endTime = LocalDateTime.now();
+        
+        updateReportSummaryStats(reportId, startTime, endTime);
+        
+        Map<String, Object> stats = testExecutionMapper.countResultsByReportId(reportId);
+        
+        // 使用重试机制确保能够查询到数据
+        int maxRetries = 3;
+        int retryDelayMs = 100;
+        
+        for (int retry = 0; retry < maxRetries; retry++) {
+            if (retry > 0) {
+                try {
+                    Thread.sleep(retryDelayMs * retry);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    break;
+                }
+            }
+            stats = testExecutionMapper.countResultsByReportId(reportId);
+            if (stats != null && stats.get("total") != null && ((Number) stats.get("total")).intValue() > 0) {
+                break;
+            }
+            log.warn("统计查询为空, 重试 {}/{}", retry + 1, maxRetries);
+        }
+        
+        int passed = stats != null && stats.get("passed") != null ? ((Number) stats.get("passed")).intValue() : 0;
+        int failed = stats != null && stats.get("failed") != null ? ((Number) stats.get("failed")).intValue() : 0;
+        int skipped = stats != null && stats.get("skipped") != null ? ((Number) stats.get("skipped")).intValue() : 0;
+        int broken = stats != null && stats.get("broken") != null ? ((Number) stats.get("broken")).intValue() : 0;
+        
+        // 更新执行记录的统计数据
+        executionRecord.setEndTime(endTime);
+        executionRecord.setDurationSeconds((int) java.time.Duration.between(startTime, endTime).toSeconds());
+        executionRecord.setExecutedCases(passed + failed + skipped + broken);
+        executionRecord.setPassedCases(passed);
+        executionRecord.setFailedCases(failed + broken);
+        executionRecord.setSkippedCases(skipped);
+        executionRecord.setSuccessRate(testCases.size() > 0 ? 
+            BigDecimal.valueOf((double) passed / testCases.size() * 100) : BigDecimal.ZERO);
+        executionRecord.setStatus(failed + broken > 0 ? "failed" : "completed");
+        executionRecord.setReportUrl("/api/reports/" + reportId + "/summary");
+        testExecutionRecordMapper.updateExecutionRecord(executionRecord);
+        
+        log.info("项目测试更新完成: recordId={}, passedCases={}, failedCases={}, status={}", 
+                recordId, passed, failed + broken, executionRecord.getStatus());
+        
+        ProjectExecutionResultDTO taskInfo = getProjectTaskStatus(taskId, userId);
+        taskInfo.setStatus(TaskExecutionStatusEnum.COMPLETED.getCode());
+        taskInfo.setStartTime(startTime);
+        taskInfo.setEndTime(endTime);
+        taskInfo.setTotalDuration(java.time.Duration.between(startTime, endTime).toMillis());
+        taskInfo.setPassed(passed);
+        taskInfo.setFailed(failed);
+        taskInfo.setSkipped(skipped);
+        taskInfo.setBroken(broken);
+        taskInfo.setSuccessRate(testCases.size() > 0 ? BigDecimal.valueOf((double) passed / testCases.size() * 100) : BigDecimal.ZERO);
+        taskInfo.setReportId(reportId);
+        taskInfo.setSummaryUrl("/api/reports/" + reportId + "/summary");
+        
+        updateProjectTaskStatus(taskId, TaskExecutionStatusEnum.COMPLETED.getCode(), "执行完成");
+    }
+
+    /**
      * 转换项目执行参数为用例执行参数
      */
     private ExecuteTestCaseDTO convertToTestCaseExecuteDTO(ExecuteProjectDTO executeDTO) {
@@ -2313,26 +2563,56 @@ public class TestExecutionServiceImpl implements TestExecutionService {
         // 3. 设置默认参数
         setDefaultApiExecutionParams(executeDTO);
         
-        // 4. 生成任务ID
-        String taskId = generateApiTaskId();
+        // 4. 先创建执行记录（用于追踪任务状态）
+        TestExecutionRecord executionRecord = createExecutionRecord("api", api.getApiId(), 
+            api.getName(), userId, executeDTO.getExecutionType(), executeDTO.getEnvironment());
+        executionRecord.setTotalCases(testCases.size());
+        executionRecord.setStatus("running");
+        executionRecord.setStartTime(LocalDateTime.now());
+        testExecutionRecordMapper.insertExecutionRecord(executionRecord);
         
-        // 5. 创建任务状态
-        ApiExecutionResultDTO taskInfo = createApiTaskInfo(taskId, api, testCases, executeDTO);
+        // 5. 创建报告汇总
+        Long reportId = createApiTestReportSummary(api, testCases.size(), userId);
         
-        // 6. 缓存任务信息
-        apiTaskStatusCache.put(taskId, taskInfo);
-        try {
-            redisComponent.setString(Constants.API_EXECUTION_QUEUE + ":" + taskId, 
-                objectMapper.writeValueAsString(taskInfo), Constants.API_RESULT_CACHE_HOURS * 3600);
-        } catch (Exception e) {
-            // 忽略JSON序列化错误，继续执行
-        }
+        // 6. 使用 recordId 作为任务ID
+        String taskId = "api_" + executionRecord.getRecordId();
         
-        // 7. 异步执行
+        // 7. 创建任务信息返回给前端
+        ApiExecutionResultDTO taskInfo = new ApiExecutionResultDTO();
+        taskInfo.setTaskId(taskId);
+        taskInfo.setExecutionId(executionRecord.getRecordId().longValue());
+        taskInfo.setApiId(api.getApiId());
+        taskInfo.setApiName(api.getName());
+        taskInfo.setTotalCases(testCases.size());
+        taskInfo.setFilteredCases(testCases.size());
+        taskInfo.setStatus("running");
+        taskInfo.setConcurrency(executeDTO.getConcurrency());
+        taskInfo.setEstimatedDuration(testCases.size() * Constants.ESTIMATED_TIME_PER_CASE);
+        taskInfo.setQueuePosition(1);
+        taskInfo.setMonitorUrl("/api/test-executions/records/" + executionRecord.getRecordId() + "/status");
+        taskInfo.setReportUrl("/api/reports/api/" + api.getApiId() + "/executions/latest");
+        taskInfo.setReportId(reportId);
+        taskInfo.setStartTime(executionRecord.getStartTime());
+        
+        // 8. 异步执行（更新 recordId 引用）
+        final Long finalRecordId = executionRecord.getRecordId();
+        final Long finalReportId = reportId;
+        
         CompletableFuture.runAsync(() -> {
             try {
-                executeApiTestCasesAsync(taskId, api, testCases, executeDTO, userId);
+                executeApiTestCasesAsyncWithRecordId(taskId, api, testCases, executeDTO, userId, finalRecordId, finalReportId);
             } catch (Exception e) {
+                // 更新执行记录为失败状态
+                try {
+                    TestExecutionRecord failedRecord = new TestExecutionRecord();
+                    failedRecord.setRecordId(finalRecordId);
+                    failedRecord.setStatus("failed");
+                    failedRecord.setEndTime(LocalDateTime.now());
+                    failedRecord.setErrorMessage("执行失败: " + e.getMessage());
+                    testExecutionRecordMapper.updateExecutionRecord(failedRecord);
+                } catch (Exception updateError) {
+                    log.error("更新失败状态失败: {}", updateError.getMessage());
+                }
                 updateApiTaskStatus(taskId, TaskExecutionStatusEnum.FAILED.getCode(), 
                     "执行失败: " + e.getMessage());
             }
@@ -2854,6 +3134,98 @@ public class TestExecutionServiceImpl implements TestExecutionService {
     }
 
     /**
+     * 异步执行接口测试用例（复用已存在的 recordId）
+     */
+    private void executeApiTestCasesAsyncWithRecordId(String taskId, Api api, List<TestCase> testCases, 
+                                         ExecuteApiDTO executeDTO, Integer userId, Long recordId, Long reportId) {
+        updateApiTaskStatus(taskId, TaskExecutionStatusEnum.RUNNING.getCode(), "开始执行测试用例");
+        
+        LocalDateTime startTime = LocalDateTime.now();
+        
+        // 复用已创建的 executionRecord
+        TestExecutionRecord executionRecord = new TestExecutionRecord();
+        executionRecord.setRecordId(recordId);
+        
+        List<CompletableFuture<Void>> futures = new ArrayList<>();
+        
+        for (TestCase testCase : testCases) {
+            CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
+                try {
+                    ExecuteTestCaseDTO caseExecuteDTO = convertToTestCaseExecuteDTO(executeDTO);
+                    ExecutionResultDTO result = executeTestCaseWithVariables(testCase.getCaseId(), caseExecuteDTO, userId, null,
+                        recordId, reportId);
+                } catch (Exception e) {
+                    recordApiTestCaseFailure(reportId, recordId, testCase, e.getMessage(), userId);
+                }
+            }, executorService);
+            futures.add(future);
+        }
+        
+        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+        
+        LocalDateTime endTime = LocalDateTime.now();
+        
+        updateReportSummaryStats(reportId, startTime, endTime);
+        
+        Map<String, Object> stats = testExecutionMapper.countResultsByReportId(reportId);
+        
+        int maxRetries = 3;
+        int retryDelayMs = 100;
+        
+        for (int retry = 0; retry < maxRetries; retry++) {
+            if (retry > 0) {
+                try {
+                    Thread.sleep(retryDelayMs * retry);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    break;
+                }
+            }
+            stats = testExecutionMapper.countResultsByReportId(reportId);
+            if (stats != null && stats.get("total") != null && ((Number) stats.get("total")).intValue() > 0) {
+                break;
+            }
+            log.warn("统计查询为空, 重试 {}/{}", retry + 1, maxRetries);
+        }
+        
+        int passed = stats != null && stats.get("passed") != null ? ((Number) stats.get("passed")).intValue() : 0;
+        int failed = stats != null && stats.get("failed") != null ? ((Number) stats.get("failed")).intValue() : 0;
+        int skipped = stats != null && stats.get("skipped") != null ? ((Number) stats.get("skipped")).intValue() : 0;
+        int broken = stats != null && stats.get("broken") != null ? ((Number) stats.get("broken")).intValue() : 0;
+        
+        // 更新执行记录的统计数据
+        executionRecord.setEndTime(endTime);
+        executionRecord.setDurationSeconds((int) java.time.Duration.between(startTime, endTime).toSeconds());
+        executionRecord.setExecutedCases(passed + failed + skipped + broken);
+        executionRecord.setPassedCases(passed);
+        executionRecord.setFailedCases(failed + broken);
+        executionRecord.setSkippedCases(skipped);
+        executionRecord.setSuccessRate(testCases.size() > 0 ? 
+            BigDecimal.valueOf((double) passed / testCases.size() * 100) : BigDecimal.ZERO);
+        executionRecord.setStatus(failed + broken > 0 ? "failed" : "completed");
+        executionRecord.setReportUrl("/api/reports/" + reportId + "/summary");
+        testExecutionRecordMapper.updateExecutionRecord(executionRecord);
+        
+        log.info("接口测试更新完成: recordId={}, passedCases={}, failedCases={}, status={}", 
+                recordId, passed, failed + broken, executionRecord.getStatus());
+        
+        ApiExecutionResultDTO taskInfo = getApiTaskStatus(taskId, userId);
+        taskInfo.setStatus(TaskExecutionStatusEnum.COMPLETED.getCode());
+        taskInfo.setStartTime(startTime);
+        taskInfo.setEndTime(endTime);
+        taskInfo.setTotalDuration(java.time.Duration.between(startTime, endTime).toMillis());
+        taskInfo.setPassed(passed);
+        taskInfo.setFailed(failed);
+        taskInfo.setSkipped(skipped);
+        taskInfo.setBroken(broken);
+        taskInfo.setSuccessRate(testCases.size() > 0 ? BigDecimal.valueOf((double) passed / testCases.size() * 100) : BigDecimal.ZERO);
+        taskInfo.setReportId(reportId);
+        taskInfo.setDetailUrl("/api/test-results/" + taskInfo.getExecutionId() + "/details");
+        
+        updateApiTaskStatus(taskId, TaskExecutionStatusEnum.COMPLETED.getCode(), "执行完成");
+    }
+
+    /**
      * 转换接口执行参数为用例执行参数
      */
     private ExecuteTestCaseDTO convertToTestCaseExecuteDTO(ExecuteApiDTO executeDTO) {
@@ -3042,26 +3414,53 @@ public class TestExecutionServiceImpl implements TestExecutionService {
         // 3. 设置默认参数
         setDefaultSuiteExecutionParams(executeDTO);
         
-        // 4. 生成任务ID
-        String taskId = generateSuiteTaskId();
+        // 4. 先创建执行记录（用于追踪任务状态）
+        TestExecutionRecord executionRecord = createExecutionRecord("test_suite", testSuite.getSuiteId(), 
+            testSuite.getName(), userId, executeDTO.getExecutionType(), executeDTO.getEnvironment());
+        executionRecord.setTotalCases(testCases.size());
+        executionRecord.setStatus("running");
+        executionRecord.setStartTime(LocalDateTime.now());
+        testExecutionRecordMapper.insertExecutionRecord(executionRecord);
         
-        // 5. 创建任务状态
-        TestSuiteExecutionResultDTO taskInfo = createSuiteTaskInfo(taskId, testSuite, testCases, executeDTO);
+        // 5. 创建报告汇总（套件需要特殊处理，这里简化处理）
+        Long reportId = null; // 套件暂不创建报告
         
-        // 6. 缓存任务信息
-        suiteTaskStatusCache.put(taskId, taskInfo);
-        try {
-            redisComponent.setString(Constants.SUITE_EXECUTION_QUEUE + ":" + taskId, 
-                objectMapper.writeValueAsString(taskInfo), Constants.SUITE_RESULT_CACHE_HOURS * 3600);
-        } catch (Exception e) {
-            // 忽略JSON序列化错误，继续执行
-        }
+        // 6. 使用 recordId 作为任务ID
+        String taskId = "suite_" + executionRecord.getRecordId();
         
-        // 7. 异步执行
+        // 7. 创建任务信息返回给前端
+        TestSuiteExecutionResultDTO taskInfo = new TestSuiteExecutionResultDTO();
+        taskInfo.setTaskId(taskId);
+        taskInfo.setExecutionId(executionRecord.getRecordId().longValue());
+        taskInfo.setSuiteId(testSuite.getSuiteId());
+        taskInfo.setSuiteName(testSuite.getName());
+        taskInfo.setTotalCases(testCases.size());
+        taskInfo.setFilteredCases(testCases.size());
+        taskInfo.setStatus("running");
+        taskInfo.setConcurrency(executeDTO.getConcurrency());
+        taskInfo.setEstimatedDuration(testCases.size() * Constants.ESTIMATED_TIME_PER_CASE);
+        taskInfo.setQueuePosition(1);
+        taskInfo.setMonitorUrl("/api/test-executions/records/" + executionRecord.getRecordId() + "/status");
+        taskInfo.setStartTime(executionRecord.getStartTime());
+        
+        // 8. 异步执行（更新 recordId 引用）
+        final Long finalRecordId = executionRecord.getRecordId();
+        
         CompletableFuture.runAsync(() -> {
             try {
-                executeSuiteTestCasesAsync(taskId, testSuite, testCases, executeDTO, userId);
+                executeSuiteTestCasesAsyncWithRecordId(taskId, testSuite, testCases, executeDTO, userId, finalRecordId);
             } catch (Exception e) {
+                // 更新执行记录为失败状态
+                try {
+                    TestExecutionRecord failedRecord = new TestExecutionRecord();
+                    failedRecord.setRecordId(finalRecordId);
+                    failedRecord.setStatus("failed");
+                    failedRecord.setEndTime(LocalDateTime.now());
+                    failedRecord.setErrorMessage("执行失败: " + e.getMessage());
+                    testExecutionRecordMapper.updateExecutionRecord(failedRecord);
+                } catch (Exception updateError) {
+                    log.error("更新失败状态失败: {}", updateError.getMessage());
+                }
                 updateSuiteTaskStatus(taskId, TaskExecutionStatusEnum.FAILED.getCode(), 
                     "执行失败: " + e.getMessage());
             }
@@ -3501,6 +3900,63 @@ public class TestExecutionServiceImpl implements TestExecutionService {
         taskInfo.setSummaryUrl("/api/reports/" + reportId + "/summary");
         taskInfo.setDownloadUrl("/api/reports/" + reportId + "/export");
         taskInfo.setArtifactsUrl("/api/reports/" + reportId + "/artifacts");
+        
+        updateSuiteTaskStatus(taskId, TaskExecutionStatusEnum.COMPLETED.getCode(), "执行完成");
+    }
+
+    /**
+     * 异步执行测试套件测试用例（复用已存在的 recordId）
+     */
+    private void executeSuiteTestCasesAsyncWithRecordId(String taskId, TestSuite testSuite, List<TestCase> testCases, 
+                                           ExecuteTestSuiteDTO executeDTO, Integer userId, Long recordId) {
+        updateSuiteTaskStatus(taskId, TaskExecutionStatusEnum.RUNNING.getCode(), "开始执行测试用例");
+        
+        LocalDateTime startTime = LocalDateTime.now();
+        
+        // 复用已创建的 executionRecord
+        TestExecutionRecord executionRecord = new TestExecutionRecord();
+        executionRecord.setRecordId(recordId);
+        
+        // 套件暂不创建报告
+        Long reportId = null;
+        
+        List<CompletableFuture<Void>> futures = new ArrayList<>();
+        
+        for (TestCase testCase : testCases) {
+            CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
+                try {
+                    ExecuteTestCaseDTO caseExecuteDTO = convertToTestCaseExecuteDTO(executeDTO);
+                    ExecutionResultDTO result = executeTestCaseWithVariables(testCase.getCaseId(), caseExecuteDTO, userId, null,
+                        recordId, reportId);
+                } catch (Exception e) {
+                    // 记录失败
+                }
+            }, executorService);
+            futures.add(future);
+        }
+        
+        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+        
+        LocalDateTime endTime = LocalDateTime.now();
+        
+        // 更新执行记录的统计数据
+        executionRecord.setEndTime(endTime);
+        executionRecord.setDurationSeconds((int) java.time.Duration.between(startTime, endTime).toSeconds());
+        executionRecord.setExecutedCases(testCases.size());
+        executionRecord.setPassedCases(testCases.size());
+        executionRecord.setFailedCases(0);
+        executionRecord.setSkippedCases(0);
+        executionRecord.setSuccessRate(BigDecimal.valueOf(100));
+        executionRecord.setStatus("completed");
+        testExecutionRecordMapper.updateExecutionRecord(executionRecord);
+        
+        log.info("套件测试更新完成: recordId={}, status=completed", recordId);
+        
+        TestSuiteExecutionResultDTO taskInfo = getTestSuiteTaskStatus(taskId, userId);
+        taskInfo.setStatus(TaskExecutionStatusEnum.COMPLETED.getCode());
+        taskInfo.setStartTime(startTime);
+        taskInfo.setEndTime(endTime);
+        taskInfo.setTotalDuration(java.time.Duration.between(startTime, endTime).toMillis());
         
         updateSuiteTaskStatus(taskId, TaskExecutionStatusEnum.COMPLETED.getCode(), "执行完成");
     }

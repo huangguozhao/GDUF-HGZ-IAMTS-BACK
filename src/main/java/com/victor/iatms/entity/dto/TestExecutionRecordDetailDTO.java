@@ -5,6 +5,7 @@ import lombok.Data;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * 测试执行记录详情DTO
@@ -146,6 +147,43 @@ public class TestExecutionRecordDetailDTO {
      * 更新时间
      */
     private LocalDateTime updatedAt;
+    
+    /**
+     * 用例执行结果列表
+     */
+    private List<CaseResultDetail> caseResults;
+    
+    /**
+     * 用例结果详情内部类
+     */
+    @Data
+    public static class CaseResultDetail {
+        private Long resultId;
+        private Integer caseId;
+        private String caseCode;
+        private String caseName;
+        private String status;
+        private Long duration;
+        private Integer responseStatus;
+        private String failureMessage;
+        private String failureType;
+        private String failureTrace;
+        private String errorCode;
+        private String logsLink;
+        private String screenshotLink;
+        private String stepsJson;
+        private String parametersJson;
+        private String moduleName;
+        private String apiName;
+        private String environment;
+        private String browser;
+        private LocalDateTime startTime;
+        private LocalDateTime endTime;
+        private String severity;
+        private String priority;
+        private String testType;
+        private String testLayer;
+    }
     
     /**
      * 从实体转换为DTO
