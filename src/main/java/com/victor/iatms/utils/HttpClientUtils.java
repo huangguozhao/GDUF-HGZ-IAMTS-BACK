@@ -51,8 +51,10 @@ public class HttpClientUtils {
                 }
             }
             
-            // 设置请求体
-            if (body != null && !body.isEmpty()) {
+            // 设置请求体 - 只有非GET/HEAD方法才设置doOutput
+            String upperMethod = method.toUpperCase();
+            boolean isGetOrHead = "GET".equals(upperMethod) || "HEAD".equals(upperMethod);
+            if (body != null && !body.isEmpty() && !isGetOrHead) {
                 connection.setDoOutput(true);
                 try (OutputStream os = connection.getOutputStream()) {
                     byte[] input = body.getBytes(StandardCharsets.UTF_8);
