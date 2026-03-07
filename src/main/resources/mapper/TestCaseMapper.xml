@@ -475,8 +475,8 @@
         <result column="expected_http_status" property="expectedHttpStatus"/>
         <result column="expected_response_schema" property="expectedResponseSchema" typeHandler="com.victor.iatms.utils.JsonTypeHandler"/>
         <result column="expected_response_body" property="expectedResponseBody"/>
-        <result column="assertions" property="assertions" typeHandler="com.victor.iatms.utils.JsonTypeHandler"/>
-        <result column="extractors" property="extractors" typeHandler="com.victor.iatms.utils.JsonTypeHandler"/>
+        <result column="assertions" property="assertions"/>
+        <result column="extractors" property="extractors"/>
         <result column="validators" property="validators" typeHandler="com.victor.iatms.utils.JsonTypeHandler"/>
         <result column="is_enabled" property="isEnabled"/>
         <result column="is_template" property="isTemplate"/>

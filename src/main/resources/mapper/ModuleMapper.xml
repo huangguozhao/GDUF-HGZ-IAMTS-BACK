@@ -274,7 +274,7 @@
         <result column="full_url" property="fullUrl"/>
         <result column="request_parameters" property="requestParameters" typeHandler="com.victor.iatms.utils.JsonTypeHandler"/>
         <result column="path_parameters" property="pathParameters" typeHandler="com.victor.iatms.utils.JsonTypeHandler"/>
-        <result column="request_headers" property="requestHeaders" typeHandler="com.victor.iatms.utils.JsonTypeHandler"/>
+        <result column="request_headers" property="requestHeaders"/>
         <result column="request_body" property="requestBody"/>
         <result column="request_body_type" property="requestBodyType"/>
         <result column="response_body_type" property="responseBodyType"/>

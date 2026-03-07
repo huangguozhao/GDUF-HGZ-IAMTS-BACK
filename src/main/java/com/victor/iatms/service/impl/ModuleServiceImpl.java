@@ -1,5 +1,6 @@
 package com.victor.iatms.service.impl;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.victor.iatms.entity.constants.Constants;
 import lombok.extern.slf4j.Slf4j;
 import com.victor.iatms.entity.dto.ApiListQueryDTO;
@@ -304,6 +305,11 @@ public class ModuleServiceImpl implements ModuleService {
         // 查询接口列表
         List<com.victor.iatms.entity.dto.ApiDTO> apiList = moduleMapper.selectApiList(queryDTO);
         
+        // 转换JSON字段
+        for (com.victor.iatms.entity.dto.ApiDTO dto : apiList) {
+            convertApiDTOJsonFields(dto);
+        }
+        
         // 查询总数
         Integer total = moduleMapper.countApiList(queryDTO);
         
@@ -376,6 +382,40 @@ public class ModuleServiceImpl implements ModuleService {
         // 验证排序顺序
         if (!com.victor.iatms.entity.enums.SortOrderEnum.isValidSortOrder(queryDTO.getSortOrder())) {
             queryDTO.setSortOrder(Constants.DEFAULT_SORT_ORDER);
+        }
+    }
+    
+    /**
+     * 转换ApiDTO中的JSON字段
+     */
+    private void convertApiDTOJsonFields(com.victor.iatms.entity.dto.ApiDTO dto) {
+        ObjectMapper objectMapper = new ObjectMapper();
+        
+        // 转换 requestParameters
+        if (dto.getRequestParameters() instanceof String) {
+            try {
+                dto.setRequestParameters(objectMapper.readValue((String) dto.getRequestParameters(), Object.class));
+            } catch (Exception e) {
+                dto.setRequestParameters(null);
+            }
+        }
+        
+        // 转换 pathParameters
+        if (dto.getPathParameters() instanceof String) {
+            try {
+                dto.setPathParameters(objectMapper.readValue((String) dto.getPathParameters(), Object.class));
+            } catch (Exception e) {
+                dto.setPathParameters(null);
+            }
+        }
+        
+        // 转换 requestHeaders
+        if (dto.getRequestHeaders() instanceof String) {
+            try {
+                dto.setRequestHeaders(objectMapper.readValue((String) dto.getRequestHeaders(), Object.class));
+            } catch (Exception e) {
+                dto.setRequestHeaders(null);
+            }
         }
     }
     

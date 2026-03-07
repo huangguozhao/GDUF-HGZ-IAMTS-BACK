@@ -436,10 +436,23 @@ public class TestCaseExecutor {
         if (apiInfo.getRequestHeaders() != null && !apiInfo.getRequestHeaders().trim().isEmpty()) {
             try {
                 JsonNode headersNode = objectMapper.readTree(apiInfo.getRequestHeaders());
+                
+                // 处理两种格式：对象格式和数组格式
                 if (headersNode.isObject()) {
+                    // 格式1: {"Content-Type": "application/json"}
                     headersNode.fields().forEachRemaining(entry -> {
                         headers.put(entry.getKey(), entry.getValue().asText());
                     });
+                } else if (headersNode.isArray()) {
+                    // 格式2: [{"name": "Content-Type", "value": "application/json"}]
+                    for (JsonNode item : headersNode) {
+                        if (item.has("name") && item.has("value")) {
+                            headers.put(item.get("name").asText(), item.get("value").asText());
+                        } else if (item.has("name")) {
+                            // 只有 name 字段的情况
+                            headers.put(item.get("name").asText(), "");
+                        }
+                    }
                 }
             } catch (Exception e) {
                 log.warn("解析接口默认请求头失败: {}", e.getMessage());
