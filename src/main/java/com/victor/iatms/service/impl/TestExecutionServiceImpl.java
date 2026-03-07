@@ -4897,5 +4897,59 @@ public class TestExecutionServiceImpl implements TestExecutionService {
             record.setSuccessRate(BigDecimal.ZERO);
         }
     }
+
+    @Override
+    public List<Map<String, Object>> getTestCaseResultsByReportId(Long reportId) {
+        // 查询测试结果列表
+        List<TestCaseResult> testCaseResults = testExecutionMapper.findTestCaseResultsByReportId(reportId);
+        
+        // 转换为Map列表
+        List<Map<String, Object>> resultList = new ArrayList<>();
+        for (TestCaseResult result : testCaseResults) {
+            Map<String, Object> map = new HashMap<>();
+            map.put("resultId", result.getResultId());
+            map.put("executionRecordId", result.getExecutionRecordId());
+            map.put("reportId", result.getReportId());
+            map.put("executionId", result.getExecutionId());
+            map.put("taskType", result.getTaskType());
+            map.put("refId", result.getRefId());
+            map.put("fullName", result.getFullName());
+            map.put("status", result.getStatus());
+            map.put("duration", result.getDuration());
+            map.put("startTime", result.getStartTime());
+            map.put("endTime", result.getEndTime());
+            map.put("failureMessage", result.getFailureMessage());
+            map.put("failureTrace", result.getFailureTrace());
+            map.put("failureType", result.getFailureType());
+            map.put("errorCode", result.getErrorCode());
+            map.put("stepsJson", result.getStepsJson());
+            map.put("parametersJson", result.getParametersJson());
+            map.put("attachmentsJson", result.getAttachmentsJson());
+            map.put("logsLink", result.getLogsLink());
+            map.put("screenshotLink", result.getScreenshotLink());
+            map.put("videoLink", result.getVideoLink());
+            map.put("environment", result.getEnvironment());
+            map.put("browser", result.getBrowser());
+            map.put("os", result.getOs());
+            map.put("device", result.getDevice());
+            map.put("tagsJson", result.getTagsJson());
+            map.put("severity", result.getSeverity());
+            map.put("priority", result.getPriority());
+            map.put("retryCount", result.getRetryCount());
+            map.put("flaky", result.getFlaky());
+            map.put("createdAt", result.getCreatedAt());
+            map.put("caseId", result.getCaseId());
+            map.put("caseCode", result.getCaseCode());
+            map.put("caseName", result.getCaseName());
+            map.put("moduleName", result.getModuleName());
+            map.put("apiName", result.getApiName());
+            map.put("suiteName", result.getSuiteName());
+            map.put("testLayer", result.getTestLayer());
+            map.put("testType", result.getTestType());
+            resultList.add(map);
+        }
+        
+        return resultList;
+    }
 }
 

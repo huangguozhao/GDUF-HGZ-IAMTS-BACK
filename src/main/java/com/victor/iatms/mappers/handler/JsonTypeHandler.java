@@ -55,7 +55,30 @@ public class JsonTypeHandler extends BaseTypeHandler<Object> {
             return null;
         }
         try {
-            return objectMapper.readValue(json, Object.class);
+            Object result = objectMapper.readValue(json, Object.class);
+            // 如果解析结果是ArrayList，尝试将其中的元素转换为字符串
+            if (result instanceof java.util.List) {
+                java.util.List<?> list = (java.util.List<?>) result;
+                java.util.List<String> stringList = new java.util.ArrayList<>();
+                for (Object item : list) {
+                    if (item instanceof String) {
+                        stringList.add((String) item);
+                    } else if (item instanceof java.util.Map) {
+                        // 如果是Map对象，尝试提取其中的值
+                        java.util.Map<?, ?> map = (java.util.Map<?, ?>) item;
+                        if (map.containsKey("name")) {
+                            stringList.add(String.valueOf(map.get("name")));
+                        } else if (!map.isEmpty()) {
+                            // 取第一个值
+                            stringList.add(String.valueOf(map.values().iterator().next()));
+                        }
+                    } else {
+                        stringList.add(String.valueOf(item));
+                    }
+                }
+                return stringList;
+            }
+            return result;
         } catch (Exception e) {
             // 如果解析失败，返回原始字符串
             return json;

@@ -157,8 +157,8 @@ public class AIDiagnosisServiceImpl implements AIDiagnosisService {
                 
                 // 如果没有提供测试用例结果，尝试从数据库获取
                 if (allCaseResults == null || allCaseResults.isEmpty()) {
-                    if (executionId != null) {
-                        allCaseResults = testExecutionMapper.findTestCaseResultsByExecutionId(executionId);
+                if (executionId != null) {
+                    allCaseResults = testExecutionMapper.findTestCaseResultsByExecutionId(executionId);
                         log.info("从数据库获取到{}条测试用例结果", allCaseResults != null ? allCaseResults.size() : 0);
                     }
                 }

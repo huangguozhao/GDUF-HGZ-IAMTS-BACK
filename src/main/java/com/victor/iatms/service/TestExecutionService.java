@@ -12,6 +12,7 @@ import com.victor.iatms.entity.dto.ApiExecutionResultDTO;
 import com.victor.iatms.entity.dto.TestSuiteExecutionResultDTO;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 测试执行服务接口
@@ -302,4 +303,5 @@ public interface TestExecutionService {
         com.victor.iatms.entity.dto.DashboardSummaryDTO getDashboardSummary(
             String timeRange, Boolean includeRecentActivity, Boolean includePendingTasks, 
             Boolean includeQuickActions, Integer userId);
-    }
+            List<Map<String, Object>> getTestCaseResultsByReportId(Long reportId);
+}

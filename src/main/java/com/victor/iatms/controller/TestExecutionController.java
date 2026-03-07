@@ -22,6 +22,9 @@ import org.springframework.web.bind.annotation.*;
 
 import jakarta.servlet.http.HttpServletRequest;
 
+import java.util.List;
+import java.util.Map;
+
 /**
  * 测试执行控制器
  */
@@ -1143,6 +1146,26 @@ public class TestExecutionController {
             }
         } catch (Exception e) {
             return ResponseVO.serverError("系统异常，请稍后重试");
+        }
+    }
+
+    /**
+     * 根据报告ID获取用例结果列表（用于AI诊断）
+     */
+    @GetMapping("/test-results/by-report/{reportId}")
+    @GlobalInterceptor(
+        checkLogin = true,
+        checkPermission = {"testcase:view"}
+    )
+    public ResponseVO<List<Map<String, Object>>> getTestCaseResultsByReportId(
+            @PathVariable("reportId") Long reportId,
+            HttpServletRequest request) {
+        try {
+            List<Map<String, Object>> results = testExecutionService.getTestCaseResultsByReportId(reportId);
+            return ResponseVO.success(results);
+        } catch (Exception e) {
+            log.error("获取报告用例结果失败: reportId={}, error={}", reportId, e.getMessage(), e);
+            return ResponseVO.serverError("获取用例结果失败: " + e.getMessage());
         }
     }
 
