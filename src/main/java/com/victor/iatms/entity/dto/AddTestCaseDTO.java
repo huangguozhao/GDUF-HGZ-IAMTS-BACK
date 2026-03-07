@@ -77,9 +77,9 @@ public class AddTestCaseDTO {
     private String expectedResponseBody;
 
     /**
-     * 断言规则
+     * 断言规则 - 支持字符串数组和对象数组
      */
-    private List<Map<String, Object>> assertions;
+    private List<Object> assertions;
 
     /**
      * 响应提取规则

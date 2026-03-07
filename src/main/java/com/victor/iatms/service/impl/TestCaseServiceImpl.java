@@ -30,6 +30,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -975,7 +977,7 @@ public class TestCaseServiceImpl implements TestCaseService {
         // 断言规则（JSON对象数组）
         if (StringUtils.hasText(testCase.getAssertions())) {
             try {
-                responseDTO.setAssertions((List<Map<String, Object>>) (List<?>) JsonUtils.convertJsonArray2List(testCase.getAssertions(), java.util.LinkedHashMap.class));
+                responseDTO.setAssertions(Collections.singletonList((List<Map<String, Object>>) (List<?>) JsonUtils.convertJsonArray2List(testCase.getAssertions(), LinkedHashMap.class)));
             } catch (Exception e) {
                 logger.warn("解析assertions失败: {}", e.getMessage());
             }
@@ -1076,7 +1078,7 @@ public class TestCaseServiceImpl implements TestCaseService {
                 responseDTO.setExpectedResponseSchema(expectedResponseSchema);
             }
             if (testCase.getAssertions() != null && !testCase.getAssertions().isEmpty()) {
-                responseDTO.setAssertions(parseJsonToListOrKeepAsIs(testCase.getAssertions()));
+                responseDTO.setAssertions(Collections.singletonList(parseJsonToListOrKeepAsIs(testCase.getAssertions())));
             }
             if (testCase.getExtractors() != null && !testCase.getExtractors().isEmpty()) {
                 responseDTO.setExtractors(parseJsonToListOrKeepAsIs(testCase.getExtractors()));

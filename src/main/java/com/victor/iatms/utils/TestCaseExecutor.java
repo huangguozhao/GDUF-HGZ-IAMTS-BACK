@@ -543,48 +543,140 @@ public class TestCaseExecutor {
      * 1. 如果用户手动输入了baseUrl，使用手动输入的
      * 2. 否则从环境配置中获取（domain + protocol + port）
      * 3. 如果环境配置不完整，使用接口默认的baseUrl
+     * 
+     * 支持 requestOverride 中的 queryParams 和 pathParams 覆盖
      */
     private String buildFullUrl(TestCaseExecutionDTO executionDTO) {
         TestCaseExecutionDTO.ApiInfoDTO apiInfo = executionDTO.getApiInfo();
         String apiPath = apiInfo.getPath();
         
-        // 1. 优先使用用户手动输入的baseUrl（已通过executeDTO设置到apiInfo.baseUrl中）
-        String manualBaseUrl = apiInfo.getBaseUrl();
-        if (manualBaseUrl != null && !manualBaseUrl.trim().isEmpty()) {
-            String fullUrl = ensureProtocol(manualBaseUrl) + apiPath;
-            log.info("使用用户输入的BaseUrl: {}", fullUrl);
-            return fullUrl;
-        }
-        
-        // 2. 尝试从环境配置中获取
-        String environment = executionDTO.getEnvironment();
-        if (environment != null && !environment.trim().isEmpty()) {
+        // 1. 处理路径参数覆盖 (pathParams)
+        String finalPath = apiPath;
+        String requestOverride = executionDTO.getRequestOverride();
+        if (requestOverride != null && !requestOverride.trim().isEmpty() && !"null".equals(requestOverride)) {
             try {
-                Integer envId = Integer.parseInt(environment);
-                EnvironmentConfig envConfig = environmentConfigMapper.selectById(envId);
-                if (envConfig != null) {
-                    String fullUrl = buildUrlFromEnvironment(envConfig, apiPath);
-                    if (fullUrl != null) {
-                        log.info("使用环境配置的URL: {}", fullUrl);
-                        return fullUrl;
+                JsonNode overrideNode = objectMapper.readTree(requestOverride);
+                if (overrideNode.has("pathParams") && overrideNode.get("pathParams").isArray()) {
+                    JsonNode pathParamsNode = overrideNode.get("pathParams");
+                    for (JsonNode param : pathParamsNode) {
+                        String paramName = param.has("name") ? param.get("name").asText() : "";
+                        String paramValue = param.has("value") ? param.get("value").asText() : "";
+                        if (!paramName.isEmpty()) {
+                            // 替换 {paramName} 或 :paramName 为实际值
+                            finalPath = finalPath.replace("{" + paramName + "}", paramValue);
+                            finalPath = finalPath.replace(":" + paramName, paramValue);
+                        }
                     }
+                    log.info("✓ 应用路径参数覆盖: {}", finalPath);
                 }
-            } catch (NumberFormatException e) {
-                log.warn("环境ID格式错误: {}", environment);
+            } catch (Exception e) {
+                log.warn("解析pathParams覆盖失败: {}", e.getMessage());
             }
         }
         
-        // 3. 使用接口默认的baseUrl
-        String defaultBaseUrl = apiInfo.getBaseUrl();
-        if (defaultBaseUrl != null && !defaultBaseUrl.trim().isEmpty()) {
-            String fullUrl = ensureProtocol(defaultBaseUrl) + apiPath;
-            log.info("使用接口默认的BaseUrl: {}", fullUrl);
-            return fullUrl;
+        // 2. 优先使用用户手动输入的baseUrl（已通过executeDTO设置到apiInfo.baseUrl中）
+        String manualBaseUrl = apiInfo.getBaseUrl();
+        String baseUrl = null;
+        
+        if (manualBaseUrl != null && !manualBaseUrl.trim().isEmpty()) {
+            baseUrl = ensureProtocol(manualBaseUrl);
+            log.info("使用用户输入的BaseUrl: {}", baseUrl);
+        } else {
+            // 3. 尝试从环境配置中获取
+            String environment = executionDTO.getEnvironment();
+            if (environment != null && !environment.trim().isEmpty()) {
+                try {
+                    Integer envId = Integer.parseInt(environment);
+                    EnvironmentConfig envConfig = environmentConfigMapper.selectById(envId);
+                    if (envConfig != null) {
+                        baseUrl = buildBaseUrlFromEnvironment(envConfig);
+                        if (baseUrl != null) {
+                            log.info("使用环境配置的BaseUrl: {}", baseUrl);
+                        }
+                    }
+                } catch (NumberFormatException e) {
+                    log.warn("环境ID格式错误: {}", environment);
+                }
+            }
+            
+            // 4. 使用接口默认的baseUrl
+            if (baseUrl == null && apiInfo.getBaseUrl() != null && !apiInfo.getBaseUrl().trim().isEmpty()) {
+                baseUrl = ensureProtocol(apiInfo.getBaseUrl());
+                log.info("使用接口默认的BaseUrl: {}", baseUrl);
+            }
         }
         
-        // 4. 兜底：使用localhost
-        log.warn("未找到有效的BaseUrl配置，使用默认localhost");
-        return "http://localhost:8080" + apiPath;
+        // 5. 兜底：使用localhost
+        if (baseUrl == null) {
+            baseUrl = "http://localhost:8080";
+            log.warn("未找到有效的BaseUrl配置，使用默认localhost");
+        }
+        
+        String fullUrl = baseUrl + finalPath;
+        
+        // 6. 处理查询参数覆盖 (queryParams)
+        if (requestOverride != null && !requestOverride.trim().isEmpty() && !"null".equals(requestOverride)) {
+            try {
+                JsonNode overrideNode = objectMapper.readTree(requestOverride);
+                if (overrideNode.has("queryParams") && overrideNode.get("queryParams").isArray()) {
+                    JsonNode queryParamsNode = overrideNode.get("queryParams");
+                    StringBuilder queryBuilder = new StringBuilder();
+                    boolean first = true;
+                    for (JsonNode param : queryParamsNode) {
+                        String paramName = param.has("name") ? param.get("name").asText() : "";
+                        String paramValue = param.has("value") ? param.get("value").asText() : "";
+                        if (!paramName.isEmpty()) {
+                            if (!first) {
+                                queryBuilder.append("&");
+                            }
+                            queryBuilder.append(paramName).append("=").append(paramValue);
+                            first = false;
+                        }
+                    }
+                    if (queryBuilder.length() > 0) {
+                        fullUrl = fullUrl + "?" + queryBuilder.toString();
+                        log.info("✓ 应用查询参数覆盖: {}", queryBuilder.toString());
+                    }
+                }
+            } catch (Exception e) {
+                log.warn("解析queryParams覆盖失败: {}", e.getMessage());
+            }
+        }
+        
+        return fullUrl;
+    }
+
+    /**
+     * 从环境配置构建BaseUrl（不包含路径）
+     */
+    private String buildBaseUrlFromEnvironment(EnvironmentConfig envConfig) {
+        String protocol = envConfig.getProtocol();
+        String domain = envConfig.getDomain();
+        Integer port = envConfig.getPort();
+        
+        // 如果有baseUrl，直接使用
+        if (envConfig.getBaseUrl() != null && !envConfig.getBaseUrl().trim().isEmpty()) {
+            String baseUrl = envConfig.getBaseUrl().trim();
+            if (!baseUrl.startsWith("http://") && !baseUrl.startsWith("https://")) {
+                baseUrl = (protocol != null ? protocol : "http") + "://" + baseUrl;
+            }
+            return baseUrl;
+        }
+        
+        if (domain == null || domain.trim().isEmpty()) {
+            return null;
+        }
+        
+        StringBuilder url = new StringBuilder();
+        url.append(protocol != null ? protocol : "http").append("://");
+        url.append(domain.trim());
+        
+        // 添加端口
+        if (port != null && port > 0) {
+            url.append(":").append(port);
+        }
+        
+        return url.toString();
     }
 
     /**

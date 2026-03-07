@@ -78,9 +78,9 @@ public class UpdateTestCaseDTO {
     private String expectedResponseBody;
 
     /**
-     * 断言规则
+     * 断言规则 - 支持字符串数组（简化格式）和对象数组（完整格式）
      */
-    private List<Map<String, Object>> assertions;
+    private List<Object> assertions;
 
     /**
      * 响应提取规则
