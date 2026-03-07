@@ -42,19 +42,19 @@ public class CreateApiDTO {
     private String baseUrl;
 
     /**
-     * 查询参数配置
+     * 查询参数配置（使用Object以支持多种输入格式）
      */
-    private List<Map<String, Object>> requestParameters;
+    private Object requestParameters;
 
     /**
      * 路径参数配置
      */
-    private List<Map<String, Object>> pathParameters;
+    private Object pathParameters;
 
     /**
      * 请求头配置
      */
-    private List<Map<String, Object>> requestHeaders;
+    private Object requestHeaders;
 
     /**
      * 请求体内容
@@ -111,4 +111,3 @@ public class CreateApiDTO {
      */
     private Integer timeoutSeconds;
 }
-

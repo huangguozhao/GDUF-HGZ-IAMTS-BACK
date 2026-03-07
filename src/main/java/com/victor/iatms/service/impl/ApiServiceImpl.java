@@ -20,6 +20,7 @@ import org.springframework.util.StringUtils;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -70,9 +71,9 @@ public class ApiServiceImpl implements ApiService {
         api.setMethod(createDTO.getMethod().toUpperCase());
         api.setPath(createDTO.getPath());
         api.setBaseUrl(createDTO.getBaseUrl());
-        api.setRequestParameters(toJson(createDTO.getRequestParameters()));
-        api.setPathParameters(toJson(createDTO.getPathParameters()));
-        api.setRequestHeaders(toJson(createDTO.getRequestHeaders()));
+        api.setRequestParameters(toJson(convertToList(createDTO.getRequestParameters())));
+        api.setPathParameters(toJson(convertToList(createDTO.getPathParameters())));
+        api.setRequestHeaders(toJson(convertToList(createDTO.getRequestHeaders())));
         api.setRequestBody(createDTO.getRequestBody());
         api.setRequestBodyType(createDTO.getRequestBodyType());
         api.setResponseBodyType(createDTO.getResponseBodyType());
@@ -146,13 +147,13 @@ public class ApiServiceImpl implements ApiService {
             api.setBaseUrl(updateDTO.getBaseUrl());
         }
         if (updateDTO.getRequestParameters() != null) {
-            api.setRequestParameters(toJson(updateDTO.getRequestParameters()));
+            api.setRequestParameters(toJson(convertToList(updateDTO.getRequestParameters())));
         }
         if (updateDTO.getPathParameters() != null) {
-            api.setPathParameters(toJson(updateDTO.getPathParameters()));
+            api.setPathParameters(toJson(convertToList(updateDTO.getPathParameters())));
         }
         if (updateDTO.getRequestHeaders() != null) {
-            api.setRequestHeaders(toJson(updateDTO.getRequestHeaders()));
+            api.setRequestHeaders(toJson(convertToList(updateDTO.getRequestHeaders())));
         }
         if (updateDTO.getRequestBody() != null) {
             api.setRequestBody(updateDTO.getRequestBody());
@@ -481,6 +482,54 @@ public class ApiServiceImpl implements ApiService {
         } catch (JsonProcessingException e) {
             throw new RuntimeException("JSON转换失败", e);
         }
+    }
+
+    /**
+     * 将各种格式的对象转换为List<Map>
+     * 支持：List, Array, String(JSON数组)
+     */
+    @SuppressWarnings("unchecked")
+    private List<Map<String, Object>> convertToList(Object obj) {
+        if (obj == null) {
+            return null;
+        }
+
+        List<Map<String, Object>> result = new java.util.ArrayList<>();
+
+        try {
+            if (obj instanceof List) {
+                List<?> list = (List<?>) obj;
+                for (Object item : list) {
+                    if (item instanceof Map) {
+                        result.add((Map<String, Object>) item);
+                    } else if (item instanceof String) {
+                        // 尝试解析JSON字符串
+                        try {
+                            Object parsed = objectMapper.readValue((String) item, Object.class);
+                            if (parsed instanceof Map) {
+                                result.add((Map<String, Object>) parsed);
+                            }
+                        } catch (Exception ignored) {
+                            // 如果解析失败，跳过该项
+                        }
+                    }
+                }
+            } else if (obj instanceof String) {
+                // 尝试解析JSON字符串
+                try {
+                    Object parsed = objectMapper.readValue((String) obj, Object.class);
+                    if (parsed instanceof List) {
+                        return convertToList(parsed);
+                    }
+                } catch (Exception ignored) {
+                    // 解析失败
+                }
+            }
+        } catch (Exception e) {
+            // 转换失败，返回空列表
+        }
+
+        return result.isEmpty() ? null : result;
     }
 
     /**
