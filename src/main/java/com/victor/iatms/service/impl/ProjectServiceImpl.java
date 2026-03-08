@@ -454,13 +454,41 @@ public class ProjectServiceImpl implements ProjectService {
         Project project = projectMapper.selectById(projectId);
         if (project == null || Boolean.TRUE.equals(project.getIsDeleted())) {
             throw new IllegalArgumentException("项目不存在");
-    }
+        }
         User user = userMapper.selectUserById(userId);
         if (user == null) throw new IllegalArgumentException("用户不存在");
         ProjectMember relation = projectMemberMapper.findByProjectAndUser(projectId, userId);
         if (relation == null || "removed".equalsIgnoreCase(relation.getStatus())) {
             throw new IllegalArgumentException("该用户不是项目成员");
         }
+
+        // 获取操作者的角色信息
+        User operator = userMapper.selectUserById(operatorId);
+        boolean isAdmin = operator != null && "admin".equals(operator.getRole());
+        ProjectMember operatorMember = projectMemberMapper.findByProjectAndUser(projectId, operatorId);
+        String operatorRole = operatorMember != null ? operatorMember.getProjectRole() : null;
+
+        // 如果不是管理员且不是项目成员，无权操作
+        if (!isAdmin && operatorMember == null) {
+            throw new IllegalArgumentException("您不是项目成员，无权操作");
+        }
+
+        // 角色修改权限校验
+        if (dto.getProjectRole() != null) {
+            String targetRole = dto.getProjectRole();
+            String currentRole = relation.getProjectRole();
+
+            if (!isAdmin && !"owner".equals(operatorRole)) {
+                // 非管理员且非owner，只有manager及以下权限
+                if ("owner".equals(targetRole) || "manager".equals(targetRole)) {
+                    throw new IllegalArgumentException("您无权将成员设置为项目负责人或管理员");
+                }
+                if ("owner".equals(currentRole) || "manager".equals(currentRole)) {
+                    throw new IllegalArgumentException("您无权修改项目负责人或管理员的角色");
+                }
+            }
+        }
+
         ProjectMember update = new ProjectMember();
         update.setProjectId(projectId);
         update.setUserId(userId);
@@ -479,6 +507,15 @@ public class ProjectServiceImpl implements ProjectService {
         if (dto.getStatus() != null) {
             if (!java.util.Set.of("active","inactive","removed").contains(dto.getStatus())) {
                 throw new IllegalArgumentException("状态值无效，可选值: active, inactive, removed");
+            }
+            // 权限校验：非管理员且非owner不能移除owner或manager
+            String currentRole = relation.getProjectRole();
+            if (!isAdmin && !"owner".equals(operatorRole)) {
+                if ("removed".equalsIgnoreCase(dto.getStatus())) {
+                    if ("owner".equals(currentRole) || "manager".equals(currentRole)) {
+                        throw new IllegalArgumentException("您无权移除项目负责人或管理员");
+                    }
+                }
             }
             update.setStatus(dto.getStatus());
             if ("removed".equalsIgnoreCase(dto.getStatus())) {

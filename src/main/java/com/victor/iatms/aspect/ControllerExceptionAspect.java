@@ -2,6 +2,7 @@ package com.victor.iatms.aspect;
 
 import com.victor.iatms.entity.vo.ResponseVO;
 import com.victor.iatms.exception.AuthException;
+import com.victor.iatms.exception.BusinessException;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -36,6 +37,10 @@ public class ControllerExceptionAspect {
             // 认证异常
             log.warn("Controller 认证异常: {}", e.getMessage());
             return ResponseVO.authError(e.getMessage());
+        } catch (BusinessException e) {
+            // 业务异常 - 返回 code: 0 表示业务逻辑失败
+            log.warn("Controller 业务异常: {}", e.getMessage());
+            return ResponseVO.businessError(e.getMessage());
         } catch (RuntimeException e) {
             // 运行时异常 - 根据消息内容返回不同的错误码
             String message = e.getMessage();
