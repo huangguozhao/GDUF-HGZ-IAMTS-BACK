@@ -1843,3 +1843,288 @@
 2026-03-08 10:11:17.489 [http-nio-8080-exec-5] DEBUG com.victor.iatms.mappers.UserMapper.selectUsers - ==>  Preparing: SELECT user_id, name, email, avatar_url, phone, password, department_id, employee_id, creator_id, last_login_time, position, description, status, role, created_at, updated_at, is_deleted, deleted_at, deleted_by FROM Users WHERE is_deleted = FALSE LIMIT ? OFFSET ?
 2026-03-08 10:11:17.491 [http-nio-8080-exec-5] DEBUG com.victor.iatms.mappers.UserMapper.selectUsers - ==> Parameters: 6(Integer), 0(Integer)
 2026-03-08 10:11:17.497 [http-nio-8080-exec-5] DEBUG com.victor.iatms.mappers.UserMapper.selectUsers - <==      Total: 6
+2026-03-08 10:25:30.405 [http-nio-8080-exec-6] DEBUG com.victor.iatms.mappers.UserMapper.countUsers - ==>  Preparing: SELECT count(*) FROM Users WHERE is_deleted = FALSE
+2026-03-08 10:25:30.406 [http-nio-8080-exec-6] DEBUG com.victor.iatms.mappers.UserMapper.countUsers - ==> Parameters: 
+2026-03-08 10:25:30.406 [http-nio-8080-exec-3] DEBUG c.v.iatms.mappers.ProjectMapper.selectProjectList - ==>  Preparing: SELECT p.project_id, p.name, p.description, p.project_code, p.project_type, p.status, p.avatar_url, p.created_at, p.updated_at, p.is_deleted, p.deleted_at, u.user_id AS creator_id, u.name AS creator_name, u.avatar_url AS creator_avatar_url FROM Projects p LEFT JOIN Users u ON p.creator_id = u.user_id WHERE p.is_deleted = FALSE ORDER BY p.created_at DESC LIMIT ? OFFSET ?
+2026-03-08 10:25:30.406 [http-nio-8080-exec-3] DEBUG c.v.iatms.mappers.ProjectMapper.selectProjectList - ==> Parameters: 20(Integer), 0(Integer)
+2026-03-08 10:25:30.406 [http-nio-8080-exec-6] DEBUG com.victor.iatms.mappers.UserMapper.countUsers - <==      Total: 1
+2026-03-08 10:25:30.410 [http-nio-8080-exec-6] DEBUG com.victor.iatms.mappers.UserMapper.selectUsers - ==>  Preparing: SELECT user_id, name, email, avatar_url, phone, password, department_id, employee_id, creator_id, last_login_time, position, description, status, role, created_at, updated_at, is_deleted, deleted_at, deleted_by FROM Users WHERE is_deleted = FALSE LIMIT ? OFFSET ?
+2026-03-08 10:25:30.412 [http-nio-8080-exec-6] DEBUG com.victor.iatms.mappers.UserMapper.selectUsers - ==> Parameters: 6(Integer), 0(Integer)
+2026-03-08 10:25:30.425 [http-nio-8080-exec-3] DEBUG c.v.iatms.mappers.ProjectMapper.selectProjectList - <==      Total: 20
+2026-03-08 10:25:30.428 [http-nio-8080-exec-3] DEBUG c.victor.iatms.mappers.ProjectMapper.countProjects - ==>  Preparing: SELECT COUNT(*) FROM Projects p WHERE p.is_deleted = FALSE
+2026-03-08 10:25:30.428 [http-nio-8080-exec-3] DEBUG c.victor.iatms.mappers.ProjectMapper.countProjects - ==> Parameters: 
+2026-03-08 10:25:30.435 [http-nio-8080-exec-3] DEBUG c.victor.iatms.mappers.ProjectMapper.countProjects - <==      Total: 1
+2026-03-08 10:25:30.442 [http-nio-8080-exec-6] DEBUG com.victor.iatms.mappers.UserMapper.selectUsers - <==      Total: 6
+2026-03-08 10:25:30.995 [http-nio-8080-exec-7] DEBUG com.victor.iatms.mappers.UserMapper.findById - ==>  Preparing: SELECT user_id, name, email, avatar_url, phone, password, department_id, employee_id, creator_id, last_login_time, position, description, status, role, created_at, updated_at, is_deleted, deleted_at, deleted_by FROM Users WHERE user_id = ? AND is_deleted = FALSE
+2026-03-08 10:25:30.996 [http-nio-8080-exec-7] DEBUG com.victor.iatms.mappers.UserMapper.findById - ==> Parameters: 3(Integer)
+2026-03-08 10:25:30.996 [http-nio-8080-exec-10] DEBUG com.victor.iatms.mappers.UserMapper.findById - ==>  Preparing: SELECT user_id, name, email, avatar_url, phone, password, department_id, employee_id, creator_id, last_login_time, position, description, status, role, created_at, updated_at, is_deleted, deleted_at, deleted_by FROM Users WHERE user_id = ? AND is_deleted = FALSE
+2026-03-08 10:25:30.997 [http-nio-8080-exec-10] DEBUG com.victor.iatms.mappers.UserMapper.findById - ==> Parameters: 3(Integer)
+2026-03-08 10:25:31.000 [http-nio-8080-exec-7] DEBUG com.victor.iatms.mappers.UserMapper.findById - <==      Total: 1
+2026-03-08 10:25:31.002 [http-nio-8080-exec-7] DEBUG com.victor.iatms.mappers.UserMapper.findById - ==>  Preparing: SELECT user_id, name, email, avatar_url, phone, password, department_id, employee_id, creator_id, last_login_time, position, description, status, role, created_at, updated_at, is_deleted, deleted_at, deleted_by FROM Users WHERE user_id = ? AND is_deleted = FALSE
+2026-03-08 10:25:31.003 [http-nio-8080-exec-7] DEBUG com.victor.iatms.mappers.UserMapper.findById - ==> Parameters: 3(Integer)
+2026-03-08 10:25:31.005 [http-nio-8080-exec-10] DEBUG com.victor.iatms.mappers.UserMapper.findById - <==      Total: 1
+2026-03-08 10:25:31.006 [http-nio-8080-exec-7] DEBUG com.victor.iatms.mappers.UserMapper.findById - <==      Total: 1
+2026-03-08 10:25:31.008 [http-nio-8080-exec-10] DEBUG com.victor.iatms.mappers.UserMapper.findById - ==>  Preparing: SELECT user_id, name, email, avatar_url, phone, password, department_id, employee_id, creator_id, last_login_time, position, description, status, role, created_at, updated_at, is_deleted, deleted_at, deleted_by FROM Users WHERE user_id = ? AND is_deleted = FALSE
+2026-03-08 10:25:31.008 [http-nio-8080-exec-10] DEBUG com.victor.iatms.mappers.UserMapper.findById - ==> Parameters: 3(Integer)
+2026-03-08 10:25:31.009 [http-nio-8080-exec-7] DEBUG c.v.i.m.ProjectMemberMapper.findByProjectAndUser - ==>  Preparing: SELECT * FROM ProjectMembers WHERE project_id = ? AND user_id = ? LIMIT 1
+2026-03-08 10:25:31.010 [http-nio-8080-exec-7] DEBUG c.v.i.m.ProjectMemberMapper.findByProjectAndUser - ==> Parameters: 24(Integer), 3(Integer)
+2026-03-08 10:25:31.011 [http-nio-8080-exec-10] DEBUG com.victor.iatms.mappers.UserMapper.findById - <==      Total: 1
+2026-03-08 10:25:31.012 [http-nio-8080-exec-10] DEBUG c.v.i.m.ProjectMemberMapper.findByProjectAndUser - ==>  Preparing: SELECT * FROM ProjectMembers WHERE project_id = ? AND user_id = ? LIMIT 1
+2026-03-08 10:25:31.012 [http-nio-8080-exec-10] DEBUG c.v.i.m.ProjectMemberMapper.findByProjectAndUser - ==> Parameters: 24(Integer), 3(Integer)
+2026-03-08 10:25:31.014 [http-nio-8080-exec-7] DEBUG c.v.i.m.ProjectMemberMapper.findByProjectAndUser - <==      Total: 1
+2026-03-08 10:25:31.016 [http-nio-8080-exec-10] DEBUG c.v.i.m.ProjectMemberMapper.findByProjectAndUser - <==      Total: 1
+2026-03-08 10:26:39.023 [http-nio-8080-exec-9] DEBUG com.victor.iatms.mappers.UserMapper.findById - ==>  Preparing: SELECT user_id, name, email, avatar_url, phone, password, department_id, employee_id, creator_id, last_login_time, position, description, status, role, created_at, updated_at, is_deleted, deleted_at, deleted_by FROM Users WHERE user_id = ? AND is_deleted = FALSE
+2026-03-08 10:26:39.024 [http-nio-8080-exec-1] DEBUG com.victor.iatms.mappers.UserMapper.findById - ==>  Preparing: SELECT user_id, name, email, avatar_url, phone, password, department_id, employee_id, creator_id, last_login_time, position, description, status, role, created_at, updated_at, is_deleted, deleted_at, deleted_by FROM Users WHERE user_id = ? AND is_deleted = FALSE
+2026-03-08 10:26:39.024 [http-nio-8080-exec-9] DEBUG com.victor.iatms.mappers.UserMapper.findById - ==> Parameters: 3(Integer)
+2026-03-08 10:26:39.024 [http-nio-8080-exec-1] DEBUG com.victor.iatms.mappers.UserMapper.findById - ==> Parameters: 3(Integer)
+2026-03-08 10:26:39.024 [http-nio-8080-exec-9] DEBUG com.victor.iatms.mappers.UserMapper.findById - <==      Total: 1
+2026-03-08 10:26:39.024 [http-nio-8080-exec-9] DEBUG com.victor.iatms.mappers.UserMapper.findById - ==>  Preparing: SELECT user_id, name, email, avatar_url, phone, password, department_id, employee_id, creator_id, last_login_time, position, description, status, role, created_at, updated_at, is_deleted, deleted_at, deleted_by FROM Users WHERE user_id = ? AND is_deleted = FALSE
+2026-03-08 10:26:39.024 [http-nio-8080-exec-9] DEBUG com.victor.iatms.mappers.UserMapper.findById - ==> Parameters: 3(Integer)
+2026-03-08 10:26:39.024 [http-nio-8080-exec-1] DEBUG com.victor.iatms.mappers.UserMapper.findById - <==      Total: 1
+2026-03-08 10:26:39.024 [http-nio-8080-exec-1] DEBUG com.victor.iatms.mappers.UserMapper.findById - ==>  Preparing: SELECT user_id, name, email, avatar_url, phone, password, department_id, employee_id, creator_id, last_login_time, position, description, status, role, created_at, updated_at, is_deleted, deleted_at, deleted_by FROM Users WHERE user_id = ? AND is_deleted = FALSE
+2026-03-08 10:26:39.024 [http-nio-8080-exec-9] DEBUG com.victor.iatms.mappers.UserMapper.findById - <==      Total: 1
+2026-03-08 10:26:39.024 [http-nio-8080-exec-1] DEBUG com.victor.iatms.mappers.UserMapper.findById - ==> Parameters: 3(Integer)
+2026-03-08 10:26:39.024 [http-nio-8080-exec-9] DEBUG c.v.i.m.ProjectMemberMapper.findByProjectAndUser - ==>  Preparing: SELECT * FROM ProjectMembers WHERE project_id = ? AND user_id = ? LIMIT 1
+2026-03-08 10:26:39.024 [http-nio-8080-exec-9] DEBUG c.v.i.m.ProjectMemberMapper.findByProjectAndUser - ==> Parameters: 1(Integer), 3(Integer)
+2026-03-08 10:26:39.031 [http-nio-8080-exec-1] DEBUG com.victor.iatms.mappers.UserMapper.findById - <==      Total: 1
+2026-03-08 10:26:39.031 [http-nio-8080-exec-9] DEBUG c.v.i.m.ProjectMemberMapper.findByProjectAndUser - <==      Total: 1
+2026-03-08 10:26:39.032 [http-nio-8080-exec-1] DEBUG c.v.i.m.ProjectMemberMapper.findByProjectAndUser - ==>  Preparing: SELECT * FROM ProjectMembers WHERE project_id = ? AND user_id = ? LIMIT 1
+2026-03-08 10:26:39.032 [http-nio-8080-exec-1] DEBUG c.v.i.m.ProjectMemberMapper.findByProjectAndUser - ==> Parameters: 1(Integer), 3(Integer)
+2026-03-08 10:26:39.035 [http-nio-8080-exec-1] DEBUG c.v.i.m.ProjectMemberMapper.findByProjectAndUser - <==      Total: 1
+2026-03-08 10:26:40.204 [http-nio-8080-exec-2] DEBUG com.victor.iatms.mappers.UserMapper.findById - ==>  Preparing: SELECT user_id, name, email, avatar_url, phone, password, department_id, employee_id, creator_id, last_login_time, position, description, status, role, created_at, updated_at, is_deleted, deleted_at, deleted_by FROM Users WHERE user_id = ? AND is_deleted = FALSE
+2026-03-08 10:26:40.204 [http-nio-8080-exec-4] DEBUG com.victor.iatms.mappers.UserMapper.findById - ==>  Preparing: SELECT user_id, name, email, avatar_url, phone, password, department_id, employee_id, creator_id, last_login_time, position, description, status, role, created_at, updated_at, is_deleted, deleted_at, deleted_by FROM Users WHERE user_id = ? AND is_deleted = FALSE
+2026-03-08 10:26:40.205 [http-nio-8080-exec-4] DEBUG com.victor.iatms.mappers.UserMapper.findById - ==> Parameters: 3(Integer)
+2026-03-08 10:26:40.205 [http-nio-8080-exec-2] DEBUG com.victor.iatms.mappers.UserMapper.findById - ==> Parameters: 3(Integer)
+2026-03-08 10:26:40.206 [http-nio-8080-exec-4] DEBUG com.victor.iatms.mappers.UserMapper.findById - <==      Total: 1
+2026-03-08 10:26:40.206 [http-nio-8080-exec-2] DEBUG com.victor.iatms.mappers.UserMapper.findById - <==      Total: 1
+2026-03-08 10:26:40.208 [http-nio-8080-exec-4] DEBUG com.victor.iatms.mappers.UserMapper.findById - ==>  Preparing: SELECT user_id, name, email, avatar_url, phone, password, department_id, employee_id, creator_id, last_login_time, position, description, status, role, created_at, updated_at, is_deleted, deleted_at, deleted_by FROM Users WHERE user_id = ? AND is_deleted = FALSE
+2026-03-08 10:26:40.208 [http-nio-8080-exec-2] DEBUG com.victor.iatms.mappers.UserMapper.findById - ==>  Preparing: SELECT user_id, name, email, avatar_url, phone, password, department_id, employee_id, creator_id, last_login_time, position, description, status, role, created_at, updated_at, is_deleted, deleted_at, deleted_by FROM Users WHERE user_id = ? AND is_deleted = FALSE
+2026-03-08 10:26:40.208 [http-nio-8080-exec-4] DEBUG com.victor.iatms.mappers.UserMapper.findById - ==> Parameters: 3(Integer)
+2026-03-08 10:26:40.208 [http-nio-8080-exec-2] DEBUG com.victor.iatms.mappers.UserMapper.findById - ==> Parameters: 3(Integer)
+2026-03-08 10:26:40.208 [http-nio-8080-exec-4] DEBUG com.victor.iatms.mappers.UserMapper.findById - <==      Total: 1
+2026-03-08 10:26:40.208 [http-nio-8080-exec-2] DEBUG com.victor.iatms.mappers.UserMapper.findById - <==      Total: 1
+2026-03-08 10:26:40.208 [http-nio-8080-exec-4] DEBUG c.v.i.m.ProjectMemberMapper.findByProjectAndUser - ==>  Preparing: SELECT * FROM ProjectMembers WHERE project_id = ? AND user_id = ? LIMIT 1
+2026-03-08 10:26:40.208 [http-nio-8080-exec-2] DEBUG c.v.i.m.ProjectMemberMapper.findByProjectAndUser - ==>  Preparing: SELECT * FROM ProjectMembers WHERE project_id = ? AND user_id = ? LIMIT 1
+2026-03-08 10:26:40.208 [http-nio-8080-exec-4] DEBUG c.v.i.m.ProjectMemberMapper.findByProjectAndUser - ==> Parameters: 24(Integer), 3(Integer)
+2026-03-08 10:26:40.208 [http-nio-8080-exec-2] DEBUG c.v.i.m.ProjectMemberMapper.findByProjectAndUser - ==> Parameters: 24(Integer), 3(Integer)
+2026-03-08 10:26:40.208 [http-nio-8080-exec-4] DEBUG c.v.i.m.ProjectMemberMapper.findByProjectAndUser - <==      Total: 1
+2026-03-08 10:26:40.208 [http-nio-8080-exec-2] DEBUG c.v.i.m.ProjectMemberMapper.findByProjectAndUser - <==      Total: 1
+2026-03-08 10:26:40.770 [http-nio-8080-exec-8] DEBUG com.victor.iatms.mappers.UserMapper.findById - ==>  Preparing: SELECT user_id, name, email, avatar_url, phone, password, department_id, employee_id, creator_id, last_login_time, position, description, status, role, created_at, updated_at, is_deleted, deleted_at, deleted_by FROM Users WHERE user_id = ? AND is_deleted = FALSE
+2026-03-08 10:26:40.770 [http-nio-8080-exec-5] DEBUG com.victor.iatms.mappers.UserMapper.findById - ==>  Preparing: SELECT user_id, name, email, avatar_url, phone, password, department_id, employee_id, creator_id, last_login_time, position, description, status, role, created_at, updated_at, is_deleted, deleted_at, deleted_by FROM Users WHERE user_id = ? AND is_deleted = FALSE
+2026-03-08 10:26:40.770 [http-nio-8080-exec-8] DEBUG com.victor.iatms.mappers.UserMapper.findById - ==> Parameters: 3(Integer)
+2026-03-08 10:26:40.770 [http-nio-8080-exec-5] DEBUG com.victor.iatms.mappers.UserMapper.findById - ==> Parameters: 3(Integer)
+2026-03-08 10:26:40.771 [http-nio-8080-exec-5] DEBUG com.victor.iatms.mappers.UserMapper.findById - <==      Total: 1
+2026-03-08 10:26:40.771 [http-nio-8080-exec-8] DEBUG com.victor.iatms.mappers.UserMapper.findById - <==      Total: 1
+2026-03-08 10:26:40.773 [http-nio-8080-exec-8] DEBUG com.victor.iatms.mappers.UserMapper.findById - ==>  Preparing: SELECT user_id, name, email, avatar_url, phone, password, department_id, employee_id, creator_id, last_login_time, position, description, status, role, created_at, updated_at, is_deleted, deleted_at, deleted_by FROM Users WHERE user_id = ? AND is_deleted = FALSE
+2026-03-08 10:26:40.773 [http-nio-8080-exec-5] DEBUG com.victor.iatms.mappers.UserMapper.findById - ==>  Preparing: SELECT user_id, name, email, avatar_url, phone, password, department_id, employee_id, creator_id, last_login_time, position, description, status, role, created_at, updated_at, is_deleted, deleted_at, deleted_by FROM Users WHERE user_id = ? AND is_deleted = FALSE
+2026-03-08 10:26:40.773 [http-nio-8080-exec-8] DEBUG com.victor.iatms.mappers.UserMapper.findById - ==> Parameters: 3(Integer)
+2026-03-08 10:26:40.773 [http-nio-8080-exec-5] DEBUG com.victor.iatms.mappers.UserMapper.findById - ==> Parameters: 3(Integer)
+2026-03-08 10:26:40.774 [http-nio-8080-exec-5] DEBUG com.victor.iatms.mappers.UserMapper.findById - <==      Total: 1
+2026-03-08 10:26:40.774 [http-nio-8080-exec-8] DEBUG com.victor.iatms.mappers.UserMapper.findById - <==      Total: 1
+2026-03-08 10:26:40.774 [http-nio-8080-exec-8] DEBUG c.v.i.m.ProjectMemberMapper.findByProjectAndUser - ==>  Preparing: SELECT * FROM ProjectMembers WHERE project_id = ? AND user_id = ? LIMIT 1
+2026-03-08 10:26:40.774 [http-nio-8080-exec-5] DEBUG c.v.i.m.ProjectMemberMapper.findByProjectAndUser - ==>  Preparing: SELECT * FROM ProjectMembers WHERE project_id = ? AND user_id = ? LIMIT 1
+2026-03-08 10:26:40.774 [http-nio-8080-exec-5] DEBUG c.v.i.m.ProjectMemberMapper.findByProjectAndUser - ==> Parameters: 1(Integer), 3(Integer)
+2026-03-08 10:26:40.774 [http-nio-8080-exec-8] DEBUG c.v.i.m.ProjectMemberMapper.findByProjectAndUser - ==> Parameters: 1(Integer), 3(Integer)
+2026-03-08 10:26:40.774 [http-nio-8080-exec-8] DEBUG c.v.i.m.ProjectMemberMapper.findByProjectAndUser - <==      Total: 1
+2026-03-08 10:26:40.774 [http-nio-8080-exec-5] DEBUG c.v.i.m.ProjectMemberMapper.findByProjectAndUser - <==      Total: 1
+2026-03-08 10:26:41.244 [http-nio-8080-exec-6] DEBUG com.victor.iatms.mappers.UserMapper.findById - ==>  Preparing: SELECT user_id, name, email, avatar_url, phone, password, department_id, employee_id, creator_id, last_login_time, position, description, status, role, created_at, updated_at, is_deleted, deleted_at, deleted_by FROM Users WHERE user_id = ? AND is_deleted = FALSE
+2026-03-08 10:26:41.244 [http-nio-8080-exec-6] DEBUG com.victor.iatms.mappers.UserMapper.findById - ==> Parameters: 3(Integer)
+2026-03-08 10:26:41.246 [http-nio-8080-exec-3] DEBUG com.victor.iatms.mappers.UserMapper.findById - ==>  Preparing: SELECT user_id, name, email, avatar_url, phone, password, department_id, employee_id, creator_id, last_login_time, position, description, status, role, created_at, updated_at, is_deleted, deleted_at, deleted_by FROM Users WHERE user_id = ? AND is_deleted = FALSE
+2026-03-08 10:26:41.247 [http-nio-8080-exec-6] DEBUG com.victor.iatms.mappers.UserMapper.findById - <==      Total: 1
+2026-03-08 10:26:41.247 [http-nio-8080-exec-3] DEBUG com.victor.iatms.mappers.UserMapper.findById - ==> Parameters: 3(Integer)
+2026-03-08 10:26:41.247 [http-nio-8080-exec-6] DEBUG com.victor.iatms.mappers.UserMapper.findById - ==>  Preparing: SELECT user_id, name, email, avatar_url, phone, password, department_id, employee_id, creator_id, last_login_time, position, description, status, role, created_at, updated_at, is_deleted, deleted_at, deleted_by FROM Users WHERE user_id = ? AND is_deleted = FALSE
+2026-03-08 10:26:41.247 [http-nio-8080-exec-6] DEBUG com.victor.iatms.mappers.UserMapper.findById - ==> Parameters: 3(Integer)
+2026-03-08 10:26:41.249 [http-nio-8080-exec-6] DEBUG com.victor.iatms.mappers.UserMapper.findById - <==      Total: 1
+2026-03-08 10:26:41.249 [http-nio-8080-exec-3] DEBUG com.victor.iatms.mappers.UserMapper.findById - <==      Total: 1
+2026-03-08 10:26:41.250 [http-nio-8080-exec-6] DEBUG c.v.i.m.ProjectMemberMapper.findByProjectAndUser - ==>  Preparing: SELECT * FROM ProjectMembers WHERE project_id = ? AND user_id = ? LIMIT 1
+2026-03-08 10:26:41.250 [http-nio-8080-exec-3] DEBUG com.victor.iatms.mappers.UserMapper.findById - ==>  Preparing: SELECT user_id, name, email, avatar_url, phone, password, department_id, employee_id, creator_id, last_login_time, position, description, status, role, created_at, updated_at, is_deleted, deleted_at, deleted_by FROM Users WHERE user_id = ? AND is_deleted = FALSE
+2026-03-08 10:26:41.250 [http-nio-8080-exec-3] DEBUG com.victor.iatms.mappers.UserMapper.findById - ==> Parameters: 3(Integer)
+2026-03-08 10:26:41.250 [http-nio-8080-exec-6] DEBUG c.v.i.m.ProjectMemberMapper.findByProjectAndUser - ==> Parameters: 24(Integer), 3(Integer)
+2026-03-08 10:26:41.252 [http-nio-8080-exec-3] DEBUG com.victor.iatms.mappers.UserMapper.findById - <==      Total: 1
+2026-03-08 10:26:41.252 [http-nio-8080-exec-6] DEBUG c.v.i.m.ProjectMemberMapper.findByProjectAndUser - <==      Total: 1
+2026-03-08 10:26:41.253 [http-nio-8080-exec-3] DEBUG c.v.i.m.ProjectMemberMapper.findByProjectAndUser - ==>  Preparing: SELECT * FROM ProjectMembers WHERE project_id = ? AND user_id = ? LIMIT 1
+2026-03-08 10:26:41.253 [http-nio-8080-exec-3] DEBUG c.v.i.m.ProjectMemberMapper.findByProjectAndUser - ==> Parameters: 24(Integer), 3(Integer)
+2026-03-08 10:26:41.256 [http-nio-8080-exec-3] DEBUG c.v.i.m.ProjectMemberMapper.findByProjectAndUser - <==      Total: 1
+2026-03-08 10:32:56.424 [http-nio-8080-exec-10] DEBUG com.victor.iatms.mappers.UserMapper.countUsers - ==>  Preparing: SELECT count(*) FROM Users WHERE is_deleted = FALSE
+2026-03-08 10:32:56.424 [http-nio-8080-exec-10] DEBUG com.victor.iatms.mappers.UserMapper.countUsers - ==> Parameters: 
+2026-03-08 10:32:56.427 [http-nio-8080-exec-10] DEBUG com.victor.iatms.mappers.UserMapper.countUsers - <==      Total: 1
+2026-03-08 10:32:56.427 [http-nio-8080-exec-7] DEBUG c.victor.iatms.mappers.UserMapper.selectUserById - ==>  Preparing: SELECT user_id, name, email, avatar_url, phone, password, department_id, employee_id, creator_id, last_login_time, position, description, status, role, created_at, updated_at, is_deleted, deleted_at, deleted_by FROM Users WHERE user_id = ? AND is_deleted = FALSE
+2026-03-08 10:32:56.427 [http-nio-8080-exec-7] DEBUG c.victor.iatms.mappers.UserMapper.selectUserById - ==> Parameters: 3(Integer)
+2026-03-08 10:32:56.427 [http-nio-8080-exec-10] DEBUG com.victor.iatms.mappers.UserMapper.selectUsers - ==>  Preparing: SELECT user_id, name, email, avatar_url, phone, password, department_id, employee_id, creator_id, last_login_time, position, description, status, role, created_at, updated_at, is_deleted, deleted_at, deleted_by FROM Users WHERE is_deleted = FALSE LIMIT ? OFFSET ?
+2026-03-08 10:32:56.427 [http-nio-8080-exec-10] DEBUG com.victor.iatms.mappers.UserMapper.selectUsers - ==> Parameters: 6(Integer), 0(Integer)
+2026-03-08 10:32:56.427 [http-nio-8080-exec-7] DEBUG c.victor.iatms.mappers.UserMapper.selectUserById - <==      Total: 1
+2026-03-08 10:32:56.432 [http-nio-8080-exec-10] DEBUG com.victor.iatms.mappers.UserMapper.selectUsers - <==      Total: 6
+2026-03-08 10:32:56.432 [http-nio-8080-exec-7] DEBUG c.v.i.m.ProjectMemberMapper.countUserProjects - ==>  Preparing: SELECT COUNT(1) FROM ProjectMembers pm INNER JOIN Projects p ON pm.project_id = p.project_id WHERE pm.user_id = ? AND pm.status = ? AND p.is_deleted = FALSE
+2026-03-08 10:32:56.434 [http-nio-8080-exec-7] DEBUG c.v.i.m.ProjectMemberMapper.countUserProjects - ==> Parameters: 3(Integer), active(String)
+2026-03-08 10:32:56.434 [http-nio-8080-exec-7] DEBUG c.v.i.m.ProjectMemberMapper.countUserProjects - <==      Total: 1
+2026-03-08 10:32:56.434 [http-nio-8080-exec-7] DEBUG c.v.i.m.ProjectMemberMapper.selectUserProjects - ==>  Preparing: SELECT pm.member_id, pm.project_id, p.name AS project_name, p.description AS project_description, p.creator_id, p.created_at AS project_created_at, pm.permission_level, pm.project_role, pm.status, pm.join_time, pm.leave_time, pm.assigned_tasks, pm.completed_tasks, pm.additional_roles, pm.custom_permissions FROM ProjectMembers pm INNER JOIN Projects p ON pm.project_id = p.project_id WHERE pm.user_id = ? AND pm.status = ? AND p.is_deleted = FALSE ORDER BY pm.join_time DESC LIMIT ? OFFSET ?
+2026-03-08 10:32:56.434 [http-nio-8080-exec-7] DEBUG c.v.i.m.ProjectMemberMapper.selectUserProjects - ==> Parameters: 3(Integer), active(String), 100(Integer), 0(Integer)
+2026-03-08 10:32:56.440 [http-nio-8080-exec-7] DEBUG c.v.i.m.ProjectMemberMapper.selectUserProjects - <==      Total: 1
+2026-03-08 10:32:56.559 [http-nio-8080-exec-9] DEBUG com.victor.iatms.mappers.UserMapper.findById - ==>  Preparing: SELECT user_id, name, email, avatar_url, phone, password, department_id, employee_id, creator_id, last_login_time, position, description, status, role, created_at, updated_at, is_deleted, deleted_at, deleted_by FROM Users WHERE user_id = ? AND is_deleted = FALSE
+2026-03-08 10:32:56.559 [http-nio-8080-exec-1] DEBUG com.victor.iatms.mappers.UserMapper.findById - ==>  Preparing: SELECT user_id, name, email, avatar_url, phone, password, department_id, employee_id, creator_id, last_login_time, position, description, status, role, created_at, updated_at, is_deleted, deleted_at, deleted_by FROM Users WHERE user_id = ? AND is_deleted = FALSE
+2026-03-08 10:32:56.559 [http-nio-8080-exec-1] DEBUG com.victor.iatms.mappers.UserMapper.findById - ==> Parameters: 3(Integer)
+2026-03-08 10:32:56.559 [http-nio-8080-exec-9] DEBUG com.victor.iatms.mappers.UserMapper.findById - ==> Parameters: 3(Integer)
+2026-03-08 10:32:56.561 [http-nio-8080-exec-1] DEBUG com.victor.iatms.mappers.UserMapper.findById - <==      Total: 1
+2026-03-08 10:32:56.561 [http-nio-8080-exec-9] DEBUG com.victor.iatms.mappers.UserMapper.findById - <==      Total: 1
+2026-03-08 10:32:56.563 [http-nio-8080-exec-1] DEBUG com.victor.iatms.mappers.UserMapper.findById - ==>  Preparing: SELECT user_id, name, email, avatar_url, phone, password, department_id, employee_id, creator_id, last_login_time, position, description, status, role, created_at, updated_at, is_deleted, deleted_at, deleted_by FROM Users WHERE user_id = ? AND is_deleted = FALSE
+2026-03-08 10:32:56.564 [http-nio-8080-exec-9] DEBUG com.victor.iatms.mappers.UserMapper.findById - ==>  Preparing: SELECT user_id, name, email, avatar_url, phone, password, department_id, employee_id, creator_id, last_login_time, position, description, status, role, created_at, updated_at, is_deleted, deleted_at, deleted_by FROM Users WHERE user_id = ? AND is_deleted = FALSE
+2026-03-08 10:32:56.564 [http-nio-8080-exec-1] DEBUG com.victor.iatms.mappers.UserMapper.findById - ==> Parameters: 3(Integer)
+2026-03-08 10:32:56.564 [http-nio-8080-exec-9] DEBUG com.victor.iatms.mappers.UserMapper.findById - ==> Parameters: 3(Integer)
+2026-03-08 10:32:56.566 [http-nio-8080-exec-1] DEBUG com.victor.iatms.mappers.UserMapper.findById - <==      Total: 1
+2026-03-08 10:32:56.567 [http-nio-8080-exec-9] DEBUG com.victor.iatms.mappers.UserMapper.findById - <==      Total: 1
+2026-03-08 10:32:56.569 [http-nio-8080-exec-9] DEBUG c.v.i.m.ProjectMemberMapper.findByProjectAndUser - ==>  Preparing: SELECT * FROM ProjectMembers WHERE project_id = ? AND user_id = ? LIMIT 1
+2026-03-08 10:32:56.571 [http-nio-8080-exec-1] DEBUG c.v.i.m.ProjectMemberMapper.findByProjectAndUser - ==>  Preparing: SELECT * FROM ProjectMembers WHERE project_id = ? AND user_id = ? LIMIT 1
+2026-03-08 10:32:56.572 [http-nio-8080-exec-9] DEBUG c.v.i.m.ProjectMemberMapper.findByProjectAndUser - ==> Parameters: 24(Integer), 3(Integer)
+2026-03-08 10:32:56.573 [http-nio-8080-exec-1] DEBUG c.v.i.m.ProjectMemberMapper.findByProjectAndUser - ==> Parameters: 24(Integer), 3(Integer)
+2026-03-08 10:32:56.576 [http-nio-8080-exec-9] DEBUG c.v.i.m.ProjectMemberMapper.findByProjectAndUser - <==      Total: 1
+2026-03-08 10:32:56.578 [http-nio-8080-exec-1] DEBUG c.v.i.m.ProjectMemberMapper.findByProjectAndUser - <==      Total: 1
+2026-03-08 10:34:02.493 [http-nio-8080-exec-2] DEBUG c.victor.iatms.mappers.UserMapper.selectUserById - ==>  Preparing: SELECT user_id, name, email, avatar_url, phone, password, department_id, employee_id, creator_id, last_login_time, position, description, status, role, created_at, updated_at, is_deleted, deleted_at, deleted_by FROM Users WHERE user_id = ? AND is_deleted = FALSE
+2026-03-08 10:34:02.493 [http-nio-8080-exec-2] DEBUG c.victor.iatms.mappers.UserMapper.selectUserById - ==> Parameters: 3(Integer)
+2026-03-08 10:34:02.499 [http-nio-8080-exec-2] DEBUG c.victor.iatms.mappers.UserMapper.selectUserById - <==      Total: 1
+2026-03-08 10:34:02.503 [http-nio-8080-exec-4] DEBUG com.victor.iatms.mappers.UserMapper.countUsers - ==>  Preparing: SELECT count(*) FROM Users WHERE is_deleted = FALSE
+2026-03-08 10:34:02.504 [http-nio-8080-exec-4] DEBUG com.victor.iatms.mappers.UserMapper.countUsers - ==> Parameters: 
+2026-03-08 10:34:02.506 [http-nio-8080-exec-2] DEBUG c.v.i.m.ProjectMemberMapper.countUserProjects - ==>  Preparing: SELECT COUNT(1) FROM ProjectMembers pm INNER JOIN Projects p ON pm.project_id = p.project_id WHERE pm.user_id = ? AND pm.status = ? AND p.is_deleted = FALSE
+2026-03-08 10:34:02.506 [http-nio-8080-exec-4] DEBUG com.victor.iatms.mappers.UserMapper.countUsers - <==      Total: 1
+2026-03-08 10:34:02.506 [http-nio-8080-exec-2] DEBUG c.v.i.m.ProjectMemberMapper.countUserProjects - ==> Parameters: 3(Integer), active(String)
+2026-03-08 10:34:02.506 [http-nio-8080-exec-2] DEBUG c.v.i.m.ProjectMemberMapper.countUserProjects - <==      Total: 1
+2026-03-08 10:34:02.506 [http-nio-8080-exec-4] DEBUG com.victor.iatms.mappers.UserMapper.selectUsers - ==>  Preparing: SELECT user_id, name, email, avatar_url, phone, password, department_id, employee_id, creator_id, last_login_time, position, description, status, role, created_at, updated_at, is_deleted, deleted_at, deleted_by FROM Users WHERE is_deleted = FALSE LIMIT ? OFFSET ?
+2026-03-08 10:34:02.506 [http-nio-8080-exec-2] DEBUG c.v.i.m.ProjectMemberMapper.selectUserProjects - ==>  Preparing: SELECT pm.member_id, pm.project_id, p.name AS project_name, p.description AS project_description, p.creator_id, p.created_at AS project_created_at, pm.permission_level, pm.project_role, pm.status, pm.join_time, pm.leave_time, pm.assigned_tasks, pm.completed_tasks, pm.additional_roles, pm.custom_permissions FROM ProjectMembers pm INNER JOIN Projects p ON pm.project_id = p.project_id WHERE pm.user_id = ? AND pm.status = ? AND p.is_deleted = FALSE ORDER BY pm.join_time DESC LIMIT ? OFFSET ?
+2026-03-08 10:34:02.506 [http-nio-8080-exec-2] DEBUG c.v.i.m.ProjectMemberMapper.selectUserProjects - ==> Parameters: 3(Integer), active(String), 100(Integer), 0(Integer)
+2026-03-08 10:34:02.506 [http-nio-8080-exec-4] DEBUG com.victor.iatms.mappers.UserMapper.selectUsers - ==> Parameters: 6(Integer), 0(Integer)
+2026-03-08 10:34:02.522 [http-nio-8080-exec-2] DEBUG c.v.i.m.ProjectMemberMapper.selectUserProjects - <==      Total: 1
+2026-03-08 10:34:02.527 [http-nio-8080-exec-4] DEBUG com.victor.iatms.mappers.UserMapper.selectUsers - <==      Total: 6
+2026-03-08 10:34:02.689 [http-nio-8080-exec-5] DEBUG com.victor.iatms.mappers.UserMapper.findById - ==>  Preparing: SELECT user_id, name, email, avatar_url, phone, password, department_id, employee_id, creator_id, last_login_time, position, description, status, role, created_at, updated_at, is_deleted, deleted_at, deleted_by FROM Users WHERE user_id = ? AND is_deleted = FALSE
+2026-03-08 10:34:02.690 [http-nio-8080-exec-8] DEBUG com.victor.iatms.mappers.UserMapper.findById - ==>  Preparing: SELECT user_id, name, email, avatar_url, phone, password, department_id, employee_id, creator_id, last_login_time, position, description, status, role, created_at, updated_at, is_deleted, deleted_at, deleted_by FROM Users WHERE user_id = ? AND is_deleted = FALSE
+2026-03-08 10:34:02.693 [http-nio-8080-exec-8] DEBUG com.victor.iatms.mappers.UserMapper.findById - ==> Parameters: 3(Integer)
+2026-03-08 10:34:02.695 [http-nio-8080-exec-5] DEBUG com.victor.iatms.mappers.UserMapper.findById - ==> Parameters: 3(Integer)
+2026-03-08 10:34:02.697 [http-nio-8080-exec-5] DEBUG com.victor.iatms.mappers.UserMapper.findById - <==      Total: 1
+2026-03-08 10:34:02.698 [http-nio-8080-exec-8] DEBUG com.victor.iatms.mappers.UserMapper.findById - <==      Total: 1
+2026-03-08 10:34:02.698 [http-nio-8080-exec-5] DEBUG com.victor.iatms.mappers.UserMapper.findById - ==>  Preparing: SELECT user_id, name, email, avatar_url, phone, password, department_id, employee_id, creator_id, last_login_time, position, description, status, role, created_at, updated_at, is_deleted, deleted_at, deleted_by FROM Users WHERE user_id = ? AND is_deleted = FALSE
+2026-03-08 10:34:02.699 [http-nio-8080-exec-5] DEBUG com.victor.iatms.mappers.UserMapper.findById - ==> Parameters: 3(Integer)
+2026-03-08 10:34:02.700 [http-nio-8080-exec-5] DEBUG com.victor.iatms.mappers.UserMapper.findById - <==      Total: 1
+2026-03-08 10:34:02.701 [http-nio-8080-exec-5] DEBUG c.v.i.m.ProjectMemberMapper.findByProjectAndUser - ==>  Preparing: SELECT * FROM ProjectMembers WHERE project_id = ? AND user_id = ? LIMIT 1
+2026-03-08 10:34:02.701 [http-nio-8080-exec-8] DEBUG com.victor.iatms.mappers.UserMapper.findById - ==>  Preparing: SELECT user_id, name, email, avatar_url, phone, password, department_id, employee_id, creator_id, last_login_time, position, description, status, role, created_at, updated_at, is_deleted, deleted_at, deleted_by FROM Users WHERE user_id = ? AND is_deleted = FALSE
+2026-03-08 10:34:02.701 [http-nio-8080-exec-5] DEBUG c.v.i.m.ProjectMemberMapper.findByProjectAndUser - ==> Parameters: 24(Integer), 3(Integer)
+2026-03-08 10:34:02.701 [http-nio-8080-exec-8] DEBUG com.victor.iatms.mappers.UserMapper.findById - ==> Parameters: 3(Integer)
+2026-03-08 10:34:02.706 [http-nio-8080-exec-5] DEBUG c.v.i.m.ProjectMemberMapper.findByProjectAndUser - <==      Total: 1
+2026-03-08 10:34:02.719 [http-nio-8080-exec-8] DEBUG com.victor.iatms.mappers.UserMapper.findById - <==      Total: 1
+2026-03-08 10:34:02.751 [http-nio-8080-exec-8] DEBUG c.v.i.m.ProjectMemberMapper.findByProjectAndUser - ==>  Preparing: SELECT * FROM ProjectMembers WHERE project_id = ? AND user_id = ? LIMIT 1
+2026-03-08 10:34:02.751 [http-nio-8080-exec-8] DEBUG c.v.i.m.ProjectMemberMapper.findByProjectAndUser - ==> Parameters: 24(Integer), 3(Integer)
+2026-03-08 10:34:02.762 [http-nio-8080-exec-8] DEBUG c.v.i.m.ProjectMemberMapper.findByProjectAndUser - <==      Total: 1
+2026-03-08 10:34:11.822 [http-nio-8080-exec-6] DEBUG com.victor.iatms.mappers.UserMapper.countUsers - ==>  Preparing: SELECT count(*) FROM Users WHERE is_deleted = FALSE
+2026-03-08 10:34:11.823 [http-nio-8080-exec-6] DEBUG com.victor.iatms.mappers.UserMapper.countUsers - ==> Parameters: 
+2026-03-08 10:34:11.824 [http-nio-8080-exec-3] DEBUG c.victor.iatms.mappers.UserMapper.selectUserById - ==>  Preparing: SELECT user_id, name, email, avatar_url, phone, password, department_id, employee_id, creator_id, last_login_time, position, description, status, role, created_at, updated_at, is_deleted, deleted_at, deleted_by FROM Users WHERE user_id = ? AND is_deleted = FALSE
+2026-03-08 10:34:11.824 [http-nio-8080-exec-3] DEBUG c.victor.iatms.mappers.UserMapper.selectUserById - ==> Parameters: 3(Integer)
+2026-03-08 10:34:11.825 [http-nio-8080-exec-6] DEBUG com.victor.iatms.mappers.UserMapper.countUsers - <==      Total: 1
+2026-03-08 10:34:11.827 [http-nio-8080-exec-3] DEBUG c.victor.iatms.mappers.UserMapper.selectUserById - <==      Total: 1
+2026-03-08 10:34:11.827 [http-nio-8080-exec-6] DEBUG com.victor.iatms.mappers.UserMapper.selectUsers - ==>  Preparing: SELECT user_id, name, email, avatar_url, phone, password, department_id, employee_id, creator_id, last_login_time, position, description, status, role, created_at, updated_at, is_deleted, deleted_at, deleted_by FROM Users WHERE is_deleted = FALSE LIMIT ? OFFSET ?
+2026-03-08 10:34:11.827 [http-nio-8080-exec-6] DEBUG com.victor.iatms.mappers.UserMapper.selectUsers - ==> Parameters: 6(Integer), 0(Integer)
+2026-03-08 10:34:11.828 [http-nio-8080-exec-3] DEBUG c.v.i.m.ProjectMemberMapper.countUserProjects - ==>  Preparing: SELECT COUNT(1) FROM ProjectMembers pm INNER JOIN Projects p ON pm.project_id = p.project_id WHERE pm.user_id = ? AND pm.status = ? AND p.is_deleted = FALSE
+2026-03-08 10:34:11.828 [http-nio-8080-exec-3] DEBUG c.v.i.m.ProjectMemberMapper.countUserProjects - ==> Parameters: 3(Integer), active(String)
+2026-03-08 10:34:11.829 [http-nio-8080-exec-3] DEBUG c.v.i.m.ProjectMemberMapper.countUserProjects - <==      Total: 1
+2026-03-08 10:34:11.829 [http-nio-8080-exec-6] DEBUG com.victor.iatms.mappers.UserMapper.selectUsers - <==      Total: 6
+2026-03-08 10:34:11.830 [http-nio-8080-exec-3] DEBUG c.v.i.m.ProjectMemberMapper.selectUserProjects - ==>  Preparing: SELECT pm.member_id, pm.project_id, p.name AS project_name, p.description AS project_description, p.creator_id, p.created_at AS project_created_at, pm.permission_level, pm.project_role, pm.status, pm.join_time, pm.leave_time, pm.assigned_tasks, pm.completed_tasks, pm.additional_roles, pm.custom_permissions FROM ProjectMembers pm INNER JOIN Projects p ON pm.project_id = p.project_id WHERE pm.user_id = ? AND pm.status = ? AND p.is_deleted = FALSE ORDER BY pm.join_time DESC LIMIT ? OFFSET ?
+2026-03-08 10:34:11.831 [http-nio-8080-exec-3] DEBUG c.v.i.m.ProjectMemberMapper.selectUserProjects - ==> Parameters: 3(Integer), active(String), 100(Integer), 0(Integer)
+2026-03-08 10:34:11.832 [http-nio-8080-exec-3] DEBUG c.v.i.m.ProjectMemberMapper.selectUserProjects - <==      Total: 1
+2026-03-08 10:34:11.949 [http-nio-8080-exec-7] DEBUG com.victor.iatms.mappers.UserMapper.findById - ==>  Preparing: SELECT user_id, name, email, avatar_url, phone, password, department_id, employee_id, creator_id, last_login_time, position, description, status, role, created_at, updated_at, is_deleted, deleted_at, deleted_by FROM Users WHERE user_id = ? AND is_deleted = FALSE
+2026-03-08 10:34:11.949 [http-nio-8080-exec-10] DEBUG com.victor.iatms.mappers.UserMapper.findById - ==>  Preparing: SELECT user_id, name, email, avatar_url, phone, password, department_id, employee_id, creator_id, last_login_time, position, description, status, role, created_at, updated_at, is_deleted, deleted_at, deleted_by FROM Users WHERE user_id = ? AND is_deleted = FALSE
+2026-03-08 10:34:11.950 [http-nio-8080-exec-10] DEBUG com.victor.iatms.mappers.UserMapper.findById - ==> Parameters: 3(Integer)
+2026-03-08 10:34:11.950 [http-nio-8080-exec-7] DEBUG com.victor.iatms.mappers.UserMapper.findById - ==> Parameters: 3(Integer)
+2026-03-08 10:34:11.951 [http-nio-8080-exec-7] DEBUG com.victor.iatms.mappers.UserMapper.findById - <==      Total: 1
+2026-03-08 10:34:11.951 [http-nio-8080-exec-10] DEBUG com.victor.iatms.mappers.UserMapper.findById - <==      Total: 1
+2026-03-08 10:34:11.952 [http-nio-8080-exec-10] DEBUG com.victor.iatms.mappers.UserMapper.findById - ==>  Preparing: SELECT user_id, name, email, avatar_url, phone, password, department_id, employee_id, creator_id, last_login_time, position, description, status, role, created_at, updated_at, is_deleted, deleted_at, deleted_by FROM Users WHERE user_id = ? AND is_deleted = FALSE
+2026-03-08 10:34:11.952 [http-nio-8080-exec-7] DEBUG com.victor.iatms.mappers.UserMapper.findById - ==>  Preparing: SELECT user_id, name, email, avatar_url, phone, password, department_id, employee_id, creator_id, last_login_time, position, description, status, role, created_at, updated_at, is_deleted, deleted_at, deleted_by FROM Users WHERE user_id = ? AND is_deleted = FALSE
+2026-03-08 10:34:11.952 [http-nio-8080-exec-10] DEBUG com.victor.iatms.mappers.UserMapper.findById - ==> Parameters: 3(Integer)
+2026-03-08 10:34:11.952 [http-nio-8080-exec-7] DEBUG com.victor.iatms.mappers.UserMapper.findById - ==> Parameters: 3(Integer)
+2026-03-08 10:34:11.954 [http-nio-8080-exec-7] DEBUG com.victor.iatms.mappers.UserMapper.findById - <==      Total: 1
+2026-03-08 10:34:11.954 [http-nio-8080-exec-7] DEBUG c.v.i.m.ProjectMemberMapper.findByProjectAndUser - ==>  Preparing: SELECT * FROM ProjectMembers WHERE project_id = ? AND user_id = ? LIMIT 1
+2026-03-08 10:34:11.956 [http-nio-8080-exec-7] DEBUG c.v.i.m.ProjectMemberMapper.findByProjectAndUser - ==> Parameters: 24(Integer), 3(Integer)
+2026-03-08 10:34:11.956 [http-nio-8080-exec-10] DEBUG com.victor.iatms.mappers.UserMapper.findById - <==      Total: 1
+2026-03-08 10:34:11.957 [http-nio-8080-exec-10] DEBUG c.v.i.m.ProjectMemberMapper.findByProjectAndUser - ==>  Preparing: SELECT * FROM ProjectMembers WHERE project_id = ? AND user_id = ? LIMIT 1
+2026-03-08 10:34:11.957 [http-nio-8080-exec-10] DEBUG c.v.i.m.ProjectMemberMapper.findByProjectAndUser - ==> Parameters: 24(Integer), 3(Integer)
+2026-03-08 10:34:11.962 [http-nio-8080-exec-7] DEBUG c.v.i.m.ProjectMemberMapper.findByProjectAndUser - <==      Total: 1
+2026-03-08 10:34:11.962 [http-nio-8080-exec-10] DEBUG c.v.i.m.ProjectMemberMapper.findByProjectAndUser - <==      Total: 1
+2026-03-08 10:35:06.767 [http-nio-8080-exec-1] DEBUG c.victor.iatms.mappers.UserMapper.selectUserById - ==>  Preparing: SELECT user_id, name, email, avatar_url, phone, password, department_id, employee_id, creator_id, last_login_time, position, description, status, role, created_at, updated_at, is_deleted, deleted_at, deleted_by FROM Users WHERE user_id = ? AND is_deleted = FALSE
+2026-03-08 10:35:06.767 [http-nio-8080-exec-1] DEBUG c.victor.iatms.mappers.UserMapper.selectUserById - ==> Parameters: 3(Integer)
+2026-03-08 10:35:06.769 [http-nio-8080-exec-1] DEBUG c.victor.iatms.mappers.UserMapper.selectUserById - <==      Total: 1
+2026-03-08 10:35:06.770 [http-nio-8080-exec-1] DEBUG c.v.i.m.ProjectMemberMapper.countUserProjects - ==>  Preparing: SELECT COUNT(1) FROM ProjectMembers pm INNER JOIN Projects p ON pm.project_id = p.project_id WHERE pm.user_id = ? AND pm.status = ? AND p.is_deleted = FALSE
+2026-03-08 10:35:06.770 [http-nio-8080-exec-1] DEBUG c.v.i.m.ProjectMemberMapper.countUserProjects - ==> Parameters: 3(Integer), active(String)
+2026-03-08 10:35:06.771 [http-nio-8080-exec-1] DEBUG c.v.i.m.ProjectMemberMapper.countUserProjects - <==      Total: 1
+2026-03-08 10:35:06.772 [http-nio-8080-exec-9] DEBUG com.victor.iatms.mappers.UserMapper.countUsers - ==>  Preparing: SELECT count(*) FROM Users WHERE is_deleted = FALSE
+2026-03-08 10:35:06.772 [http-nio-8080-exec-9] DEBUG com.victor.iatms.mappers.UserMapper.countUsers - ==> Parameters: 
+2026-03-08 10:35:06.773 [http-nio-8080-exec-1] DEBUG c.v.i.m.ProjectMemberMapper.selectUserProjects - ==>  Preparing: SELECT pm.member_id, pm.project_id, p.name AS project_name, p.description AS project_description, p.creator_id, p.created_at AS project_created_at, pm.permission_level, pm.project_role, pm.status, pm.join_time, pm.leave_time, pm.assigned_tasks, pm.completed_tasks, pm.additional_roles, pm.custom_permissions FROM ProjectMembers pm INNER JOIN Projects p ON pm.project_id = p.project_id WHERE pm.user_id = ? AND pm.status = ? AND p.is_deleted = FALSE ORDER BY pm.join_time DESC LIMIT ? OFFSET ?
+2026-03-08 10:35:06.774 [http-nio-8080-exec-9] DEBUG com.victor.iatms.mappers.UserMapper.countUsers - <==      Total: 1
+2026-03-08 10:35:06.774 [http-nio-8080-exec-1] DEBUG c.v.i.m.ProjectMemberMapper.selectUserProjects - ==> Parameters: 3(Integer), active(String), 100(Integer), 0(Integer)
+2026-03-08 10:35:06.777 [http-nio-8080-exec-9] DEBUG com.victor.iatms.mappers.UserMapper.selectUsers - ==>  Preparing: SELECT user_id, name, email, avatar_url, phone, password, department_id, employee_id, creator_id, last_login_time, position, description, status, role, created_at, updated_at, is_deleted, deleted_at, deleted_by FROM Users WHERE is_deleted = FALSE LIMIT ? OFFSET ?
+2026-03-08 10:35:06.777 [http-nio-8080-exec-9] DEBUG com.victor.iatms.mappers.UserMapper.selectUsers - ==> Parameters: 6(Integer), 0(Integer)
+2026-03-08 10:35:06.778 [http-nio-8080-exec-1] DEBUG c.v.i.m.ProjectMemberMapper.selectUserProjects - <==      Total: 1
+2026-03-08 10:35:06.780 [http-nio-8080-exec-9] DEBUG com.victor.iatms.mappers.UserMapper.selectUsers - <==      Total: 6
+2026-03-08 10:35:06.817 [http-nio-8080-exec-2] DEBUG com.victor.iatms.mappers.UserMapper.findById - ==>  Preparing: SELECT user_id, name, email, avatar_url, phone, password, department_id, employee_id, creator_id, last_login_time, position, description, status, role, created_at, updated_at, is_deleted, deleted_at, deleted_by FROM Users WHERE user_id = ? AND is_deleted = FALSE
+2026-03-08 10:35:06.817 [http-nio-8080-exec-4] DEBUG com.victor.iatms.mappers.UserMapper.findById - ==>  Preparing: SELECT user_id, name, email, avatar_url, phone, password, department_id, employee_id, creator_id, last_login_time, position, description, status, role, created_at, updated_at, is_deleted, deleted_at, deleted_by FROM Users WHERE user_id = ? AND is_deleted = FALSE
+2026-03-08 10:35:06.817 [http-nio-8080-exec-2] DEBUG com.victor.iatms.mappers.UserMapper.findById - ==> Parameters: 3(Integer)
+2026-03-08 10:35:06.817 [http-nio-8080-exec-4] DEBUG com.victor.iatms.mappers.UserMapper.findById - ==> Parameters: 3(Integer)
+2026-03-08 10:35:06.817 [http-nio-8080-exec-2] DEBUG com.victor.iatms.mappers.UserMapper.findById - <==      Total: 1
+2026-03-08 10:35:06.817 [http-nio-8080-exec-4] DEBUG com.victor.iatms.mappers.UserMapper.findById - <==      Total: 1
+2026-03-08 10:35:06.823 [http-nio-8080-exec-2] DEBUG com.victor.iatms.mappers.UserMapper.findById - ==>  Preparing: SELECT user_id, name, email, avatar_url, phone, password, department_id, employee_id, creator_id, last_login_time, position, description, status, role, created_at, updated_at, is_deleted, deleted_at, deleted_by FROM Users WHERE user_id = ? AND is_deleted = FALSE
+2026-03-08 10:35:06.823 [http-nio-8080-exec-2] DEBUG com.victor.iatms.mappers.UserMapper.findById - ==> Parameters: 3(Integer)
+2026-03-08 10:35:06.830 [http-nio-8080-exec-4] DEBUG com.victor.iatms.mappers.UserMapper.findById - ==>  Preparing: SELECT user_id, name, email, avatar_url, phone, password, department_id, employee_id, creator_id, last_login_time, position, description, status, role, created_at, updated_at, is_deleted, deleted_at, deleted_by FROM Users WHERE user_id = ? AND is_deleted = FALSE
+2026-03-08 10:35:06.831 [http-nio-8080-exec-2] DEBUG com.victor.iatms.mappers.UserMapper.findById - <==      Total: 1
+2026-03-08 10:35:06.833 [http-nio-8080-exec-2] DEBUG c.v.i.m.ProjectMemberMapper.findByProjectAndUser - ==>  Preparing: SELECT * FROM ProjectMembers WHERE project_id = ? AND user_id = ? LIMIT 1
+2026-03-08 10:35:06.833 [http-nio-8080-exec-2] DEBUG c.v.i.m.ProjectMemberMapper.findByProjectAndUser - ==> Parameters: 24(Integer), 3(Integer)
+2026-03-08 10:35:06.830 [http-nio-8080-exec-4] DEBUG com.victor.iatms.mappers.UserMapper.findById - ==> Parameters: 3(Integer)
+2026-03-08 10:35:06.834 [http-nio-8080-exec-4] DEBUG com.victor.iatms.mappers.UserMapper.findById - <==      Total: 1
+2026-03-08 10:35:06.835 [http-nio-8080-exec-2] DEBUG c.v.i.m.ProjectMemberMapper.findByProjectAndUser - <==      Total: 1
+2026-03-08 10:35:06.836 [http-nio-8080-exec-4] DEBUG c.v.i.m.ProjectMemberMapper.findByProjectAndUser - ==>  Preparing: SELECT * FROM ProjectMembers WHERE project_id = ? AND user_id = ? LIMIT 1
+2026-03-08 10:35:06.836 [http-nio-8080-exec-4] DEBUG c.v.i.m.ProjectMemberMapper.findByProjectAndUser - ==> Parameters: 24(Integer), 3(Integer)
+2026-03-08 10:35:06.838 [http-nio-8080-exec-4] DEBUG c.v.i.m.ProjectMemberMapper.findByProjectAndUser - <==      Total: 1
+2026-03-08 10:37:32.678 [http-nio-8080-exec-8] DEBUG c.victor.iatms.mappers.UserMapper.selectUserById - ==>  Preparing: SELECT user_id, name, email, avatar_url, phone, password, department_id, employee_id, creator_id, last_login_time, position, description, status, role, created_at, updated_at, is_deleted, deleted_at, deleted_by FROM Users WHERE user_id = ? AND is_deleted = FALSE
+2026-03-08 10:37:32.679 [http-nio-8080-exec-8] DEBUG c.victor.iatms.mappers.UserMapper.selectUserById - ==> Parameters: 3(Integer)
+2026-03-08 10:37:32.680 [http-nio-8080-exec-5] DEBUG com.victor.iatms.mappers.UserMapper.countUsers - ==>  Preparing: SELECT count(*) FROM Users WHERE is_deleted = FALSE
+2026-03-08 10:37:32.680 [http-nio-8080-exec-8] DEBUG c.victor.iatms.mappers.UserMapper.selectUserById - <==      Total: 1
+2026-03-08 10:37:32.681 [http-nio-8080-exec-5] DEBUG com.victor.iatms.mappers.UserMapper.countUsers - ==> Parameters: 
+2026-03-08 10:37:32.682 [http-nio-8080-exec-5] DEBUG com.victor.iatms.mappers.UserMapper.countUsers - <==      Total: 1
+2026-03-08 10:37:32.682 [http-nio-8080-exec-8] DEBUG c.v.i.m.ProjectMemberMapper.countUserProjects - ==>  Preparing: SELECT COUNT(1) FROM ProjectMembers pm INNER JOIN Projects p ON pm.project_id = p.project_id WHERE pm.user_id = ? AND pm.status = ? AND p.is_deleted = FALSE
+2026-03-08 10:37:32.685 [http-nio-8080-exec-8] DEBUG c.v.i.m.ProjectMemberMapper.countUserProjects - ==> Parameters: 3(Integer), active(String)
+2026-03-08 10:37:32.685 [http-nio-8080-exec-5] DEBUG com.victor.iatms.mappers.UserMapper.selectUsers - ==>  Preparing: SELECT user_id, name, email, avatar_url, phone, password, department_id, employee_id, creator_id, last_login_time, position, description, status, role, created_at, updated_at, is_deleted, deleted_at, deleted_by FROM Users WHERE is_deleted = FALSE LIMIT ? OFFSET ?
+2026-03-08 10:37:32.685 [http-nio-8080-exec-5] DEBUG com.victor.iatms.mappers.UserMapper.selectUsers - ==> Parameters: 6(Integer), 0(Integer)
+2026-03-08 10:37:32.685 [http-nio-8080-exec-8] DEBUG c.v.i.m.ProjectMemberMapper.countUserProjects - <==      Total: 1
+2026-03-08 10:37:32.689 [http-nio-8080-exec-5] DEBUG com.victor.iatms.mappers.UserMapper.selectUsers - <==      Total: 6
+2026-03-08 10:37:32.691 [http-nio-8080-exec-8] DEBUG c.v.i.m.ProjectMemberMapper.selectUserProjects - ==>  Preparing: SELECT pm.member_id, pm.project_id, p.name AS project_name, p.description AS project_description, p.creator_id, p.created_at AS project_created_at, pm.permission_level, pm.project_role, pm.status, pm.join_time, pm.leave_time, pm.assigned_tasks, pm.completed_tasks, pm.additional_roles, pm.custom_permissions FROM ProjectMembers pm INNER JOIN Projects p ON pm.project_id = p.project_id WHERE pm.user_id = ? AND pm.status = ? AND p.is_deleted = FALSE ORDER BY pm.join_time DESC LIMIT ? OFFSET ?
+2026-03-08 10:37:32.694 [http-nio-8080-exec-8] DEBUG c.v.i.m.ProjectMemberMapper.selectUserProjects - ==> Parameters: 3(Integer), active(String), 100(Integer), 0(Integer)
+2026-03-08 10:37:32.701 [http-nio-8080-exec-8] DEBUG c.v.i.m.ProjectMemberMapper.selectUserProjects - <==      Total: 1
+2026-03-08 10:37:32.963 [http-nio-8080-exec-3] DEBUG com.victor.iatms.mappers.UserMapper.findById - ==>  Preparing: SELECT user_id, name, email, avatar_url, phone, password, department_id, employee_id, creator_id, last_login_time, position, description, status, role, created_at, updated_at, is_deleted, deleted_at, deleted_by FROM Users WHERE user_id = ? AND is_deleted = FALSE
+2026-03-08 10:37:32.963 [http-nio-8080-exec-6] DEBUG com.victor.iatms.mappers.UserMapper.findById - ==>  Preparing: SELECT user_id, name, email, avatar_url, phone, password, department_id, employee_id, creator_id, last_login_time, position, description, status, role, created_at, updated_at, is_deleted, deleted_at, deleted_by FROM Users WHERE user_id = ? AND is_deleted = FALSE
+2026-03-08 10:37:32.963 [http-nio-8080-exec-6] DEBUG com.victor.iatms.mappers.UserMapper.findById - ==> Parameters: 3(Integer)
+2026-03-08 10:37:32.963 [http-nio-8080-exec-3] DEBUG com.victor.iatms.mappers.UserMapper.findById - ==> Parameters: 3(Integer)
+2026-03-08 10:37:32.964 [http-nio-8080-exec-3] DEBUG com.victor.iatms.mappers.UserMapper.findById - <==      Total: 1
+2026-03-08 10:37:32.964 [http-nio-8080-exec-6] DEBUG com.victor.iatms.mappers.UserMapper.findById - <==      Total: 1
+2026-03-08 10:37:32.966 [http-nio-8080-exec-6] DEBUG com.victor.iatms.mappers.UserMapper.findById - ==>  Preparing: SELECT user_id, name, email, avatar_url, phone, password, department_id, employee_id, creator_id, last_login_time, position, description, status, role, created_at, updated_at, is_deleted, deleted_at, deleted_by FROM Users WHERE user_id = ? AND is_deleted = FALSE
+2026-03-08 10:37:32.966 [http-nio-8080-exec-3] DEBUG com.victor.iatms.mappers.UserMapper.findById - ==>  Preparing: SELECT user_id, name, email, avatar_url, phone, password, department_id, employee_id, creator_id, last_login_time, position, description, status, role, created_at, updated_at, is_deleted, deleted_at, deleted_by FROM Users WHERE user_id = ? AND is_deleted = FALSE
+2026-03-08 10:37:32.967 [http-nio-8080-exec-3] DEBUG com.victor.iatms.mappers.UserMapper.findById - ==> Parameters: 3(Integer)
+2026-03-08 10:37:32.967 [http-nio-8080-exec-6] DEBUG com.victor.iatms.mappers.UserMapper.findById - ==> Parameters: 3(Integer)
+2026-03-08 10:37:32.968 [http-nio-8080-exec-3] DEBUG com.victor.iatms.mappers.UserMapper.findById - <==      Total: 1
+2026-03-08 10:37:32.968 [http-nio-8080-exec-6] DEBUG com.victor.iatms.mappers.UserMapper.findById - <==      Total: 1
+2026-03-08 10:37:32.969 [http-nio-8080-exec-6] DEBUG c.v.i.m.ProjectMemberMapper.findByProjectAndUser - ==>  Preparing: SELECT * FROM ProjectMembers WHERE project_id = ? AND user_id = ? LIMIT 1
+2026-03-08 10:37:32.969 [http-nio-8080-exec-3] DEBUG c.v.i.m.ProjectMemberMapper.findByProjectAndUser - ==>  Preparing: SELECT * FROM ProjectMembers WHERE project_id = ? AND user_id = ? LIMIT 1
+2026-03-08 10:37:32.969 [http-nio-8080-exec-6] DEBUG c.v.i.m.ProjectMemberMapper.findByProjectAndUser - ==> Parameters: 24(Integer), 3(Integer)
+2026-03-08 10:37:32.969 [http-nio-8080-exec-3] DEBUG c.v.i.m.ProjectMemberMapper.findByProjectAndUser - ==> Parameters: 24(Integer), 3(Integer)
+2026-03-08 10:37:32.971 [http-nio-8080-exec-6] DEBUG c.v.i.m.ProjectMemberMapper.findByProjectAndUser - <==      Total: 1
+2026-03-08 10:37:32.971 [http-nio-8080-exec-3] DEBUG c.v.i.m.ProjectMemberMapper.findByProjectAndUser - <==      Total: 1
+2026-03-08 10:37:41.922 [http-nio-8080-exec-10] DEBUG com.victor.iatms.mappers.UserMapper.findById - ==>  Preparing: SELECT user_id, name, email, avatar_url, phone, password, department_id, employee_id, creator_id, last_login_time, position, description, status, role, created_at, updated_at, is_deleted, deleted_at, deleted_by FROM Users WHERE user_id = ? AND is_deleted = FALSE
+2026-03-08 10:37:41.922 [http-nio-8080-exec-7] DEBUG com.victor.iatms.mappers.UserMapper.findById - ==>  Preparing: SELECT user_id, name, email, avatar_url, phone, password, department_id, employee_id, creator_id, last_login_time, position, description, status, role, created_at, updated_at, is_deleted, deleted_at, deleted_by FROM Users WHERE user_id = ? AND is_deleted = FALSE
+2026-03-08 10:37:41.922 [http-nio-8080-exec-10] DEBUG com.victor.iatms.mappers.UserMapper.findById - ==> Parameters: 3(Integer)
+2026-03-08 10:37:41.922 [http-nio-8080-exec-7] DEBUG com.victor.iatms.mappers.UserMapper.findById - ==> Parameters: 3(Integer)
+2026-03-08 10:37:41.924 [http-nio-8080-exec-7] DEBUG com.victor.iatms.mappers.UserMapper.findById - <==      Total: 1
+2026-03-08 10:37:41.924 [http-nio-8080-exec-10] DEBUG com.victor.iatms.mappers.UserMapper.findById - <==      Total: 1
+2026-03-08 10:37:41.925 [http-nio-8080-exec-10] DEBUG com.victor.iatms.mappers.UserMapper.findById - ==>  Preparing: SELECT user_id, name, email, avatar_url, phone, password, department_id, employee_id, creator_id, last_login_time, position, description, status, role, created_at, updated_at, is_deleted, deleted_at, deleted_by FROM Users WHERE user_id = ? AND is_deleted = FALSE
+2026-03-08 10:37:41.925 [http-nio-8080-exec-7] DEBUG com.victor.iatms.mappers.UserMapper.findById - ==>  Preparing: SELECT user_id, name, email, avatar_url, phone, password, department_id, employee_id, creator_id, last_login_time, position, description, status, role, created_at, updated_at, is_deleted, deleted_at, deleted_by FROM Users WHERE user_id = ? AND is_deleted = FALSE
+2026-03-08 10:37:41.926 [http-nio-8080-exec-10] DEBUG com.victor.iatms.mappers.UserMapper.findById - ==> Parameters: 3(Integer)
+2026-03-08 10:37:41.926 [http-nio-8080-exec-7] DEBUG com.victor.iatms.mappers.UserMapper.findById - ==> Parameters: 3(Integer)
+2026-03-08 10:37:41.927 [http-nio-8080-exec-10] DEBUG com.victor.iatms.mappers.UserMapper.findById - <==      Total: 1
+2026-03-08 10:37:41.927 [http-nio-8080-exec-7] DEBUG com.victor.iatms.mappers.UserMapper.findById - <==      Total: 1
+2026-03-08 10:37:41.928 [http-nio-8080-exec-10] DEBUG c.v.i.m.ProjectMemberMapper.findByProjectAndUser - ==>  Preparing: SELECT * FROM ProjectMembers WHERE project_id = ? AND user_id = ? LIMIT 1
+2026-03-08 10:37:41.928 [http-nio-8080-exec-7] DEBUG c.v.i.m.ProjectMemberMapper.findByProjectAndUser - ==>  Preparing: SELECT * FROM ProjectMembers WHERE project_id = ? AND user_id = ? LIMIT 1
+2026-03-08 10:37:41.928 [http-nio-8080-exec-7] DEBUG c.v.i.m.ProjectMemberMapper.findByProjectAndUser - ==> Parameters: 24(Integer), 3(Integer)
+2026-03-08 10:37:41.929 [http-nio-8080-exec-10] DEBUG c.v.i.m.ProjectMemberMapper.findByProjectAndUser - ==> Parameters: 24(Integer), 3(Integer)
+2026-03-08 10:37:41.931 [http-nio-8080-exec-7] DEBUG c.v.i.m.ProjectMemberMapper.findByProjectAndUser - <==      Total: 1
+2026-03-08 10:37:41.931 [http-nio-8080-exec-10] DEBUG c.v.i.m.ProjectMemberMapper.findByProjectAndUser - <==      Total: 1

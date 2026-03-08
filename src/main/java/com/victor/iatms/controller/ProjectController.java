@@ -110,7 +110,7 @@ public class ProjectController {
     @GetMapping("/{projectId}/members")
     @GlobalInterceptor(
         checkLogin = true,
-        checkProjectPermission = "project:manage_members",
+        checkProjectPermission = "project:view",
         projectIdParam = "projectId"
     )
     public ResponseVO<ProjectMembersPageResultDTO> getProjectMembers(
