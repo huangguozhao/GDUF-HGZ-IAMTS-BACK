@@ -137,8 +137,7 @@ public class TestExecutionController {
      */
     @GetMapping("/tasks/{task_id}/status")
     @GlobalInterceptor(
-        checkLogin = true,
-        checkPermission = {"testcase:view"}
+        checkLogin = true
     )
     public ResponseVO<ExecutionResultDTO> getTaskStatus(
             @PathVariable("task_id") String taskId,
@@ -209,8 +208,7 @@ public class TestExecutionController {
      */
     @GetMapping("/test-results/{execution_id}")
     @GlobalInterceptor(
-        checkLogin = true,
-        checkPermission = {"testcase:view"}
+        checkLogin = true
     )
     public ResponseVO<ExecutionResultDTO> getExecutionResult(
             @PathVariable("execution_id") Long executionId,
@@ -243,8 +241,7 @@ public class TestExecutionController {
      */
     @GetMapping("/test-results/{execution_id}/logs")
     @GlobalInterceptor(
-        checkLogin = true,
-        checkPermission = {"testcase:view"}
+        checkLogin = true
     )
     public ResponseVO<String> getExecutionLogs(
             @PathVariable("execution_id") Long executionId,
@@ -1007,8 +1004,7 @@ public class TestExecutionController {
      */
     @GetMapping("/test-results/{result_id}")
     @GlobalInterceptor(
-        checkLogin = true,
-        checkPermission = {"testcase:view"}
+        checkLogin = true
     )
     public ResponseVO<com.victor.iatms.entity.dto.TestResultDetailDTO> getTestResultDetail(
             @PathVariable("result_id") Long resultId,

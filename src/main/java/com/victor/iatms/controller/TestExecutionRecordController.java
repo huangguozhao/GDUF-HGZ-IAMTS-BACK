@@ -37,7 +37,7 @@ public class TestExecutionRecordController {
      * 分页查询测试执行记录
      */
     @GetMapping("")
-    @GlobalInterceptor(checkLogin = true, checkPermission = {"testcase:view"})
+    @GlobalInterceptor(checkLogin = true)
     public ResponseVO<TestExecutionRecordPageResultDTO> getExecutionRecords(
             @RequestParam(value = "execution_scope", required = false) String executionScope,
             @RequestParam(value = "ref_id", required = false) Integer refId,
@@ -104,7 +104,7 @@ public class TestExecutionRecordController {
      * 根据ID查询执行记录详情
      */
     @GetMapping("/{recordId}")
-    @GlobalInterceptor(checkLogin = true, checkPermission = {"testcase:view"})
+    @GlobalInterceptor(checkLogin = true)
     public ResponseVO<TestExecutionRecordDetailDTO> getExecutionRecordById(
             @PathVariable("recordId") Long recordId,
             HttpServletRequest request) {
@@ -126,7 +126,7 @@ public class TestExecutionRecordController {
      * 根据执行范围查询最近的执行记录
      */
     @GetMapping("/scope/{executionScope}/{refId}")
-    @GlobalInterceptor(checkLogin = true, checkPermission = {"testcase:view"})
+    @GlobalInterceptor(checkLogin = true)
     public ResponseVO<List<TestExecutionRecordDetailDTO>> getRecentRecordsByScope(
             @PathVariable("executionScope") String executionScope,
             @PathVariable("refId") Integer refId,
@@ -221,7 +221,7 @@ public class TestExecutionRecordController {
      * 获取执行记录统计信息
      */
     @GetMapping("/statistics")
-    @GlobalInterceptor(checkLogin = true, checkPermission = {"testcase:view"})
+    @GlobalInterceptor(checkLogin = true)
     public ResponseVO<TestExecutionRecordStatisticsDTO> getExecutionStatistics(
             @RequestParam(value = "execution_scope", required = false) String executionScope,
             @RequestParam(value = "ref_id", required = false) Integer refId,
@@ -270,7 +270,7 @@ public class TestExecutionRecordController {
      * 根据执行人查询执行记录
      */
     @GetMapping("/executor/{executedBy}")
-    @GlobalInterceptor(checkLogin = true, checkPermission = {"testcase:view"})
+    @GlobalInterceptor(checkLogin = true)
     public ResponseVO<List<TestExecutionRecordDetailDTO>> getRecordsByExecutor(
             @PathVariable("executedBy") Integer executedBy,
             @RequestParam(value = "limit", required = false) Integer limit,

@@ -48,6 +48,7 @@ import org.slf4j.LoggerFactory;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import com.github.pagehelper.PageHelper;
@@ -162,13 +163,26 @@ public class ProjectServiceImpl implements ProjectService {
     }
     
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public Integer createProject(Project project) {
         validateProject(project);
         setProjectDefaults(project);
         int result = projectMapper.insert(project);
         if (result > 0) {
-            // 记录创建项目日志
+            // 自动将创建者添加为项目owner
             if (project.getCreatorId() != null) {
+                ProjectMember ownerMember = new ProjectMember();
+                ownerMember.setProjectId(project.getProjectId());
+                ownerMember.setUserId(project.getCreatorId());
+                ownerMember.setProjectRole("owner");
+                ownerMember.setPermissionLevel("admin");
+                ownerMember.setStatus("active");
+                ownerMember.setJoinTime(new Date());
+                ownerMember.setCreatedBy(project.getCreatorId());
+                ownerMember.setUpdatedBy(project.getCreatorId());
+                projectMemberMapper.insert(ownerMember);
+                
+                // 记录创建项目日志
                 logService.logSuccess(
                     project.getCreatorId(),
                     LogService.OP_CREATE_PROJECT,
@@ -184,8 +198,60 @@ public class ProjectServiceImpl implements ProjectService {
     }
     
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public AddProjectResponseDTO addProject(AddProjectDTO addProjectDTO, Integer creatorId) {
-        return null;
+        // 验证项目名称
+        if (!StringUtils.hasText(addProjectDTO.getName())) {
+            throw new IllegalArgumentException("项目名称不能为空");
+        }
+        // 检查项目名称是否已存在
+        if (checkProjectNameExists(addProjectDTO.getName(), null)) {
+            throw new IllegalArgumentException("项目名称已存在");
+        }
+        
+        // 创建项目对象
+        Project project = new Project();
+        project.setName(addProjectDTO.getName());
+        project.setDescription(addProjectDTO.getDescription());
+        project.setProjectType(addProjectDTO.getProjectType());
+        project.setCreatorId(creatorId);
+        
+        // 设置默认值
+        setProjectDefaults(project);
+        
+        // 插入项目
+        int result = projectMapper.insert(project);
+        if (result <= 0) {
+            throw new RuntimeException("创建项目失败");
+        }
+        
+        // 自动将创建者添加为项目owner
+        ProjectMember ownerMember = new ProjectMember();
+        ownerMember.setProjectId(project.getProjectId());
+        ownerMember.setUserId(creatorId);
+        ownerMember.setProjectRole("owner");
+        ownerMember.setPermissionLevel("admin");
+        ownerMember.setStatus("active");
+        ownerMember.setJoinTime(new Date());
+        ownerMember.setCreatedBy(creatorId);
+        ownerMember.setUpdatedBy(creatorId);
+        projectMemberMapper.insert(ownerMember);
+        
+        // 记录创建项目日志
+        logService.logSuccess(
+            creatorId,
+            LogService.OP_CREATE_PROJECT,
+            project.getProjectId(),
+            project.getName(),
+            LogService.TARGET_PROJECT,
+            "创建了项目: " + project.getName()
+        );
+        
+        // 构建响应
+        AddProjectResponseDTO response = new AddProjectResponseDTO();
+        response.setProjectId(project.getProjectId());
+        response.setName(project.getName());
+        return response;
     }
 
     @Override
@@ -653,6 +719,10 @@ public class ProjectServiceImpl implements ProjectService {
         }
         if (project.getUpdatedAt() == null) {
             project.setUpdatedAt(LocalDateTime.now());
+        }
+        // 生成项目编码
+        if (!StringUtils.hasText(project.getProjectCode())) {
+            project.setProjectCode("PRJ_" + System.currentTimeMillis());
         }
     }
     
