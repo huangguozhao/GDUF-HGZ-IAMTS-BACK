@@ -1,5 +1,6 @@
 package com.victor.iatms.controller;
 
+import com.victor.iatms.annotation.GlobalInterceptor;
 import com.victor.iatms.entity.dto.CreateEnvironmentConfigDTO;
 import com.victor.iatms.entity.dto.EnvironmentConfigDTO;
 import com.victor.iatms.entity.dto.EnvironmentConfigListResponseDTO;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 @Slf4j
 @RestController
 @RequestMapping("/api/environments")
+@GlobalInterceptor(checkLogin = true)
 public class EnvironmentConfigController {
     
     @Autowired
