@@ -4,6 +4,7 @@ import lombok.Data;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * 报告列表查询DTO
@@ -105,4 +106,14 @@ public class ReportListQueryDTO {
      * 偏移量（用于分页）
      */
     private Integer offset;
+    
+    /**
+     * 当前用户ID（用于过滤自己创建的报告）
+     */
+    private Integer userId;
+    
+    /**
+     * 用户所属项目ID列表（用于过滤可访问的项目报告）
+     */
+    private List<Integer> projectIds;
 }

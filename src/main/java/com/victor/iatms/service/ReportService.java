@@ -22,6 +22,14 @@ public interface ReportService {
     ReportPageResultDTO getReportList(ReportListQueryDTO queryDTO);
     
     /**
+     * 获取用户所属的项目ID列表
+     * 
+     * @param userId 用户ID
+     * @return 项目ID列表
+     */
+    List<Integer> getUserProjectIds(Integer userId);
+    
+    /**
      * 根据ID查询报告详情
      * 
      * @param reportId 报告ID

@@ -9,7 +9,10 @@ import com.victor.iatms.entity.dto.ReportDependencyCheckDTO;
 import com.victor.iatms.entity.enums.ReportSortFieldEnum;
 import com.victor.iatms.entity.enums.SortOrderEnum;
 import com.victor.iatms.entity.po.TestReportSummary;
+import com.victor.iatms.entity.po.User;
+import com.victor.iatms.mappers.ProjectMemberMapper;
 import com.victor.iatms.mappers.ReportMapper;
+import com.victor.iatms.mappers.UserMapper;
 import com.victor.iatms.service.ReportService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -17,7 +20,9 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 报告管理服务实现类
@@ -27,6 +32,12 @@ public class ReportServiceImpl implements ReportService {
     
     @Autowired
     private ReportMapper reportMapper;
+    
+    @Autowired
+    private ProjectMemberMapper projectMemberMapper;
+    
+    @Autowired
+    private UserMapper userMapper;
     
     /**
      * 将MyBatis返回的Map转换为Map<String, Long>
@@ -52,6 +63,33 @@ public class ReportServiceImpl implements ReportService {
             resultMap.put(key, longValue);
         }
         return resultMap;
+    }
+    
+    @Override
+    public List<Integer> getUserProjectIds(Integer userId) {
+        if (userId == null) {
+            return new ArrayList<>();
+        }
+        
+        // 查询用户信息，检查是否为管理员
+        User user = userMapper.selectUserById(userId);
+        if (user != null && "admin".equals(user.getRole())) {
+            // 管理员可以看到全部报告，返回空列表（不限制项目）
+            return new ArrayList<>();
+        }
+        
+        // 查询用户参与的项目列表（状态为正常）
+        List<com.victor.iatms.entity.dto.UserProjectItemDTO> userProjects = 
+            projectMemberMapper.selectUserProjects(userId, "active", null, 0, 1000);
+        
+        if (CollectionUtils.isEmpty(userProjects)) {
+            return new ArrayList<>();
+        }
+        
+        // 提取项目ID列表
+        return userProjects.stream()
+            .map(com.victor.iatms.entity.dto.UserProjectItemDTO::getProjectId)
+            .collect(Collectors.toList());
     }
     
     @Override

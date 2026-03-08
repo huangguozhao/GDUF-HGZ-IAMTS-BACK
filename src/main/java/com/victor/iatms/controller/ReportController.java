@@ -87,9 +87,19 @@ public class ReportController {
             @RequestParam(value = "sort_order", required = false) String sortOrder,
             @RequestParam(value = "include_deleted", required = false) Boolean includeDeleted,
             @RequestParam(value = "page", required = false) Integer page,
-            @RequestParam(value = "page_size", required = false) Integer pageSize) {
+            @RequestParam(value = "page_size", required = false) Integer pageSize,
+            HttpServletRequest request) {
         
         try {
+            // 获取当前用户ID
+            Integer currentUserId = (Integer) request.getAttribute("userId");
+            if (currentUserId == null) {
+                return ResponseVO.authError("认证失败，请重新登录");
+            }
+            
+            // 获取当前用户所属的项目ID列表
+            List<Integer> userProjectIds = reportService.getUserProjectIds(currentUserId);
+            
             // 构建查询参数
             ReportListQueryDTO queryDTO = new ReportListQueryDTO();
             queryDTO.setProjectId(projectId);
@@ -106,6 +116,10 @@ public class ReportController {
             queryDTO.setIncludeDeleted(includeDeleted);
             queryDTO.setPage(page);
             queryDTO.setPageSize(pageSize);
+            
+            // 设置当前用户ID和项目ID列表，用于数据权限过滤
+            queryDTO.setUserId(currentUserId);
+            queryDTO.setProjectIds(userProjectIds);
             
             // 处理时间参数
             if (startTimeBegin != null && !startTimeBegin.trim().isEmpty()) {
