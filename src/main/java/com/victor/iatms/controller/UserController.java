@@ -116,9 +116,14 @@ public class UserController {
 
     /**
      * 3.7 移除用户项目分配（软删除）
+     * 权限：admin/owner 可以删除任何成员，manager 可以删除 developer/tester/viewer
      */
     @DeleteMapping("/{userId}/projects/{projectId}")
-    @GlobalInterceptor(checkLogin = true, checkAdmin = true)
+    @GlobalInterceptor(
+        checkLogin = true,
+        checkProjectPermission = "project:manage_members",
+        projectIdParam = "projectId"
+    )
     public ResponseVO<Object> removeUserFromProject(@PathVariable("userId") Integer userId,
                                                     @PathVariable("projectId") Integer projectId,
                                                     HttpServletRequest request) {

@@ -256,6 +256,30 @@ public class UserServiceImpl implements UserService {
         if ("removed".equalsIgnoreCase(relation.getStatus())) {
             throw new BusinessException("用户已被从项目中移除");
         }
+
+        // 检查操作者是否是该项目的成员
+        ProjectMember operatorMember = projectMemberMapper.findByProjectAndUser(projectId, operatorId);
+        if (operatorMember == null) {
+            throw new BusinessException("您不是该项目成员，无法执行此操作");
+        }
+
+        // 获取操作者的系统角色
+        User operator = userMapper.selectUserById(operatorId);
+        String operatorSystemRole = operator != null ? operator.getRole() : null;
+
+        // 如果操作者是 manager，则不能删除 owner
+        if ("manager".equalsIgnoreCase(operatorMember.getProjectRole()) && "owner".equalsIgnoreCase(relation.getProjectRole())) {
+            throw new BusinessException("项目管理员无权删除项目负责人");
+        }
+
+        // 如果操作者不是 admin，则需要检查项目角色权限
+        if (operatorMember.getProjectRole() != null &&
+            !"admin".equalsIgnoreCase(operatorSystemRole) &&
+            !"owner".equalsIgnoreCase(operatorMember.getProjectRole()) &&
+            !"manager".equalsIgnoreCase(operatorMember.getProjectRole())) {
+            throw new BusinessException("您无权删除项目成员");
+        }
+
         // 软删除
         projectMemberMapper.softRemove(projectId, userId, operatorId);
     }
