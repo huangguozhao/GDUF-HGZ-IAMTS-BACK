@@ -11,11 +11,14 @@ import com.victor.iatms.entity.enums.SortOrderEnum;
 import com.victor.iatms.entity.po.TestReportSummary;
 import com.victor.iatms.entity.po.TestExecutionRecord;
 import com.victor.iatms.entity.po.User;
+import com.victor.iatms.entity.po.ProjectMember;
+import com.victor.iatms.exception.BusinessException;
 import com.victor.iatms.mappers.ProjectMemberMapper;
 import com.victor.iatms.mappers.ReportMapper;
 import com.victor.iatms.mappers.TestExecutionRecordMapper;
 import com.victor.iatms.mappers.UserMapper;
 import com.victor.iatms.service.ReportService;
+import com.victor.iatms.service.PermissionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -43,6 +46,9 @@ public class ReportServiceImpl implements ReportService {
     
     @Autowired
     private UserMapper userMapper;
+    
+    @Autowired
+    private PermissionService permissionService;
     
     /**
      * 将MyBatis返回的Map转换为Map<String, Long>
@@ -541,6 +547,9 @@ public class ReportServiceImpl implements ReportService {
             throw new IllegalArgumentException("报告已被删除，无法重复删除");
         }
         
+        // 检查删除权限：只有报告创建者、项目Owner/Manager或管理员可以删除
+        checkDeletePermission(report, currentUserId);
+        
         // 检查依赖关系（仅在非强制删除时检查）
         if (force == null || !force) {
             ReportDependencyCheckDTO dependencies = checkReportDependencies(reportId);
@@ -558,6 +567,34 @@ public class ReportServiceImpl implements ReportService {
         }
         
         return result;
+    }
+    
+    /**
+     * 检查删除权限：只有报告创建者、项目Owner/Manager或管理员可以删除
+     */
+    private void checkDeletePermission(TestReportSummary report, Integer currentUserId) {
+        // 管理员可以删除任何报告
+        if (permissionService.isAdmin(currentUserId)) {
+            return;
+        }
+        
+        // 报告创建者可以删除自己的报告
+        if (report.getGeneratedBy() != null && report.getGeneratedBy().equals(currentUserId)) {
+            return;
+        }
+        
+        // 检查用户是否是项目的Owner或Manager
+        if (report.getProjectId() != null) {
+            ProjectMember member = projectMemberMapper.findByProjectAndUser(report.getProjectId(), currentUserId);
+            if (member != null && "active".equals(member.getStatus())) {
+                String projectRole = member.getProjectRole();
+                if ("owner".equals(projectRole) || "manager".equals(projectRole)) {
+                    return;
+                }
+            }
+        }
+        
+        throw new BusinessException("权限不足，只有报告创建者或项目Owner/Manager可以删除报告");
     }
     
     @Override

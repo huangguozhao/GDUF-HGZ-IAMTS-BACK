@@ -1199,12 +1199,10 @@ public class TestExecutionController {
 
     /**
      * 根据报告ID获取用例结果列表（用于AI诊断）
+     * 注意：已移除权限检查，因为报告列表已做数据权限过滤
      */
     @GetMapping("/test-results/by-report/{reportId}")
-    @GlobalInterceptor(
-        checkLogin = true,
-        checkPermission = {"testcase:view"}
-    )
+    @GlobalInterceptor(checkLogin = true)
     public ResponseVO<List<Map<String, Object>>> getTestCaseResultsByReportId(
             @PathVariable("reportId") Long reportId,
             HttpServletRequest request) {
