@@ -464,6 +464,21 @@ public class HTMLTemplateBuilder {
         html.append("        <tr><td>项目名称</td><td>").append(ReportFormatter.escapeHtml(exportData.getReportSummary().getProjectName())).append("</td></tr>\n");
         html.append("        <tr><td>报告类型</td><td>").append(ReportFormatter.formatReportType(exportData.getReportSummary().getReportType())).append("</td></tr>\n");
         html.append("        <tr><td>测试环境</td><td>").append(ReportFormatter.formatEnvironment(exportData.getReportSummary().getEnvironment())).append("</td></tr>\n");
+        
+        // 执行人信息
+        String executorName = exportData.getReportSummary().getExecutorName();
+        String executorEmail = exportData.getReportSummary().getExecutorEmail();
+        if (executorName != null || executorEmail != null) {
+            html.append("        <tr><td>测试人员</td><td>");
+            if (executorName != null) {
+                html.append(ReportFormatter.escapeHtml(executorName));
+            }
+            if (executorEmail != null && !executorEmail.isEmpty()) {
+                html.append(" &lt;").append(ReportFormatter.escapeHtml(executorEmail)).append("&gt;");
+            }
+            html.append("</td></tr>\n");
+        }
+        
         html.append("        <tr><td>开始时间</td><td>").append(ReportFormatter.formatDateTime(exportData.getReportSummary().getStartTime())).append("</td></tr>\n");
         html.append("        <tr><td>结束时间</td><td>").append(ReportFormatter.formatDateTime(exportData.getReportSummary().getEndTime())).append("</td></tr>\n");
         html.append("        <tr><td>执行耗时</td><td>").append(ReportFormatter.formatDuration(exportData.getReportSummary().getDuration())).append("</td></tr>\n");

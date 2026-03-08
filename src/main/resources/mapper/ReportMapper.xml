@@ -101,13 +101,15 @@
         <result column="start_time" property="startTime"/>
         <result column="end_time" property="endTime"/>
         <result column="duration" property="duration"/>
-        <result column="total_cases" property="totalCases"/>
         <result column="executed_cases" property="executedCases"/>
         <result column="passed_cases" property="passedCases"/>
         <result column="failed_cases" property="failedCases"/>
         <result column="broken_cases" property="brokenCases"/>
         <result column="skipped_cases" property="skippedCases"/>
         <result column="success_rate" property="successRate"/>
+        <result column="executor_id" property="executorId"/>
+        <result column="executor_name" property="executorName"/>
+        <result column="executor_email" property="executorEmail"/>
     </resultMap>
 
     <!-- 分页查询报告列表 -->
@@ -575,9 +577,15 @@
             trs.failed_cases,
             trs.broken_cases,
             trs.skipped_cases,
-            trs.success_rate
+            trs.success_rate,
+            trs.execution_id,
+            ex.executed_by AS executor_id,
+            u.name AS executor_name,
+            u.email AS executor_email
         FROM TestReportSummaries trs
         LEFT JOIN Projects p ON trs.project_id = p.project_id
+        LEFT JOIN TestExecutionRecords ex ON trs.execution_id = ex.record_id
+        LEFT JOIN Users u ON ex.executed_by = u.user_id
         WHERE trs.report_id = #{reportId} AND trs.is_deleted = 0
     </select>
     

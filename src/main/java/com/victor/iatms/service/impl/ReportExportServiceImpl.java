@@ -652,13 +652,25 @@ public class ReportExportServiceImpl implements ReportExportService {
             String startTimeStr = summary.getStartTime() != null ? summary.getStartTime().toString() : "N/A";
             String endTimeStr = summary.getEndTime() != null ? summary.getEndTime().toString() : "N/A";
             
-            String[] infoLines = {
-                "Project: " + sanitizeTextForPdf(summary.getProjectName()),
-                "Environment: " + sanitizeTextForPdf(summary.getEnvironment()),
-                "Report Type: " + sanitizeTextForPdf(summary.getReportType()),
-                "Execution Time: " + sanitizeTextForPdf(startTimeStr) + " ~ " + sanitizeTextForPdf(endTimeStr),
-                "Duration: " + formatDuration(summary.getDuration())
-            };
+            // 构建基本信息行
+            java.util.List<String> infoLinesList = new java.util.ArrayList<>();
+            infoLinesList.add("Project: " + sanitizeTextForPdf(summary.getProjectName()));
+            infoLinesList.add("Environment: " + sanitizeTextForPdf(summary.getEnvironment()));
+            infoLinesList.add("Report Type: " + sanitizeTextForPdf(summary.getReportType()));
+            
+            // 添加执行人信息
+            if (summary.getExecutorName() != null && !summary.getExecutorName().isEmpty()) {
+                String executorInfo = "Tester: " + sanitizeTextForPdf(summary.getExecutorName());
+                if (summary.getExecutorEmail() != null && !summary.getExecutorEmail().isEmpty()) {
+                    executorInfo += " (" + sanitizeTextForPdf(summary.getExecutorEmail()) + ")";
+                }
+                infoLinesList.add(executorInfo);
+            }
+            
+            infoLinesList.add("Execution Time: " + sanitizeTextForPdf(startTimeStr) + " ~ " + sanitizeTextForPdf(endTimeStr));
+            infoLinesList.add("Duration: " + formatDuration(summary.getDuration()));
+            
+            String[] infoLines = infoLinesList.toArray(new String[0]);
             
             for (String line : infoLines) {
                 content.beginText();

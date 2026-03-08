@@ -57,6 +57,11 @@ public class ReportExportResponseDTO {
         private Integer reportConfigId;
         private String executiveSummary;
         private String conclusionRecommendation;
+        
+        // 执行人信息
+        private Integer executorId;
+        private String executorName;
+        private String executorEmail;
     }
     
     /**
