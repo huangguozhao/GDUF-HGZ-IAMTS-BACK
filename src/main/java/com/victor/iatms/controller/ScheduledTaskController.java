@@ -35,7 +35,10 @@ public class ScheduledTaskController {
      * 创建定时任务
      */
     @PostMapping
-    @GlobalInterceptor(checkLogin = true, checkPermission = {"task:create"})
+    @GlobalInterceptor(checkLogin = true,
+        checkProjectPermission = "task:create",
+        projectIdParam = "targetId"
+    )
     public ResponseVO<ScheduledTaskDTO> createScheduledTask(
             @Valid @RequestBody CreateScheduledTaskDTO dto,
             HttpServletRequest request) {
@@ -53,7 +56,11 @@ public class ScheduledTaskController {
      * 更新定时任务
      */
     @PutMapping("/{taskId}")
-    @GlobalInterceptor(checkLogin = true, checkPermission = {"task:update"})
+    @GlobalInterceptor(checkLogin = true,
+        checkProjectPermission = "task:update",
+        resourceTypeForProjectCheck = "task",
+        resourceIdParamForProjectCheck = "taskId"
+    )
     public ResponseVO<ScheduledTaskDTO> updateScheduledTask(
             @PathVariable("taskId") Long taskId,
             @Valid @RequestBody CreateScheduledTaskDTO dto,
@@ -72,7 +79,11 @@ public class ScheduledTaskController {
      * 删除定时任务
      */
     @DeleteMapping("/{taskId}")
-    @GlobalInterceptor(checkLogin = true, checkPermission = {"task:delete"})
+    @GlobalInterceptor(checkLogin = true,
+        checkProjectPermission = "task:delete",
+        resourceTypeForProjectCheck = "task",
+        resourceIdParamForProjectCheck = "taskId"
+    )
     public ResponseVO<Void> deleteScheduledTask(
             @PathVariable("taskId") Long taskId,
             HttpServletRequest request) {
@@ -90,7 +101,11 @@ public class ScheduledTaskController {
      * 获取任务详情
      */
     @GetMapping("/{taskId}")
-    @GlobalInterceptor(checkLogin = true, checkPermission = {"task:view"})
+    @GlobalInterceptor(checkLogin = true,
+        checkProjectPermission = "task:view",
+        resourceTypeForProjectCheck = "scheduled_task",
+        resourceIdParamForProjectCheck = "taskId"
+    )
     public ResponseVO<ScheduledTaskDTO> getScheduledTask(
             @PathVariable("taskId") Long taskId,
             HttpServletRequest request) {
@@ -106,9 +121,13 @@ public class ScheduledTaskController {
 
     /**
      * 分页查询任务列表
+     * 如果传入了 target_id，则检查项目权限；否则只检查登录
      */
     @GetMapping
-    @GlobalInterceptor(checkLogin = true, checkPermission = {"task:view"})
+    @GlobalInterceptor(checkLogin = true, 
+        checkProjectPermission = "task:view",
+        projectIdParam = "target_id"
+    )
     public ResponseVO<PaginationResultVO<ScheduledTaskDTO>> listScheduledTasks(
             @RequestParam(value = "page", required = false, defaultValue = "1") Integer page,
             @RequestParam(value = "page_size", required = false, defaultValue = "20") Integer pageSize,
@@ -161,7 +180,11 @@ public class ScheduledTaskController {
      * 启用任务
      */
     @PostMapping("/{taskId}/enable")
-    @GlobalInterceptor(checkLogin = true, checkPermission = {"task:update"})
+    @GlobalInterceptor(checkLogin = true,
+        checkProjectPermission = "task:update",
+        resourceTypeForProjectCheck = "task",
+        resourceIdParamForProjectCheck = "taskId"
+    )
     public ResponseVO<Void> enableScheduledTask(
             @PathVariable("taskId") Long taskId,
             HttpServletRequest request) {
@@ -179,7 +202,11 @@ public class ScheduledTaskController {
      * 禁用任务
      */
     @PostMapping("/{taskId}/disable")
-    @GlobalInterceptor(checkLogin = true, checkPermission = {"task:update"})
+    @GlobalInterceptor(checkLogin = true,
+        checkProjectPermission = "task:update",
+        resourceTypeForProjectCheck = "task",
+        resourceIdParamForProjectCheck = "taskId"
+    )
     public ResponseVO<Void> disableScheduledTask(
             @PathVariable("taskId") Long taskId,
             HttpServletRequest request) {
@@ -197,7 +224,11 @@ public class ScheduledTaskController {
      * 立即执行任务
      */
     @PostMapping("/{taskId}/execute")
-    @GlobalInterceptor(checkLogin = true, checkPermission = {"task:execute"})
+    @GlobalInterceptor(checkLogin = true,
+        checkProjectPermission = "task:execute",
+        resourceTypeForProjectCheck = "task",
+        resourceIdParamForProjectCheck = "taskId"
+    )
     public ResponseVO<Long> executeScheduledTaskNow(
             @PathVariable("taskId") Long taskId,
             HttpServletRequest request) {
@@ -215,7 +246,11 @@ public class ScheduledTaskController {
      * 获取执行历史
      */
     @GetMapping("/{taskId}/history")
-    @GlobalInterceptor(checkLogin = true, checkPermission = {"task:view"})
+    @GlobalInterceptor(checkLogin = true,
+        checkProjectPermission = "task:view",
+        resourceTypeForProjectCheck = "task",
+        resourceIdParamForProjectCheck = "taskId"
+    )
     public ResponseVO<PaginationResultVO<ScheduledTaskExecutionDTO>> getExecutionHistory(
             @PathVariable("taskId") Long taskId,
             @RequestParam(value = "page", required = false, defaultValue = "1") Integer page,
@@ -235,7 +270,11 @@ public class ScheduledTaskController {
      * 获取执行统计
      */
     @GetMapping("/{taskId}/statistics")
-    @GlobalInterceptor(checkLogin = true, checkPermission = {"task:view"})
+    @GlobalInterceptor(checkLogin = true,
+        checkProjectPermission = "task:view",
+        resourceTypeForProjectCheck = "task",
+        resourceIdParamForProjectCheck = "taskId"
+    )
     public ResponseVO<ScheduledTaskStatisticsDTO> getExecutionStatistics(
             @PathVariable("taskId") Long taskId,
             HttpServletRequest request) {

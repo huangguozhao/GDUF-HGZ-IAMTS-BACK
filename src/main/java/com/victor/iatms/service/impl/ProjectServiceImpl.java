@@ -454,7 +454,7 @@ public class ProjectServiceImpl implements ProjectService {
         Project project = projectMapper.selectById(projectId);
         if (project == null || Boolean.TRUE.equals(project.getIsDeleted())) {
             throw new IllegalArgumentException("项目不存在");
-        }
+    }
         User user = userMapper.selectUserById(userId);
         if (user == null) throw new IllegalArgumentException("用户不存在");
         ProjectMember relation = projectMemberMapper.findByProjectAndUser(projectId, userId);
