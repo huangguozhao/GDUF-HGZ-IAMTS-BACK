@@ -29,6 +29,10 @@
         <result column="tags_json" property="tags" typeHandler="com.victor.iatms.utils.JsonTypeHandler"/>
         <result column="created_at" property="createdAt"/>
         <result column="is_deleted" property="isDeleted"/>
+        <result column="execution_id" property="executionId"/>
+        <result column="executor_id" property="executorId"/>
+        <result column="executor_name" property="executorName"/>
+        <result column="executor_email" property="executorEmail"/>
     </resultMap>
 
     <!-- 报告统计摘要结果映射 -->
@@ -133,10 +137,16 @@
             u.name AS generator_name,
             trs.tags_json,
             trs.created_at,
-            trs.is_deleted
+            trs.is_deleted,
+            trs.execution_id,
+            ex.executed_by AS executor_id,
+            exu.name AS executor_name,
+            exu.email AS executor_email
         FROM TestReportSummaries trs
         LEFT JOIN Projects p ON trs.project_id = p.project_id
         LEFT JOIN Users u ON trs.generated_by = u.user_id
+        LEFT JOIN TestExecutionRecords ex ON trs.execution_id = ex.record_id
+        LEFT JOIN Users exu ON ex.executed_by = exu.user_id
         <where>
             <if test="includeDeleted == null or includeDeleted == false">
                 AND trs.is_deleted = 0

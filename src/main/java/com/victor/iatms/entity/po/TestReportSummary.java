@@ -225,4 +225,21 @@ public class TestReportSummary {
      * 测试范围详情（JSON格式）
      */
     private String testScopeDetails;
+    
+    // ==================== 执行人信息（从TestExecutionRecord获取） ====================
+    
+    /**
+     * 执行人ID
+     */
+    private Integer executorId;
+    
+    /**
+     * 执行人姓名
+     */
+    private String executorName;
+    
+    /**
+     * 执行人邮箱
+     */
+    private String executorEmail;
 }

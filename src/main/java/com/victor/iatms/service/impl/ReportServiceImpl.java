@@ -9,9 +9,11 @@ import com.victor.iatms.entity.dto.ReportDependencyCheckDTO;
 import com.victor.iatms.entity.enums.ReportSortFieldEnum;
 import com.victor.iatms.entity.enums.SortOrderEnum;
 import com.victor.iatms.entity.po.TestReportSummary;
+import com.victor.iatms.entity.po.TestExecutionRecord;
 import com.victor.iatms.entity.po.User;
 import com.victor.iatms.mappers.ProjectMemberMapper;
 import com.victor.iatms.mappers.ReportMapper;
+import com.victor.iatms.mappers.TestExecutionRecordMapper;
 import com.victor.iatms.mappers.UserMapper;
 import com.victor.iatms.service.ReportService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +34,9 @@ public class ReportServiceImpl implements ReportService {
     
     @Autowired
     private ReportMapper reportMapper;
+    
+    @Autowired
+    private TestExecutionRecordMapper testExecutionRecordMapper;
     
     @Autowired
     private ProjectMemberMapper projectMemberMapper;
@@ -147,6 +152,23 @@ public class ReportServiceImpl implements ReportService {
         TestReportSummary report = reportMapper.selectById(reportId);
         if (report == null) {
             throw new IllegalArgumentException("报告不存在");
+        }
+        
+        // 如果有executionId，获取执行人信息
+        if (report.getExecutionId() != null) {
+            try {
+                TestExecutionRecord executionRecord = testExecutionRecordMapper.findExecutionRecordById(report.getExecutionId());
+                if (executionRecord != null && executionRecord.getExecutedBy() != null) {
+                    User executor = userMapper.selectUserById(executionRecord.getExecutedBy());
+                    if (executor != null) {
+                        report.setExecutorId(executor.getUserId());
+                        report.setExecutorName(executor.getName());
+                        report.setExecutorEmail(executor.getEmail());
+                    }
+                }
+            } catch (Exception e) {
+                // 忽略执行人信息查询失败，不影响报告返回
+            }
         }
         
         return report;

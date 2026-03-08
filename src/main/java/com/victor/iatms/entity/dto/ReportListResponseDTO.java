@@ -151,4 +151,26 @@ public class ReportListResponseDTO {
      * 是否已删除
      */
     private Boolean isDeleted;
+    
+    // ==================== 执行人信息 ====================
+    
+    /**
+     * 执行记录ID
+     */
+    private Long executionId;
+    
+    /**
+     * 执行人ID
+     */
+    private Integer executorId;
+    
+    /**
+     * 执行人姓名
+     */
+    private String executorName;
+    
+    /**
+     * 执行人邮箱
+     */
+    private String executorEmail;
 }
