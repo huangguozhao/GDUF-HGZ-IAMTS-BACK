@@ -46,8 +46,7 @@ public class TestExecutionController {
     @PostMapping("/test-cases/{case_id}/execute")
     @GlobalInterceptor(
         checkLogin = true,
-        checkResourceAccess = true,
-        resourceType = "testcase",
+        checkExecutePermission = true,
         resourceIdParam = "case_id"
     )
     public ResponseVO<ExecutionResultDTO> executeTestCase(
@@ -93,9 +92,7 @@ public class TestExecutionController {
     @PostMapping("/test-cases/{case_id}/execute-async")
     @GlobalInterceptor(
         checkLogin = true,
-        checkPermission = {"testcase:execute"},
-        checkResourceAccess = true,
-        resourceType = "testcase",
+        checkExecutePermission = true,
         resourceIdParam = "case_id"
     )
     public ResponseVO<ExecutionResultDTO> executeTestCaseAsync(
@@ -313,9 +310,8 @@ public class TestExecutionController {
     @PostMapping("/modules/{module_id}/execute")
     @GlobalInterceptor(
         checkLogin = true,
-        checkPermission = {"module:execute"},
-        checkResourceAccess = true,
-        resourceType = "module",
+        checkExecutePermission = true,
+        executeResourceType = "module",
         resourceIdParam = "module_id"
     )
     public ResponseVO<ModuleExecutionResultDTO> executeModule(
@@ -363,9 +359,8 @@ public class TestExecutionController {
     @PostMapping("/modules/{module_id}/execute-async")
     @GlobalInterceptor(
         checkLogin = true,
-        checkPermission = {"module:execute"},
-        checkResourceAccess = true,
-        resourceType = "module",
+        checkExecutePermission = true,
+        executeResourceType = "module",
         resourceIdParam = "module_id"
     )
     public ResponseVO<ModuleExecutionResultDTO> executeModuleAsync(
@@ -484,9 +479,8 @@ public class TestExecutionController {
     @PostMapping("/projects/{project_id}/execute")
     @GlobalInterceptor(
         checkLogin = true,
-        checkPermission = {"project:execute"},
-        checkResourceAccess = true,
-        resourceType = "project",
+        checkExecutePermission = true,
+        executeResourceType = "project",
         resourceIdParam = "project_id"
     )
     public ResponseVO<ProjectExecutionResultDTO> executeProject(
@@ -534,9 +528,8 @@ public class TestExecutionController {
     @PostMapping("/projects/{project_id}/execute-async")
     @GlobalInterceptor(
         checkLogin = true,
-        checkPermission = {"project:execute"},
-        checkResourceAccess = true,
-        resourceType = "project",
+        checkExecutePermission = true,
+        executeResourceType = "project",
         resourceIdParam = "project_id"
     )
     public ResponseVO<ProjectExecutionResultDTO> executeProjectAsync(
@@ -655,9 +648,8 @@ public class TestExecutionController {
     @PostMapping("/apis/{api_id}/execute")
     @GlobalInterceptor(
         checkLogin = true,
-        checkPermission = {"api:execute"},
-        checkResourceAccess = true,
-        resourceType = "api",
+        checkExecutePermission = true,
+        executeResourceType = "api",
         resourceIdParam = "api_id"
     )
     public ResponseVO<ApiExecutionResultDTO> executeApi(
@@ -709,9 +701,8 @@ public class TestExecutionController {
     @PostMapping("/apis/{api_id}/execute-async")
     @GlobalInterceptor(
         checkLogin = true,
-        checkPermission = {"api:execute"},
-        checkResourceAccess = true,
-        resourceType = "api",
+        checkExecutePermission = true,
+        executeResourceType = "api",
         resourceIdParam = "api_id"
     )
     public ResponseVO<ApiExecutionResultDTO> executeApiAsync(
@@ -830,9 +821,8 @@ public class TestExecutionController {
     @PostMapping("/test-suites/{suite_id}/execute")
     @GlobalInterceptor(
         checkLogin = true,
-        checkPermission = {"suite:execute"},
-        checkResourceAccess = true,
-        resourceType = "suite",
+        checkExecutePermission = true,
+        executeResourceType = "test-suite",
         resourceIdParam = "suite_id"
     )
     public ResponseVO<TestSuiteExecutionResultDTO> executeTestSuite(
@@ -882,9 +872,8 @@ public class TestExecutionController {
     @PostMapping("/test-suites/{suite_id}/execute-async")
     @GlobalInterceptor(
         checkLogin = true,
-        checkPermission = {"suite:execute"},
-        checkResourceAccess = true,
-        resourceType = "suite",
+        checkExecutePermission = true,
+        executeResourceType = "test-suite",
         resourceIdParam = "suite_id"
     )
     public ResponseVO<TestSuiteExecutionResultDTO> executeTestSuiteAsync(

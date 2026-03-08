@@ -320,6 +320,7 @@ public interface TestExecutionMapper {
          * @param moduleId 模块ID（可选）
          * @param apiId 接口ID（可选）
          * @param environment 环境（可选）
+         * @param userId 用户ID（可选，用于过滤当前用户的数据）
          * @return 统计摘要
          */
         com.victor.iatms.entity.dto.StatisticsSummaryDTO getStatisticsSummary(
@@ -328,7 +329,8 @@ public interface TestExecutionMapper {
             @Param("projectId") Integer projectId,
             @Param("moduleId") Integer moduleId,
             @Param("apiId") Integer apiId,
-            @Param("environment") String environment);
+            @Param("environment") String environment,
+            @Param("userId") Integer userId);
 
         /**
          * 按时间分组获取趋势数据
@@ -339,6 +341,7 @@ public interface TestExecutionMapper {
          * @param moduleId 模块ID（可选）
          * @param apiId 接口ID（可选）
          * @param environment 环境（可选）
+         * @param userId 用户ID（可选，用于过滤当前用户的数据）
          * @return 趋势数据列表
          */
         List<com.victor.iatms.entity.dto.TrendDataDTO> getTrendData(
@@ -348,7 +351,8 @@ public interface TestExecutionMapper {
             @Param("projectId") Integer projectId,
             @Param("moduleId") Integer moduleId,
             @Param("apiId") Integer apiId,
-            @Param("environment") String environment);
+            @Param("environment") String environment,
+            @Param("userId") Integer userId);
 
         /**
          * 按指定维度分组获取统计数据
@@ -379,6 +383,7 @@ public interface TestExecutionMapper {
          * @param apiId 接口ID（可选）
          * @param environment 环境（可选）
          * @param limit 返回数量限制
+         * @param userId 用户ID（可选，用于过滤当前用户的数据）
          * @return 问题统计列表
          */
         List<com.victor.iatms.entity.dto.TopIssueDTO> getTopIssues(
@@ -388,7 +393,8 @@ public interface TestExecutionMapper {
             @Param("moduleId") Integer moduleId,
             @Param("apiId") Integer apiId,
             @Param("environment") String environment,
-            @Param("limit") Integer limit);
+            @Param("limit") Integer limit,
+            @Param("userId") Integer userId);
 
         // ========== 近七天执行情况相关方法 ==========
 
@@ -515,18 +521,17 @@ public interface TestExecutionMapper {
 
         /**
          * 获取用户执行统计信息
-         * @param userId 用户ID
-         * @param startTime 开始时间
-         * @param endTime 结束时间
+         * @param userId 用户ID（用于过滤数据，admin用户传null）
          * @return 执行统计信息
          */
-        com.victor.iatms.entity.dto.ExecutionStatsDTO getUserExecutionStats();
+        com.victor.iatms.entity.dto.ExecutionStatsDTO getUserExecutionStats(Integer userId);
 
         /**
          * 获取用户项目统计概览
+         * @param userId 用户ID（用于过滤数据，admin用户传null）
          * @return 项目统计概览
          */
-        List<com.victor.iatms.entity.dto.ProjectStatsDTO> getUserProjectStats();
+        List<com.victor.iatms.entity.dto.ProjectStatsDTO> getUserProjectStats(Integer userId);
 
         /**
          * 获取用户最近活动记录

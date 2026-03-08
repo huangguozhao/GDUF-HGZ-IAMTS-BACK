@@ -64,7 +64,8 @@ public class GlobalOperationAspect {
              */
             if (interceptor.checkLogin() || interceptor.checkAdmin() ||
                 interceptor.checkPermission().length > 0 ||
-                interceptor.checkResourceAccess()) {
+                interceptor.checkResourceAccess() ||
+                interceptor.checkExecutePermission()) {
                 userId = checkLogin(request);
                 // 将userId设置到request属性中，供controller使用
                 request.setAttribute("userId", userId);
@@ -112,6 +113,20 @@ public class GlobalOperationAspect {
 
                 if (projectId != null) {
                     checkProjectPermission(userId, projectId, projectPermission);
+                }
+            }
+
+            /**
+             * 校验测试用例执行权限
+             */
+            if (interceptor.checkExecutePermission() && userId != null) {
+                Integer resourceId = getResourceIdFromRequest(point, interceptor.resourceIdParam());
+                if (resourceId != null) {
+                    String resourceType = interceptor.executeResourceType();
+                    if (resourceType == null || resourceType.isEmpty()) {
+                        resourceType = "testcase"; // 默认值
+                    }
+                    checkExecutePermission(userId, resourceId, resourceType);
                 }
             }
 
@@ -196,6 +211,16 @@ public class GlobalOperationAspect {
      */
     private void checkProjectPermission(Integer userId, Integer projectId, String permission) {
         if (!permissionService.hasProjectPermission(userId, projectId, permission)) {
+            throw new BusinessException(ResponseCodeEnum.CODE_404);
+        }
+    }
+
+    /**
+     * 校验测试用例执行权限
+     * 权限规则：admin/owner/manager/tester 可以执行，viewer/developer 不能执行
+     */
+    private void checkExecutePermission(Integer userId, Integer resourceId, String resourceType) {
+        if (!permissionService.canExecute(userId, resourceId, resourceType)) {
             throw new BusinessException(ResponseCodeEnum.CODE_404);
         }
     }

@@ -1182,23 +1182,29 @@
             ROUND(AVG(duration), 0) as avgDuration,
             MAX(duration) as maxDuration,
             MIN(duration) as minDuration
-        FROM TestCaseResults
-        WHERE is_deleted = FALSE
+        FROM TestCaseResults tcr
+        <if test="userId != null">
+            INNER JOIN TestExecutionRecords ter ON tcr.execution_record_id = ter.record_id
+        </if>
+        WHERE tcr.is_deleted = FALSE
+        <if test="userId != null">
+            AND ter.executed_by = #{userId}
+        </if>
         <if test="startTime != null">
-            AND start_time &gt;= #{startTime}
+            AND tcr.start_time &gt;= #{startTime}
         </if>
         <if test="endTime != null">
-            AND start_time &lt;= #{endTime}
+            AND tcr.start_time &lt;= #{endTime}
         </if>
         <if test="projectId != null">
             AND EXISTS (
                 SELECT 1 FROM TestReportSummaries trs 
-                WHERE trs.report_id = TestCaseResults.report_id 
+                WHERE trs.report_id = tcr.report_id 
                 AND trs.project_id = #{projectId}
             )
         </if>
         <if test="environment != null and environment != ''">
-            AND environment = #{environment}
+            AND tcr.environment = #{environment}
         </if>
     </select>
 
@@ -1234,23 +1240,29 @@
             SUM(CASE WHEN status = 'skipped' THEN 1 ELSE 0 END) as skipped,
             ROUND((SUM(CASE WHEN status = 'passed' THEN 1 ELSE 0 END) * 100.0) / NULLIF(COUNT(*), 0), 2) as successRate,
             ROUND(AVG(duration), 0) as avgDuration
-        FROM TestCaseResults
-        WHERE is_deleted = FALSE
+        FROM TestCaseResults tcr
+        <if test="userId != null">
+            INNER JOIN TestExecutionRecords ter ON tcr.execution_record_id = ter.record_id
+        </if>
+        WHERE tcr.is_deleted = FALSE
+        <if test="userId != null">
+            AND ter.executed_by = #{userId}
+        </if>
         <if test="startTime != null">
-            AND start_time &gt;= #{startTime}
+            AND tcr.start_time &gt;= #{startTime}
         </if>
         <if test="endTime != null">
-            AND start_time &lt;= #{endTime}
+            AND tcr.start_time &lt;= #{endTime}
         </if>
         <if test="projectId != null">
             AND EXISTS (
                 SELECT 1 FROM TestReportSummaries trs 
-                WHERE trs.report_id = TestCaseResults.report_id 
+                WHERE trs.report_id = tcr.report_id 
                 AND trs.project_id = #{projectId}
             )
         </if>
         <if test="environment != null and environment != ''">
-            AND environment = #{environment}
+            AND tcr.environment = #{environment}
         </if>
         GROUP BY timePeriod, label
         ORDER BY timePeriod ASC
@@ -1336,33 +1348,43 @@
             failure_type as failureType,
             COUNT(*) as count,
             ROUND((COUNT(*) * 100.0) / (
-                SELECT COUNT(*) FROM TestCaseResults 
-                WHERE is_deleted = FALSE 
-                AND status IN ('failed', 'broken')
-                <if test="startTime != null">AND start_time &gt;= #{startTime}</if>
-                <if test="endTime != null">AND start_time &lt;= #{endTime}</if>
-                <if test="environment != null and environment != ''">AND environment = #{environment}</if>
+                SELECT COUNT(*) FROM TestCaseResults tcr2
+                <if test="userId != null">
+                    INNER JOIN TestExecutionRecords ter2 ON tcr2.execution_record_id = ter2.record_id
+                </if>
+                WHERE tcr2.is_deleted = FALSE 
+                AND tcr2.status IN ('failed', 'broken')
+                <if test="userId != null">AND ter2.executed_by = #{userId}</if>
+                <if test="startTime != null">AND tcr2.start_time &gt;= #{startTime}</if>
+                <if test="endTime != null">AND tcr2.start_time &lt;= #{endTime}</if>
+                <if test="environment != null and environment != ''">AND tcr2.environment = #{environment}</if>
             ), 2) as percentage,
             ROUND(AVG(duration), 0) as avgDuration
-        FROM TestCaseResults
-        WHERE is_deleted = FALSE
-        AND status IN ('failed', 'broken')
-        AND failure_type IS NOT NULL
+        FROM TestCaseResults tcr
+        <if test="userId != null">
+            INNER JOIN TestExecutionRecords ter ON tcr.execution_record_id = ter.record_id
+        </if>
+        WHERE tcr.is_deleted = FALSE
+        AND tcr.status IN ('failed', 'broken')
+        AND tcr.failure_type IS NOT NULL
+        <if test="userId != null">
+            AND ter.executed_by = #{userId}
+        </if>
         <if test="startTime != null">
-            AND start_time &gt;= #{startTime}
+            AND tcr.start_time &gt;= #{startTime}
         </if>
         <if test="endTime != null">
-            AND start_time &lt;= #{endTime}
+            AND tcr.start_time &lt;= #{endTime}
         </if>
         <if test="projectId != null">
             AND EXISTS (
                 SELECT 1 FROM TestReportSummaries trs 
-                WHERE trs.report_id = TestCaseResults.report_id 
+                WHERE trs.report_id = tcr.report_id 
                 AND trs.project_id = #{projectId}
             )
         </if>
         <if test="environment != null and environment != ''">
-            AND environment = #{environment}
+            AND tcr.environment = #{environment}
         </if>
         GROUP BY failure_type
         ORDER BY count DESC
@@ -1710,26 +1732,41 @@
     <!-- 获取用户执行统计信息 -->
     <select id="getUserExecutionStats" resultType="com.victor.iatms.entity.dto.ExecutionStatsDTO">
         SELECT 
-            COUNT(*) as totalExecutions,
-            ROUND((SUM(CASE WHEN tcr.status = 'passed' THEN 1 ELSE 0 END) * 100.0) / NULLIF(COUNT(*), 0), 2) as successRate,
+            COUNT(DISTINCT tcr.result_id) as totalExecutions,
+            ROUND((SUM(CASE WHEN tcr.status = 'passed' THEN 1 ELSE 0 END) * 100.0) / NULLIF(COUNT(DISTINCT tcr.result_id), 0), 2) as successRate,
             ROUND(AVG(tcr.duration), 0) as avgDuration,
             (SELECT COUNT(*) FROM TestCases tc WHERE tc.is_deleted = FALSE) as casesCreated,
             (SELECT COUNT(*) FROM TestCases tc WHERE tc.is_deleted = FALSE) as casesMaintained,
-            (SELECT COUNT(*) FROM TestCaseResults tcr2 WHERE tcr2.status IN ('failed', 'broken') AND tcr2.is_deleted = FALSE) as bugsFound
+            (SELECT COUNT(DISTINCT tcr2.result_id) FROM TestCaseResults tcr2 WHERE tcr2.status IN ('failed', 'broken') AND tcr2.is_deleted = FALSE) as bugsFound
         FROM TestCaseResults tcr
+        INNER JOIN TestExecutionRecords ter ON tcr.execution_record_id = ter.record_id
         WHERE tcr.is_deleted = FALSE
+        <if test="userId != null">
+            AND ter.executed_by = #{userId}
+        </if>
     </select>
 
-    <!-- 鑾峰彇鐢ㄦ埛椤圭洰缁熻姒傝 -->
+    <!-- 获取用户项目统计概览 -->
     <select id="getUserProjectStats" resultType="com.victor.iatms.entity.dto.ProjectStatsDTO">
-        SELECT 
+        SELECT DISTINCT
             p.project_id as projectId,
             p.name as projectName,
-            0 as executions,
-            0 as successRate,
-            0 as avgDuration
+            COUNT(DISTINCT ter.record_id) as executions,
+            ROUND((SUM(CASE WHEN tcr.status = 'passed' THEN 1 ELSE 0 END) * 100.0) / NULLIF(COUNT(DISTINCT tcr.result_id), 0), 2) as successRate,
+            ROUND(AVG(tcr.duration), 0) as avgDuration
         FROM Projects p
+        INNER JOIN ProjectMembers pm ON p.project_id = pm.project_id AND pm.status = 'active'
+        LEFT JOIN TestExecutionRecords ter ON 
+            (ter.execution_scope = 'project' AND ter.ref_id = p.project_id)
+            OR (ter.execution_scope = 'module' AND ter.ref_id IN (SELECT module_id FROM Modules WHERE project_id = p.project_id))
+            OR (ter.execution_scope = 'api' AND ter.ref_id IN (SELECT api_id FROM Apis WHERE module_id IN (SELECT module_id FROM Modules WHERE project_id = p.project_id)))
+            OR (ter.execution_scope = 'test_case' AND ter.ref_id IN (SELECT case_id FROM TestCases WHERE api_id IN (SELECT api_id FROM Apis WHERE module_id IN (SELECT module_id FROM Modules WHERE project_id = p.project_id))))
+        LEFT JOIN TestCaseResults tcr ON ter.record_id = tcr.execution_record_id AND tcr.is_deleted = FALSE
         WHERE p.is_deleted = FALSE
+        <if test="userId != null">
+            AND pm.user_id = #{userId}
+        </if>
+        GROUP BY p.project_id, p.name
         ORDER BY p.created_at DESC
         LIMIT 5
     </select>

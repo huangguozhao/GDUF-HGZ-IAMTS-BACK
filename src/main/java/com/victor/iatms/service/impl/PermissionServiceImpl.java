@@ -263,6 +263,192 @@ public class PermissionServiceImpl implements PermissionService {
     }
 
     /**
+     * 检查用户是否可以执行测试用例
+     * 权限规则：
+     * - admin: 可以执行
+     * - owner/manager: 可以执行
+     * - tester: 可以执行
+     * - viewer/developer: 不能执行
+     */
+    public boolean canExecuteTestCase(Integer userId, Integer testCaseId) {
+        if (userId == null || testCaseId == null) {
+            return false;
+        }
+
+        // 检查用户是否存在且状态为active
+        User user = userMapper.findById(userId);
+        if (user == null || !"active".equals(user.getStatus())) {
+            return false;
+        }
+
+        // 管理员可以执行
+        if (isAdmin(userId)) {
+            return true;
+        }
+
+        // 获取测试用例所属的项目ID
+        TestCase testCase = testCaseMapper.selectById(testCaseId);
+        if (testCase == null) {
+            return false;
+        }
+
+        Api api = apiMapper.selectById(testCase.getApiId());
+        if (api == null) {
+            return false;
+        }
+
+        com.victor.iatms.entity.po.Module module = moduleMapper.selectById(api.getModuleId());
+        if (module == null) {
+            return false;
+        }
+
+        Integer projectId = module.getProjectId();
+        return canExecuteInProject(userId, projectId);
+    }
+
+    /**
+     * 检查用户是否可以执行模块测试
+     */
+    public boolean canExecuteModule(Integer userId, Integer moduleId) {
+        if (userId == null || moduleId == null) {
+            return false;
+        }
+
+        // 管理员可以执行
+        if (isAdmin(userId)) {
+            return true;
+        }
+
+        com.victor.iatms.entity.po.Module module = moduleMapper.selectById(moduleId);
+        if (module == null) {
+            return false;
+        }
+
+        return canExecuteInProject(userId, module.getProjectId());
+    }
+
+    /**
+     * 检查用户是否可以执行项目测试
+     */
+    public boolean canExecuteProject(Integer userId, Integer projectId) {
+        if (userId == null || projectId == null) {
+            return false;
+        }
+
+        // 管理员可以执行
+        if (isAdmin(userId)) {
+            return true;
+        }
+
+        return canExecuteInProject(userId, projectId);
+    }
+
+    /**
+     * 检查用户是否可以执行接口测试
+     */
+    public boolean canExecuteApi(Integer userId, Integer apiId) {
+        if (userId == null || apiId == null) {
+            return false;
+        }
+
+        // 管理员可以执行
+        if (isAdmin(userId)) {
+            return true;
+        }
+
+        Api api = apiMapper.selectById(apiId);
+        if (api == null) {
+            return false;
+        }
+
+        com.victor.iatms.entity.po.Module module = moduleMapper.selectById(api.getModuleId());
+        if (module == null) {
+            return false;
+        }
+
+        return canExecuteInProject(userId, module.getProjectId());
+    }
+
+    /**
+     * 检查用户是否可以执行测试（统一的入口方法）
+     */
+    @Override
+    public boolean canExecute(Integer userId, Integer resourceId, String resourceType) {
+        if (userId == null || resourceId == null || resourceType == null) {
+            return false;
+        }
+
+        switch (resourceType.toLowerCase()) {
+            case "testcase":
+                return canExecuteTestCase(userId, resourceId);
+            case "module":
+                return canExecuteModule(userId, resourceId);
+            case "project":
+                return canExecuteProject(userId, resourceId);
+            case "api":
+                return canExecuteApi(userId, resourceId);
+            case "test-suite":
+                return canExecuteTestSuite(userId, resourceId);
+            default:
+                return false;
+        }
+    }
+
+    /**
+     * 检查用户是否可以执行测试套件
+     */
+    private boolean canExecuteTestSuite(Integer userId, Integer suiteId) {
+        if (userId == null || suiteId == null) {
+            return false;
+        }
+
+        // 管理员可以执行
+        if (isAdmin(userId)) {
+            return true;
+        }
+
+        // TODO: 实现TestSuiteMapper查询，获取项目ID
+        // 暂时返回false，需要根据实际情况实现
+        return false;
+    }
+
+    /**
+     * 检查用户是否可以在项目中执行测试
+     * 权限规则：owner/manager/tester 可以执行，viewer/developer 不能执行
+     */
+    private boolean canExecuteInProject(Integer userId, Integer projectId) {
+        if (userId == null || projectId == null) {
+            return false;
+        }
+
+        // 检查用户是否存在且状态为active
+        User user = userMapper.findById(userId);
+        if (user == null || !"active".equals(user.getStatus())) {
+            return false;
+        }
+
+        // 获取用户在项目中的角色
+        String projectRole = getUserProjectRole(userId, projectId);
+        if (projectRole == null) {
+            return false; // 不是项目成员
+        }
+
+        // owner/manager/tester 可以执行
+        return "owner".equals(projectRole) || "manager".equals(projectRole) || "tester".equals(projectRole);
+    }
+
+    /**
+     * 获取用户在项目中的角色
+     */
+    private String getUserProjectRole(Integer userId, Integer projectId) {
+        if (userId == null || projectId == null) {
+            return null;
+        }
+        ProjectMember member = projectMemberMapper.findByProjectAndUser(projectId, userId);
+        return member != null ? member.getProjectRole() : null;
+    }
+
+    /**
      * 检查用户是否是项目成员
      */
     private boolean isProjectMember(Integer userId, Integer projectId) {

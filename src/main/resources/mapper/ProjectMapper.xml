@@ -715,6 +715,12 @@
             GROUP BY m.project_id
         ) stats ON p.project_id = stats.project_id
         WHERE p.is_deleted = FALSE
+        <if test="queryDTO.userId != null">
+            AND p.project_id IN (
+                SELECT pm.project_id FROM ProjectMembers pm 
+                WHERE pm.user_id = #{queryDTO.userId} AND pm.status = 'active'
+            )
+        </if>
         ORDER BY p.updated_at DESC
     </select>
 
@@ -723,6 +729,12 @@
         SELECT COUNT(*)
         FROM Projects p
         WHERE p.is_deleted = FALSE
+        <if test="queryDTO.userId != null">
+            AND p.project_id IN (
+                SELECT pm.project_id FROM ProjectMembers pm 
+                WHERE pm.user_id = #{queryDTO.userId} AND pm.status = 'active'
+            )
+        </if>
     </select>
 
     <!-- 最近编辑的项目项结果映射 -->

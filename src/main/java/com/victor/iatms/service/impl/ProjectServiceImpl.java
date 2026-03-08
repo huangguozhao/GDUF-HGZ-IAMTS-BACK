@@ -7,6 +7,7 @@ import com.victor.iatms.entity.dto.AddProjectResponseDTO;
 import com.victor.iatms.entity.dto.ModuleDTO;
 import com.victor.iatms.entity.dto.ModuleListQueryDTO;
 import com.victor.iatms.entity.dto.ModuleListResponseDTO;
+import com.victor.iatms.service.PermissionService;
 import com.victor.iatms.entity.dto.ProjectDeleteResultDTO;
 import com.victor.iatms.entity.dto.ProjectListQueryDTO;
 import com.victor.iatms.entity.dto.ProjectListResponseDTO;
@@ -78,6 +79,9 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Autowired
     private LogService logService;
+
+    @Autowired
+    private PermissionService permissionService;
 
     // ================= 模块列表 =================
     @Override
@@ -380,6 +384,11 @@ public class ProjectServiceImpl implements ProjectService {
         try {
             validateRecentProjectsQuery(queryDTO);
             setRecentProjectsDefaultValues(queryDTO);
+            
+            // 判断是否是管理员，管理员返回所有项目，非管理员只返回自己加入的项目
+            boolean isAdminUser = permissionService.isAdmin(currentUserId);
+            Integer filterUserId = isAdminUser ? null : currentUserId;
+            queryDTO.setUserId(filterUserId);
             
             // 使用 PageHelper 进行分页
             PageHelper.startPage(queryDTO.getPage(), queryDTO.getPageSize());

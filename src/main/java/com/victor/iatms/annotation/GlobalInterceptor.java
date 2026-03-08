@@ -98,6 +98,24 @@ public @interface GlobalInterceptor {
     String extraResourceType() default "";
 
     /**
+     * 校验测试用例执行权限
+     * 当设置为true时，会检查用户是否有执行测试用例的权限
+     * 权限规则：admin/owner/manager/tester 可以执行，viewer/developer 不能执行
+     *
+     * @return
+     */
+    boolean checkExecutePermission() default false;
+
+    /**
+     * 执行权限的资源类型
+     * 当 checkExecutePermission 为 true 时使用
+     * 可选值：testcase, module, project, api, test-suite
+     *
+     * @return
+     */
+    String executeResourceType() default "";
+
+    /**
      * 资源类型（如api、module等）
      *
      * @return

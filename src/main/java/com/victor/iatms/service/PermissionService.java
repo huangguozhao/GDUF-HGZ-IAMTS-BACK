@@ -69,4 +69,13 @@ public interface PermissionService {
      * @return 项目ID，如果找不到返回null
      */
     Integer getProjectIdByResource(String resourceType, Integer resourceId);
+
+    /**
+     * 检查用户是否可以执行测试
+     * @param userId 用户ID
+     * @param resourceId 资源ID（可能是testcaseId, moduleId, projectId, apiId等）
+     * @param resourceType 资源类型（testcase, module, project, api, test-suite）
+     * @return 是否可以执行
+     */
+    boolean canExecute(Integer userId, Integer resourceId, String resourceType);
 }

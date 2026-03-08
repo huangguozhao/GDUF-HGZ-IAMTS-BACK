@@ -31,6 +31,7 @@ import com.victor.iatms.mappers.TestExecutionMapper;
 import com.victor.iatms.mappers.TestExecutionRecordMapper;
 import com.victor.iatms.mappers.LogMapper;
 import com.victor.iatms.redis.RedisComponet;
+import com.victor.iatms.service.PermissionService;
 import com.victor.iatms.service.TestExecutionService;
 import com.victor.iatms.service.VariablePoolService;
 import com.victor.iatms.service.DependencyResolverService;
@@ -64,6 +65,9 @@ public class TestExecutionServiceImpl implements TestExecutionService {
 
     @Autowired
     private LogMapper logMapper;
+
+    @Autowired
+    private PermissionService permissionService;
 
     @Autowired
     private TestCaseExecutor testCaseExecutor;
@@ -4632,10 +4636,15 @@ public class TestExecutionServiceImpl implements TestExecutionService {
             com.victor.iatms.entity.dto.TestStatisticsDTO statisticsDTO = 
                 new com.victor.iatms.entity.dto.TestStatisticsDTO();
 
+            // 判断是否为管理员
+            boolean isAdmin = userId != null && permissionService.isAdmin(userId);
+            // 非管理员用户，传入userId进行过滤；管理员显示全部数据
+            Integer filterUserId = isAdmin ? null : userId;
+
             // 3. 获取总体统计摘要
             com.victor.iatms.entity.dto.StatisticsSummaryDTO summary = 
                 testExecutionMapper.getStatisticsSummary(
-                    finalStartTime, finalEndTime, projectId, moduleId, apiId, environment);
+                    finalStartTime, finalEndTime, projectId, moduleId, apiId, environment, filterUserId);
             
             if (summary != null) {
                 summary.setStartTime(DateUtil.formatToISO8601(finalStartTime));
@@ -4650,7 +4659,7 @@ public class TestExecutionServiceImpl implements TestExecutionService {
                 List<com.victor.iatms.entity.dto.TrendDataDTO> trendData = 
                     testExecutionMapper.getTrendData(
                         finalStartTime, finalEndTime, trendGroupBy, 
-                        projectId, moduleId, apiId, environment);
+                        projectId, moduleId, apiId, environment, filterUserId);
                 statisticsDTO.setTrendData(trendData);
             }
 
@@ -4666,13 +4675,13 @@ public class TestExecutionServiceImpl implements TestExecutionService {
             // 6. 获取主要问题统计
             List<com.victor.iatms.entity.dto.TopIssueDTO> topIssues = 
                 testExecutionMapper.getTopIssues(
-                    finalStartTime, finalEndTime, projectId, moduleId, apiId, environment, 10);
+                    finalStartTime, finalEndTime, projectId, moduleId, apiId, environment, 10, filterUserId);
             statisticsDTO.setTopIssues(topIssues);
 
             // 7. 计算同比环比数据（如果需要）
             if (includeComparison != null && includeComparison) {
                 com.victor.iatms.entity.dto.ComparisonDataDTO comparisonData = 
-                    buildComparisonData(finalStartTime, finalEndTime, projectId, environment, summary);
+                    buildComparisonData(finalStartTime, finalEndTime, projectId, environment, summary, userId);
                 statisticsDTO.setComparisonData(comparisonData);
             }
 
@@ -4756,10 +4765,16 @@ public class TestExecutionServiceImpl implements TestExecutionService {
     private com.victor.iatms.entity.dto.ComparisonDataDTO buildComparisonData(
             LocalDateTime startTime, LocalDateTime endTime, 
             Integer projectId, String environment,
-            com.victor.iatms.entity.dto.StatisticsSummaryDTO currentSummary) {
+            com.victor.iatms.entity.dto.StatisticsSummaryDTO currentSummary,
+            Integer userId) {
         
         com.victor.iatms.entity.dto.ComparisonDataDTO comparisonData = 
             new com.victor.iatms.entity.dto.ComparisonDataDTO();
+
+        // 判断是否是管理员
+        boolean isAdmin = userId != null && permissionService.isAdmin(userId);
+        // 非管理员用户，传入userId进行过滤；管理员显示全部数据
+        Integer filterUserId = isAdmin ? null : userId;
 
         // 计算上一周期
         long daysDiff = java.time.Duration.between(startTime, endTime).toDays();
@@ -4768,7 +4783,7 @@ public class TestExecutionServiceImpl implements TestExecutionService {
 
         com.victor.iatms.entity.dto.StatisticsSummaryDTO prevSummary = 
             testExecutionMapper.getStatisticsSummary(
-                prevStartTime, prevEndTime, projectId, null, null, environment);
+                prevStartTime, prevEndTime, projectId, null, null, environment, filterUserId);
 
         if (prevSummary != null && prevSummary.getSuccessRate() != null) {
             com.victor.iatms.entity.dto.ComparisonDataDTO.PeriodComparisonDTO previousPeriod = 
@@ -4793,7 +4808,7 @@ public class TestExecutionServiceImpl implements TestExecutionService {
 
         com.victor.iatms.entity.dto.StatisticsSummaryDTO yearAgoSummary = 
             testExecutionMapper.getStatisticsSummary(
-                yearAgoStart, yearAgoEnd, projectId, null, null, environment);
+                yearAgoStart, yearAgoEnd, projectId, null, null, environment, filterUserId);
 
         if (yearAgoSummary != null && yearAgoSummary.getSuccessRate() != null) {
             com.victor.iatms.entity.dto.ComparisonDataDTO.PeriodComparisonDTO yearOverYear = 
@@ -5044,10 +5059,15 @@ public class TestExecutionServiceImpl implements TestExecutionService {
             // 3. 获取用户基本信息（简化，不查数据库）
             dashboardSummary.setUserInfo(null);
 
-            // 4. 获取执行统计信息（简化查询）
+            // 4. 获取执行统计信息（根据用户过滤）
             try {
+                // 判断是否是管理员
+                boolean isAdminUser = permissionService.isAdmin(userId);
+                // 管理员返回所有数据，非管理员返回自己执行的数据
+                Integer filterUserId = isAdminUser ? null : userId;
+                
                 com.victor.iatms.entity.dto.ExecutionStatsDTO executionStats = 
-                    testExecutionMapper.getUserExecutionStats();
+                    testExecutionMapper.getUserExecutionStats(filterUserId);
                 if (executionStats != null) {
                     executionStats.setTrend("up");
                     executionStats.setChangePercent(new java.math.BigDecimal("3.2"));
@@ -5058,10 +5078,15 @@ public class TestExecutionServiceImpl implements TestExecutionService {
                 dashboardSummary.setExecutionStats(null);
             }
 
-            // 5. 获取项目统计概览（简化查询）
+            // 5. 获取项目统计概览（根据用户过滤）
             try {
+                // 判断是否是管理员
+                boolean isAdminUser = permissionService.isAdmin(userId);
+                // 管理员返回所有项目，非管理员只返回自己加入的项目
+                Integer filterUserId = isAdminUser ? null : userId;
+                
                 List<com.victor.iatms.entity.dto.ProjectStatsDTO> projectStats = 
-                    testExecutionMapper.getUserProjectStats();
+                    testExecutionMapper.getUserProjectStats(filterUserId);
                 dashboardSummary.setProjectStats(projectStats);
             } catch (Exception e) {
                 log.warn("获取项目统计失败: {}", e.getMessage());

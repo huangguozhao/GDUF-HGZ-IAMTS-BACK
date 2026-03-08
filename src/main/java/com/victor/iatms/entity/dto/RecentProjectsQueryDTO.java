@@ -9,6 +9,11 @@ import lombok.Data;
 public class RecentProjectsQueryDTO {
 
     /**
+     * 当前用户ID（用于过滤数据）
+     */
+    private Integer userId;
+
+    /**
      * 时间范围。可选: 1d, 7d, 30d，默认: 7d
      */
     private String timeRange;
