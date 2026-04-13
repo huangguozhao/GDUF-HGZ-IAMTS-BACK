@@ -148,4 +148,22 @@ public class AuthController {
             return ResponseVO.serverError("系统异常，请稍后重试");
         }
     }
+
+    /**
+     * 用户登出
+     * @param request HTTP请求对象
+     * @return 响应结果
+     */
+    @PostMapping("/logout")
+    @GlobalInterceptor(checkLogin = true)
+    public ResponseVO<Void> logout(HttpServletRequest request) {
+        try {
+            // JWT无状态认证，登出操作主要是客户端删除Token
+            // 此处可记录登出日志
+            Integer userId = (Integer) request.getAttribute("userId");
+            return ResponseVO.success("登出成功", null);
+        } catch (Exception e) {
+            return ResponseVO.serverError("系统异常，请稍后重试");
+        }
+    }
 }

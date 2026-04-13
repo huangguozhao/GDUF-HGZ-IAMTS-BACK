@@ -1,5 +1,6 @@
 package com.victor.iatms.controller;
 
+import com.victor.iatms.annotation.GlobalInterceptor;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.victor.iatms.entity.po.TestCaseResult;
 import com.victor.iatms.entity.vo.ResponseVO;
@@ -18,6 +19,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @RestController
 @RequestMapping("/api/ai-diagnosis")
+@GlobalInterceptor(checkLogin = true)
 public class AIDiagnosisController {
 
     @Autowired

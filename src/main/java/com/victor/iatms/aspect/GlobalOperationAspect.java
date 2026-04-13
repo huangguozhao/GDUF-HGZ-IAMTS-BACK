@@ -37,14 +37,6 @@ public class GlobalOperationAspect {
 
     @Before("@annotation(com.victor.iatms.annotation.GlobalInterceptor)")
     public void interceptorDo(JoinPoint point) {
-        // ========== 临时禁用拦截器校验（测试用） ==========
-        // TODO: 正式环境请将下面的 ENABLE_INTERCEPTOR 改为 true
-        boolean ENABLE_INTERCEPTOR = true; // 设置为 true 启用所有拦截器校验
-        if (!ENABLE_INTERCEPTOR) {
-            return;
-        }
-        // =============================================
-
         try {
             Method method = ((MethodSignature) point.getSignature()).getMethod();
             GlobalInterceptor interceptor = method.getAnnotation(GlobalInterceptor.class);

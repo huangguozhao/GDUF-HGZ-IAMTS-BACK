@@ -21,14 +21,15 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/environments")
 @GlobalInterceptor(checkLogin = true)
 public class EnvironmentConfigController {
-    
+
     @Autowired
     private EnvironmentConfigService environmentConfigService;
-    
+
     /**
-     * 创建环境配置
+     * 创建环境配置（仅管理员可操作）
      */
     @PostMapping
+    @GlobalInterceptor(checkLogin = true, checkAdmin = true)
     public ResponseVO<EnvironmentConfigDTO> createEnvironmentConfig(
             @RequestBody CreateEnvironmentConfigDTO createDTO,
             HttpServletRequest request) {
@@ -67,9 +68,10 @@ public class EnvironmentConfigController {
     }
     
     /**
-     * 更新环境配置
+     * 更新环境配置（仅管理员可操作）
      */
     @PutMapping("/{envId}")
+    @GlobalInterceptor(checkLogin = true, checkAdmin = true)
     public ResponseVO<EnvironmentConfigDTO> updateEnvironmentConfig(
             @PathVariable Integer envId,
             @RequestBody UpdateEnvironmentConfigDTO updateDTO,
@@ -92,9 +94,10 @@ public class EnvironmentConfigController {
     }
     
     /**
-     * 删除环境配置
+     * 删除环境配置（仅管理员可操作）
      */
     @DeleteMapping("/{envId}")
+    @GlobalInterceptor(checkLogin = true, checkAdmin = true)
     public ResponseVO<Void> deleteEnvironmentConfig(
             @PathVariable Integer envId,
             HttpServletRequest request) {
