@@ -4,6 +4,7 @@ import com.victor.iatms.entity.dto.ApiListQueryDTO;
 import com.victor.iatms.entity.dto.ApiListResponseDTO;
 import com.victor.iatms.entity.dto.CreateModuleDTO;
 import com.victor.iatms.entity.dto.CreateModuleResponseDTO;
+import com.victor.iatms.entity.dto.ModuleFullDataDTO;
 import com.victor.iatms.entity.dto.UpdateModuleDTO;
 import com.victor.iatms.entity.dto.UpdateModuleResponseDTO;
 
@@ -50,4 +51,11 @@ public interface ModuleService {
      * @return 模块统计信息
      */
     com.victor.iatms.entity.dto.ModuleStatisticsDTO getModuleStatistics(Integer moduleId);
+
+    /**
+     * 获取模块完整数据（包含接口和用例）
+     * @param moduleId 模块ID
+     * @return 模块完整数据
+     */
+    ModuleFullDataDTO getModuleFullData(Integer moduleId);
 }

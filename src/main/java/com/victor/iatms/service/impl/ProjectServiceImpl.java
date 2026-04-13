@@ -1,30 +1,11 @@
 package com.victor.iatms.service.impl;
 
 import com.victor.iatms.entity.constants.Constants;
-import com.victor.iatms.entity.dto.AddProjectDTO;
-import com.victor.iatms.entity.dto.AddProjectMemberDTO;
-import com.victor.iatms.entity.dto.AddProjectResponseDTO;
-import com.victor.iatms.entity.dto.ModuleDTO;
-import com.victor.iatms.entity.dto.ModuleListQueryDTO;
-import com.victor.iatms.entity.dto.ModuleListResponseDTO;
+import com.victor.iatms.entity.dto.*;
 import com.victor.iatms.service.PermissionService;
-import com.victor.iatms.entity.dto.ProjectDeleteResultDTO;
-import com.victor.iatms.entity.dto.ProjectListQueryDTO;
-import com.victor.iatms.entity.dto.ProjectListResponseDTO;
-import com.victor.iatms.entity.dto.ProjectMemberDTO;
-import com.victor.iatms.entity.dto.ProjectMembersPageResultDTO;
-import com.victor.iatms.entity.dto.ProjectMembersQueryDTO;
-import com.victor.iatms.entity.dto.ProjectMembersSummaryDTO;
-import com.victor.iatms.entity.dto.ProjectPageResultDTO;
-import com.victor.iatms.entity.dto.ProjectRelationCheckDTO;
-import com.victor.iatms.entity.dto.RecentProjectItemDTO;
-import com.victor.iatms.entity.dto.RecentProjectsQueryDTO;
-import com.victor.iatms.entity.dto.RecentProjectsResponseDTO;
-import com.victor.iatms.entity.dto.TimeRangeDTO;
-import com.victor.iatms.entity.dto.UpdateProjectDTO;
-import com.victor.iatms.entity.dto.UpdateProjectMemberDTO;
-import com.victor.iatms.entity.dto.UpdateProjectResponseDTO;
-import com.victor.iatms.entity.dto.UserInfoDTO;
+import com.victor.iatms.service.ModuleService;
+import com.victor.iatms.entity.dto.ModuleListQueryDTO;
+import com.victor.iatms.entity.dto.ModuleDTO;
 import com.victor.iatms.entity.enums.ModuleSortFieldEnum;
 import com.victor.iatms.entity.enums.ModuleStructureEnum;
 import com.victor.iatms.entity.enums.ProjectSortFieldEnum;
@@ -32,6 +13,7 @@ import com.victor.iatms.entity.enums.SortOrderEnum;
 import com.victor.iatms.entity.po.Project;
 import com.victor.iatms.entity.po.ProjectMember;
 import com.victor.iatms.entity.po.User;
+import com.victor.iatms.mappers.ModuleMapper;
 import com.victor.iatms.mappers.ProjectMapper;
 import com.victor.iatms.mappers.ProjectMemberMapper;
 import com.victor.iatms.mappers.TestExecutionMapper;
@@ -82,6 +64,9 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Autowired
     private PermissionService permissionService;
+
+    @Autowired
+    private ModuleService moduleService;
 
     // ================= 模块列表 =================
     @Override
@@ -816,5 +801,124 @@ public class ProjectServiceImpl implements ProjectService {
         if (!StringUtils.hasText(projectName)) { return false; }
         int count = projectMapper.checkProjectNameExists(projectName, excludeId);
         return count > 0;
+    }
+
+    @Override
+    public ProjectStructurePageDTO getProjectStructure(ProjectStructureQueryDTO queryDTO, Integer currentUserId) {
+        if (queryDTO == null) { queryDTO = new ProjectStructureQueryDTO(); }
+        if (queryDTO.getPage() == null || queryDTO.getPage() < 1) { queryDTO.setPage(1); }
+        if (queryDTO.getPageSize() == null || queryDTO.getPageSize() < 1) { queryDTO.setPageSize(10); }
+        if (queryDTO.getPageSize() > 50) { queryDTO.setPageSize(50); }
+        int offset = (queryDTO.getPage() - 1) * queryDTO.getPageSize();
+        ProjectListQueryDTO listQuery = new ProjectListQueryDTO();
+        listQuery.setPage(queryDTO.getPage());
+        listQuery.setPageSize(queryDTO.getPageSize());
+        listQuery.setOffset(offset);
+
+        boolean isAdmin = permissionService.isAdmin(currentUserId);
+        List<ProjectListResponseDTO> projects;
+        Long total;
+        if (isAdmin) {
+            projects = projectMapper.selectProjectStructureList(listQuery, null);
+            total = projectMapper.countProjectStructureList(listQuery, null);
+        } else {
+            projects = projectMapper.selectProjectStructureList(listQuery, currentUserId);
+            total = projectMapper.countProjectStructureList(listQuery, currentUserId);
+        }
+
+        List<ProjectStructureDTO> items = new ArrayList<>();
+        for (ProjectListResponseDTO p : projects) {
+            ProjectStructureDTO dto = new ProjectStructureDTO();
+            dto.setProjectId(p.getProjectId());
+            dto.setProjectName(p.getName());
+            dto.setProjectCode(p.getProjectCode());
+            dto.setStatus(p.getStatus());
+
+            ProjectStructureDTO.ProjectStatistics stats = new ProjectStructureDTO.ProjectStatistics();
+            Integer apiCount = projectMapper.checkProjectHasApis(p.getProjectId());
+            stats.setApiCount(apiCount);
+            Integer testCaseCount = testExecutionMapper.countTestCasesByProjectId(p.getProjectId(), null, null, null, true);
+            stats.setTestCaseCount(testCaseCount != null ? testCaseCount : 0);
+            Integer passedCount = testExecutionMapper.countPassedTestCasesByProjectId(p.getProjectId());
+            Integer failedCount = testExecutionMapper.countFailedTestCasesByProjectId(p.getProjectId());
+            stats.setPassedCount(passedCount != null ? passedCount : 0);
+            stats.setFailedCount(failedCount != null ? failedCount : 0);
+            int executed = stats.getPassedCount() + stats.getFailedCount();
+            stats.setNotExecutedCount(Math.max(stats.getTestCaseCount() - executed, 0));
+
+            ModuleListQueryDTO moduleQuery = new ModuleListQueryDTO();
+            moduleQuery.setProjectId(p.getProjectId());
+            moduleQuery.setIncludeDeleted(false);
+            moduleQuery.setIncludeStatistics(true);
+            moduleQuery.setSortOrder("asc");
+            Integer moduleCount = projectMapper.countModules(moduleQuery);
+            stats.setModuleCount(moduleCount != null ? moduleCount : 0);
+            dto.setStatistics(stats);
+
+            List<ModuleDTO> modules = projectMapper.selectModuleListTree(moduleQuery);
+            modules = buildModuleTree(modules);
+
+            for (ModuleDTO m : modules) {
+                fillModuleStatistics(m);
+            }
+
+            dto.setModules(convertModuleTree(modules));
+            items.add(dto);
+        }
+
+        ProjectStructurePageDTO result = new ProjectStructurePageDTO();
+        result.setTotal(total);
+        result.setPage(queryDTO.getPage());
+        result.setPageSize(queryDTO.getPageSize());
+        result.setItems(items);
+        return result;
+    }
+
+    private void fillModuleStatistics(ModuleDTO module) {
+        int apiCount = module.getApiCount() != null ? module.getApiCount() : 0;
+        int caseCount = module.getCaseCount() != null ? module.getCaseCount() : 0;
+        Integer passed = testExecutionMapper.countPassedTestCasesByModuleId(module.getModuleId());
+        Integer failed = testExecutionMapper.countFailedTestCasesByModuleId(module.getModuleId());
+        int passedVal = passed != null ? passed : 0;
+        int failedVal = failed != null ? failed : 0;
+
+        ModuleTreeDTO.ModuleStatistics stats = new ModuleTreeDTO.ModuleStatistics();
+        stats.setApiCount(apiCount);
+        stats.setTestCaseCount(caseCount);
+        stats.setPassedCount(passedVal);
+        stats.setFailedCount(failedVal);
+        stats.setNotExecutedCount(Math.max(caseCount - passedVal - failedVal, 0));
+        module.setStatistics(stats);
+
+        if (module.getChildren() != null) {
+            for (ModuleDTO child : module.getChildren()) {
+                fillModuleStatistics(child);
+            }
+        }
+    }
+
+    private List<ModuleTreeDTO> convertModuleTree(List<ModuleDTO> modules) {
+        if (modules == null) { return new ArrayList<>(); }
+        List<ModuleTreeDTO> result = new ArrayList<>();
+        for (ModuleDTO m : modules) {
+            ModuleTreeDTO dto = new ModuleTreeDTO();
+            dto.setModuleId(m.getModuleId());
+            dto.setModuleCode(m.getModuleCode());
+            dto.setName(m.getName());
+            dto.setParentModuleId(m.getParentModuleId());
+            dto.setStatistics(m.getStatistics());
+            if (m.getChildren() != null) {
+                dto.setChildren(convertModuleTree(m.getChildren()));
+            } else {
+                dto.setChildren(new ArrayList<>());
+            }
+            result.add(dto);
+        }
+        return result;
+    }
+
+    @Override
+    public ModuleFullDataDTO getModuleFullData(Integer moduleId) {
+        return moduleService.getModuleFullData(moduleId);
     }
 }

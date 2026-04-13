@@ -7,15 +7,18 @@ import com.victor.iatms.entity.dto.ApiListQueryDTO;
 import com.victor.iatms.entity.dto.ApiListResponseDTO;
 import com.victor.iatms.entity.dto.CreateModuleDTO;
 import com.victor.iatms.entity.dto.CreateModuleResponseDTO;
+import com.victor.iatms.entity.dto.ModuleFullDataDTO;
 import com.victor.iatms.entity.dto.UpdateModuleDTO;
 import com.victor.iatms.entity.dto.UpdateModuleResponseDTO;
 import com.victor.iatms.entity.po.Module;
 import com.victor.iatms.entity.po.Project;
 import com.victor.iatms.entity.po.User;
 import com.victor.iatms.mappers.ModuleMapper;
+import com.victor.iatms.mappers.ApiMapper;
 import com.victor.iatms.mappers.ProjectMapper;
 import com.victor.iatms.mappers.ProjectMemberMapper;
 import com.victor.iatms.mappers.TestExecutionMapper;
+import com.victor.iatms.mappers.TestCaseMapper;
 import com.victor.iatms.mappers.UserMapper;
 import com.victor.iatms.service.ModuleService;
 import com.victor.iatms.utils.JsonUtils;
@@ -51,6 +54,12 @@ public class ModuleServiceImpl implements ModuleService {
 
     @Autowired
     private TestExecutionMapper testExecutionMapper;
+
+    @Autowired
+    private ApiMapper apiMapper;
+
+    @Autowired
+    private TestCaseMapper testCaseMapper;
     
     // 模块编码格式验证正则表达式：大写字母、数字、下划线
     private static final Pattern MODULE_CODE_PATTERN = Pattern.compile("^[A-Z0-9_]+$");
@@ -830,5 +839,33 @@ public class ModuleServiceImpl implements ModuleService {
         }
         
         return statistics;
+    }
+
+    @Override
+    public ModuleFullDataDTO getModuleFullData(Integer moduleId) {
+        if (moduleId == null) {
+            throw new IllegalArgumentException("模块ID不能为空");
+        }
+
+        Module module = moduleMapper.selectById(moduleId);
+        if (module == null) {
+            throw new IllegalArgumentException("模块不存在");
+        }
+        if (module.getIsDeleted()) {
+            throw new IllegalArgumentException("模块已被删除");
+        }
+
+        ModuleFullDataDTO result = new ModuleFullDataDTO();
+        result.setModuleId(moduleId);
+        result.setModuleName(module.getName());
+
+        List<ModuleFullDataDTO.ApiWithTestCasesDTO> apis = apiMapper.selectApisByModuleId(moduleId);
+        for (ModuleFullDataDTO.ApiWithTestCasesDTO api : apis) {
+            List<ModuleFullDataDTO.TestCaseSimpleDTO> testCases = testCaseMapper.selectTestCasesByApiId(api.getApiId());
+            api.setTestCases(testCases);
+        }
+        result.setApis(apis);
+
+        return result;
     }
 }

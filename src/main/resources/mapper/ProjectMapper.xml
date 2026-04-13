@@ -795,4 +795,53 @@
         </if>
     </select>
 
+    <!-- 分页查询项目结构列表（用例管理使用） -->
+    <select id="selectProjectStructureList" resultMap="ProjectListResponseMap">
+        SELECT
+            p.project_id,
+            p.name,
+            p.description,
+            p.project_code,
+            p.project_type,
+            p.status,
+            p.avatar_url,
+            p.created_at,
+            p.updated_at,
+            p.is_deleted,
+            p.deleted_at,
+            u.user_id AS creator_id,
+            u.name AS creator_name,
+            u.avatar_url AS creator_avatar_url
+        FROM Projects p
+        LEFT JOIN Users u ON p.creator_id = u.user_id
+        WHERE p.is_deleted = FALSE
+        <if test="currentUserId != null">
+            AND (
+                p.creator_id = #{currentUserId}
+                OR p.project_id IN (
+                    SELECT pm.project_id FROM ProjectMembers pm
+                    WHERE pm.user_id = #{currentUserId} AND pm.status = 'active'
+                )
+            )
+        </if>
+        ORDER BY p.updated_at DESC
+        LIMIT #{query.pageSize} OFFSET #{query.offset}
+    </select>
+
+    <!-- 统计项目结构列表总数 -->
+    <select id="countProjectStructureList" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM Projects p
+        WHERE p.is_deleted = FALSE
+        <if test="currentUserId != null">
+            AND (
+                p.creator_id = #{currentUserId}
+                OR p.project_id IN (
+                    SELECT pm.project_id FROM ProjectMembers pm
+                    WHERE pm.user_id = #{currentUserId} AND pm.status = 'active'
+                )
+            )
+        </if>
+    </select>
+
 </mapper>

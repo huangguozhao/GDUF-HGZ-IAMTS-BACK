@@ -5,9 +5,11 @@ import com.victor.iatms.entity.dto.ApiListQueryDTO;
 import com.victor.iatms.entity.dto.ApiListResponseDTO;
 import com.victor.iatms.entity.dto.CreateModuleDTO;
 import com.victor.iatms.entity.dto.CreateModuleResponseDTO;
+import com.victor.iatms.entity.dto.ModuleFullDataDTO;
 import com.victor.iatms.entity.dto.UpdateModuleDTO;
 import com.victor.iatms.entity.dto.UpdateModuleResponseDTO;
 import com.victor.iatms.entity.vo.ResponseVO;
+import com.victor.iatms.mappers.ApiMapper;
 import com.victor.iatms.service.ModuleService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +26,9 @@ public class ModuleController {
     
     @Autowired
     private ModuleService moduleService;
+
+    @Autowired
+    private ApiMapper apiMapper;
     
     /**
      * 创建模块
@@ -262,6 +267,36 @@ public class ModuleController {
             }
         } catch (Exception e) {
             return ResponseVO.serverError("查询模块统计数据失败：" + e.getMessage());
+        }
+    }
+
+    /**
+     * 获取模块完整数据（包含接口和用例）
+     * 
+     * @param moduleId 模块ID
+     * @return 模块完整数据
+     */
+    @GetMapping("/{moduleId}/full-data")
+    @GlobalInterceptor(
+        checkLogin = true,
+        checkProjectPermission = "module:view",
+        resourceTypeForProjectCheck = "module",
+        resourceIdParamForProjectCheck = "moduleId"
+    )
+    public ResponseVO<ModuleFullDataDTO> getModuleFullData(@PathVariable("moduleId") Integer moduleId) {
+        try {
+            ModuleFullDataDTO result = moduleService.getModuleFullData(moduleId);
+            return ResponseVO.success("获取模块完整数据成功", result);
+        } catch (IllegalArgumentException e) {
+            if (e.getMessage().contains("模块不存在")) {
+                return ResponseVO.notFound(e.getMessage());
+            } else if (e.getMessage().contains("已被删除")) {
+                return ResponseVO.businessError(e.getMessage());
+            } else {
+                return ResponseVO.paramError(e.getMessage());
+            }
+        } catch (Exception e) {
+            return ResponseVO.serverError("获取模块完整数据失败：" + e.getMessage());
         }
     }
 }

@@ -2,6 +2,7 @@ package com.victor.iatms.mappers;
 
 import com.victor.iatms.entity.dto.ApiListQueryDTO;
 import com.victor.iatms.entity.dto.ApiStatisticsDTO;
+import com.victor.iatms.entity.dto.ModuleFullDataDTO;
 import com.victor.iatms.entity.po.Api;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -89,4 +90,11 @@ public interface ApiMapper {
      * @return 前置条件数量
      */
     int countPreconditionsByApiId(@Param("apiId") Integer apiId);
+
+    /**
+     * 查询模块下的所有接口（包含用例统计）
+     * @param moduleId 模块ID
+     * @return 接口列表
+     */
+    List<ModuleFullDataDTO.ApiWithTestCasesDTO> selectApisByModuleId(@Param("moduleId") Integer moduleId);
 }

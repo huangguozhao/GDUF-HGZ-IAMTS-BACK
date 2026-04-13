@@ -16,6 +16,8 @@ import com.victor.iatms.entity.dto.UpdateProjectMemberDTO;
 import com.victor.iatms.entity.dto.ProjectMembersQueryDTO;
 import com.victor.iatms.entity.dto.ProjectPageResultDTO;
 import com.victor.iatms.entity.dto.ProjectRelationCheckDTO;
+import com.victor.iatms.entity.dto.ProjectStructurePageDTO;
+import com.victor.iatms.entity.dto.ProjectStructureQueryDTO;
 import com.victor.iatms.entity.dto.RecentProjectsQueryDTO;
 import com.victor.iatms.entity.dto.RecentProjectsResponseDTO;
 import com.victor.iatms.entity.dto.UpdateProjectDTO;
@@ -174,7 +176,7 @@ public class ProjectController {
             @RequestParam(value = "sort_order", required = false, defaultValue = "desc") String sortOrder,
             @RequestParam(value = "page", required = false, defaultValue = "1") Integer page,
             @RequestParam(value = "page_size", required = false, defaultValue = "10") Integer pageSize) {
-        
+
         try {
             // 构建查询参数
             ProjectListQueryDTO queryDTO = new ProjectListQueryDTO();
@@ -185,19 +187,52 @@ public class ProjectController {
             queryDTO.setSortOrder(sortOrder);
             queryDTO.setPage(page);
             queryDTO.setPageSize(pageSize);
-            
+
             // 参数校验
             validateQueryParams(queryDTO);
-            
+
             // 查询项目列表
             ProjectPageResultDTO result = projectService.getProjectList(queryDTO);
-            
+
             return ResponseVO.success("查询成功", result);
-            
+
         } catch (IllegalArgumentException e) {
             return ResponseVO.paramError(e.getMessage());
         } catch (Exception e) {
             return ResponseVO.serverError("查询项目列表失败：" + e.getMessage());
+        }
+    }
+
+    /**
+     * 获取项目结构（用例管理专用）
+     * 
+     * @param page 页码
+     * @param pageSize 每页数量
+     * @return 项目结构列表
+     */
+    @GetMapping("/structure")
+    @GlobalInterceptor(checkLogin = true)
+    public ResponseVO<ProjectStructurePageDTO> getProjectStructure(
+            @RequestParam(value = "page", required = false, defaultValue = "1") Integer page,
+            @RequestParam(value = "page_size", required = false, defaultValue = "10") Integer pageSize,
+            HttpServletRequest request) {
+        try {
+            Integer currentUserId = (Integer) request.getAttribute("userId");
+            if (currentUserId == null) {
+                return ResponseVO.authError("认证失败，请重新登录");
+            }
+
+            ProjectStructureQueryDTO queryDTO = new ProjectStructureQueryDTO();
+            queryDTO.setPage(page);
+            queryDTO.setPageSize(pageSize);
+
+            ProjectStructurePageDTO result = projectService.getProjectStructure(queryDTO, currentUserId);
+            return ResponseVO.success("获取项目结构成功", result);
+
+        } catch (IllegalArgumentException e) {
+            return ResponseVO.paramError(e.getMessage());
+        } catch (Exception e) {
+            return ResponseVO.serverError("获取项目结构失败：" + e.getMessage());
         }
     }
     

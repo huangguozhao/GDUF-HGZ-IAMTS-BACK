@@ -105,7 +105,12 @@ public class ModuleDTO {
      * 路径（平铺结构使用）
      */
     private String path;
-    
+
+    /**
+     * 统计信息（用于项目结构）
+     */
+    private ModuleTreeDTO.ModuleStatistics statistics;
+
     /**
      * 子模块列表（树形结构使用）
      */

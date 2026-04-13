@@ -4,6 +4,7 @@ import com.victor.iatms.entity.dto.AddProjectResponseDTO;
 import com.victor.iatms.entity.dto.ModuleDTO;
 import com.victor.iatms.entity.dto.ModuleListQueryDTO;
 import com.victor.iatms.entity.dto.ProjectListQueryDTO;
+import com.victor.iatms.entity.dto.ProjectStructureQueryDTO;
 import com.victor.iatms.entity.dto.ProjectListResponseDTO;
 import com.victor.iatms.entity.dto.ProjectMemberDTO;
 import com.victor.iatms.entity.dto.ProjectMembersQueryDTO;
@@ -211,4 +212,20 @@ public interface ProjectMapper {
      * @return 存在数量
      */
     int checkProjectCodeExists(@Param("projectCode") String projectCode, @Param("excludeId") Integer excludeId);
+
+    /**
+     * 分页查询项目结构（用于用例管理）
+     * @param queryDTO 查询参数
+     * @param currentUserId 当前用户ID
+     * @return 项目列表
+     */
+    List<com.victor.iatms.entity.dto.ProjectListResponseDTO> selectProjectStructureList(@Param("query") ProjectListQueryDTO queryDTO, @Param("currentUserId") Integer currentUserId);
+
+    /**
+     * 统计项目结构总数
+     * @param queryDTO 查询参数
+     * @param currentUserId 当前用户ID
+     * @return 总数
+     */
+    Long countProjectStructureList(@Param("query") ProjectListQueryDTO queryDTO, @Param("currentUserId") Integer currentUserId);
 }

@@ -1,6 +1,7 @@
 package com.victor.iatms.mappers;
 
 import com.victor.iatms.entity.dto.CreateTestCaseResponseDTO;
+import com.victor.iatms.entity.dto.ModuleFullDataDTO;
 import com.victor.iatms.entity.dto.TestCaseItemDTO;
 import com.victor.iatms.entity.dto.TestCaseListQueryDTO;
 import com.victor.iatms.entity.dto.TestCaseSummaryDTO;
@@ -8,6 +9,8 @@ import com.victor.iatms.entity.dto.UpdateTestCaseResponseDTO;
 import com.victor.iatms.entity.po.TestCase;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
 
 /**
  * 测试用例Mapper接口
@@ -124,4 +127,11 @@ public interface TestCaseMapper {
      */
     TestCaseSummaryDTO selectTestCaseSummary(@Param("queryDTO") TestCaseListQueryDTO queryDTO, 
                                             @Param("currentUserId") Integer currentUserId);
+
+    /**
+     * 查询接口下的所有测试用例
+     * @param apiId 接口ID
+     * @return 测试用例列表
+     */
+    List<ModuleFullDataDTO.TestCaseSimpleDTO> selectTestCasesByApiId(@Param("apiId") Integer apiId);
 }

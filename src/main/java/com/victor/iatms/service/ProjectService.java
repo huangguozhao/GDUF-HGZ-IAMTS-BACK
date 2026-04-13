@@ -1,19 +1,6 @@
 package com.victor.iatms.service;
 
-import com.victor.iatms.entity.dto.AddProjectDTO;
-import com.victor.iatms.entity.dto.AddProjectResponseDTO;
-import com.victor.iatms.entity.dto.ModuleListQueryDTO;
-import com.victor.iatms.entity.dto.ModuleListResponseDTO;
-import com.victor.iatms.entity.dto.ProjectDeleteResultDTO;
-import com.victor.iatms.entity.dto.ProjectListQueryDTO;
-import com.victor.iatms.entity.dto.ProjectMembersPageResultDTO;
-import com.victor.iatms.entity.dto.ProjectMembersQueryDTO;
-import com.victor.iatms.entity.dto.ProjectPageResultDTO;
-import com.victor.iatms.entity.dto.ProjectRelationCheckDTO;
-import com.victor.iatms.entity.dto.RecentProjectsQueryDTO;
-import com.victor.iatms.entity.dto.RecentProjectsResponseDTO;
-import com.victor.iatms.entity.dto.UpdateProjectDTO;
-import com.victor.iatms.entity.dto.UpdateProjectResponseDTO;
+import com.victor.iatms.entity.dto.*;
 import com.victor.iatms.entity.po.Project;
 
 /**
@@ -139,4 +126,19 @@ public interface ProjectService {
 
     // 3.10 更新项目成员角色/权限
     com.victor.iatms.entity.dto.ProjectMemberDTO updateProjectMember(Integer projectId, Integer userId, com.victor.iatms.entity.dto.UpdateProjectMemberDTO dto, Integer operatorId);
+
+    /**
+     * 获取项目结构（分页，含统计信息和模块树）
+     * @param queryDTO 查询参数
+     * @param currentUserId 当前用户ID
+     * @return 分页的项目结构列表
+     */
+    ProjectStructurePageDTO getProjectStructure(ProjectStructureQueryDTO queryDTO, Integer currentUserId);
+
+    /**
+     * 获取模块完整数据（包含接口和用例）
+     * @param moduleId 模块ID
+     * @return 模块完整数据
+     */
+    ModuleFullDataDTO getModuleFullData(Integer moduleId);
 }

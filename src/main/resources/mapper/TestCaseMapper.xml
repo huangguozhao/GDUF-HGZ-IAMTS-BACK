@@ -570,4 +570,27 @@
         </where>
     </select>
 
+    <!-- 查询接口下的所有测试用例结果映射 -->
+    <resultMap id="TestCaseSimpleMap" type="com.victor.iatms.entity.dto.ModuleFullDataDTO$TestCaseSimpleDTO">
+        <id column="case_id" property="caseId"/>
+        <result column="case_code" property="caseCode"/>
+        <result column="name" property="name"/>
+        <result column="is_enabled" property="isEnabled"/>
+        <result column="priority" property="priority"/>
+    </resultMap>
+
+    <!-- 查询接口下的所有测试用例 -->
+    <select id="selectTestCasesByApiId" resultMap="TestCaseSimpleMap">
+        SELECT
+            tc.case_id,
+            tc.case_code,
+            tc.name,
+            tc.is_enabled,
+            tc.priority
+        FROM TestCases tc
+        WHERE tc.api_id = #{apiId}
+          AND tc.is_deleted = FALSE
+        ORDER BY tc.name ASC
+    </select>
+
 </mapper>
