@@ -5,8 +5,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.victor.iatms.entity.constants.Constants;
 import com.victor.iatms.entity.dto.*;
 import com.victor.iatms.entity.po.Api;
+import com.victor.iatms.entity.po.Module;
+import com.victor.iatms.entity.po.Project;
 import com.victor.iatms.mappers.ApiMapper;
 import com.victor.iatms.mappers.ModuleMapper;
+import com.victor.iatms.mappers.ProjectMapper;
 import com.victor.iatms.mappers.ProjectMemberMapper;
 import com.victor.iatms.mappers.TestCaseMapper;
 import com.victor.iatms.mappers.UserMapper;
@@ -34,6 +37,9 @@ public class ApiServiceImpl implements ApiService {
 
     @Autowired
     private ModuleMapper moduleMapper;
+
+    @Autowired
+    private ProjectMapper projectMapper;
 
     @Autowired
     private ProjectMemberMapper projectMemberMapper;
@@ -447,7 +453,21 @@ public class ApiServiceImpl implements ApiService {
     private ApiDTO convertToDTO(Api api) {
         ApiDTO dto = new ApiDTO();
         BeanUtils.copyProperties(api, dto);
-        
+
+        // 查询模块信息并填充项目ID和模块名称
+        if (api.getModuleId() != null) {
+            Module module = moduleMapper.selectById(api.getModuleId());
+            if (module != null) {
+                dto.setModuleName(module.getName());
+                dto.setProjectId(module.getProjectId());
+                // 查询项目名称
+                Project project = projectMapper.selectById(module.getProjectId());
+                if (project != null) {
+                    dto.setProjectName(project.getName());
+                }
+            }
+        }
+
         // 转换JSON字段
         dto.setRequestParameters(fromJson(api.getRequestParameters()));
         dto.setPathParameters(fromJson(api.getPathParameters()));

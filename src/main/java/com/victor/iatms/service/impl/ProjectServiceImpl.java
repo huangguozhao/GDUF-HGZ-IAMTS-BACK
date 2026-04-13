@@ -2,6 +2,7 @@ package com.victor.iatms.service.impl;
 
 import com.victor.iatms.entity.constants.Constants;
 import com.victor.iatms.entity.dto.*;
+import com.victor.iatms.exception.BusinessException;
 import com.victor.iatms.service.PermissionService;
 import com.victor.iatms.service.ModuleService;
 import com.victor.iatms.entity.dto.ModuleListQueryDTO;
@@ -530,7 +531,7 @@ public class ProjectServiceImpl implements ProjectService {
 
         // 如果不是管理员且不是项目成员，无权操作
         if (!isAdmin && operatorMember == null) {
-            throw new IllegalArgumentException("您不是项目成员，无权操作");
+            throw new BusinessException("您不是项目成员，无权操作");
         }
 
         // 角色修改权限校验
@@ -541,10 +542,10 @@ public class ProjectServiceImpl implements ProjectService {
             if (!isAdmin && !"owner".equals(operatorRole)) {
                 // 非管理员且非owner，只有manager及以下权限
                 if ("owner".equals(targetRole) || "manager".equals(targetRole)) {
-                    throw new IllegalArgumentException("您无权将成员设置为项目负责人或管理员");
+                    throw new BusinessException("您无权将成员设置为项目负责人或管理员");
                 }
                 if ("owner".equals(currentRole) || "manager".equals(currentRole)) {
-                    throw new IllegalArgumentException("您无权修改项目负责人或管理员的角色");
+                    throw new BusinessException("您无权修改项目负责人或管理员的角色");
                 }
             }
         }
@@ -573,7 +574,7 @@ public class ProjectServiceImpl implements ProjectService {
             if (!isAdmin && !"owner".equals(operatorRole)) {
                 if ("removed".equalsIgnoreCase(dto.getStatus())) {
                     if ("owner".equals(currentRole) || "manager".equals(currentRole)) {
-                        throw new IllegalArgumentException("您无权移除项目负责人或管理员");
+                        throw new BusinessException("您无权移除项目负责人或管理员");
                     }
                 }
             }
@@ -862,7 +863,7 @@ public class ProjectServiceImpl implements ProjectService {
                 fillModuleStatistics(m);
             }
 
-            dto.setModules(convertModuleTree(modules));
+            dto.setModules(convertModuleTree(modules, p.getProjectId()));
             items.add(dto);
         }
 
@@ -897,7 +898,7 @@ public class ProjectServiceImpl implements ProjectService {
         }
     }
 
-    private List<ModuleTreeDTO> convertModuleTree(List<ModuleDTO> modules) {
+    private List<ModuleTreeDTO> convertModuleTree(List<ModuleDTO> modules, Integer projectId) {
         if (modules == null) { return new ArrayList<>(); }
         List<ModuleTreeDTO> result = new ArrayList<>();
         for (ModuleDTO m : modules) {
@@ -907,8 +908,9 @@ public class ProjectServiceImpl implements ProjectService {
             dto.setName(m.getName());
             dto.setParentModuleId(m.getParentModuleId());
             dto.setStatistics(m.getStatistics());
+            dto.setProjectId(projectId);
             if (m.getChildren() != null) {
-                dto.setChildren(convertModuleTree(m.getChildren()));
+                dto.setChildren(convertModuleTree(m.getChildren(), projectId));
             } else {
                 dto.setChildren(new ArrayList<>());
             }

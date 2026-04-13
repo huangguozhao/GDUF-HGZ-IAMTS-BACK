@@ -27,6 +27,21 @@ public class ApiDTO {
     private Integer moduleId;
 
     /**
+     * 项目ID
+     */
+    private Integer projectId;
+
+    /**
+     * 项目名称
+     */
+    private String projectName;
+
+    /**
+     * 模块名称
+     */
+    private String moduleName;
+
+    /**
      * 接口名称
      */
     private String name;

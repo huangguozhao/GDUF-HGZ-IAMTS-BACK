@@ -29,7 +29,12 @@ public class ModuleTreeDTO {
      * 父模块ID
      */
     private Integer parentModuleId;
-    
+
+    /**
+     * 项目ID
+     */
+    private Integer projectId;
+
     /**
      * 模块统计信息
      */

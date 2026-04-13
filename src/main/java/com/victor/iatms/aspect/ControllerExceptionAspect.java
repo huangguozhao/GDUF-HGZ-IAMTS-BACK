@@ -45,7 +45,7 @@ public class ControllerExceptionAspect {
             // 运行时异常 - 根据消息内容返回不同的错误码
             String message = e.getMessage();
             log.warn("Controller 运行时异常: {}", message);
-            
+
             if (message != null) {
                 if (message.contains("不存在")) {
                     return ResponseVO.notFound(message);
@@ -60,7 +60,7 @@ public class ControllerExceptionAspect {
                     return ResponseVO.serverError(message);
                 }
             }
-            
+
             return ResponseVO.serverError("系统异常，请稍后重试");
         } catch (Exception e) {
             log.error("Controller 未知异常: {}", e.getMessage(), e);
