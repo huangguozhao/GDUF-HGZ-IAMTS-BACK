@@ -435,6 +435,12 @@ public class ModuleServiceImpl implements ModuleService {
      * 检查是否有模块访问权限
      */
     private boolean hasModuleAccessPermission(Module module, Integer userId) {
+        // 规则0：管理员拥有所有权限
+        User user = userMapper.selectUserById(userId);
+        if (user != null && "admin".equals(user.getRole())) {
+            return true;
+        }
+
         // 规则1：可以访问自己创建的模块
         if (module.getCreatedBy().equals(userId)) {
             return true;
